@@ -1,0 +1,140 @@
+import datetime
+from pydantic import BaseModel
+from typing import Optional, List
+from datetime import date
+
+
+# Auth Schemas
+class TokenResponse(BaseModel):
+    """Schema for authentication token response."""
+    access_token: str
+    token_type: str
+
+
+class UserRegister(BaseModel):
+    """Schema for user registration."""
+    email: str
+    username: str
+    password: str
+    
+    class Config:
+        # Add example values for API docs
+        json_schema_extra = {
+            "example": {
+                "email": "user@example.com",
+                "username": "johndoe",
+                "password": "password123"
+            }
+        }
+
+
+class UserResponse(BaseModel):
+    """Schema for user response."""
+    id: int
+    email: str
+    username: str
+    discord_id: Optional[str] = None
+    google_id: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# Process Schemas
+class ProcessCreate(BaseModel):
+    """Schema for creating a new process."""
+    company_name: str
+    position: Optional[str] = None
+    status: str = "active"
+
+
+class ProcessUpdate(BaseModel):
+    """Schema for updating a process."""
+    company_name: Optional[str] = None
+    position: Optional[str] = None
+    status: Optional[str] = None
+
+
+class ProcessResponse(BaseModel):
+    """Schema for process response."""
+    id: int
+    company_name: str
+    position: Optional[str]
+    status: str
+    is_public: bool = False
+    share_id: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+    class Config:
+        from_attributes = True
+
+
+# Stage Schemas
+class StageCreate(BaseModel):
+    """Schema for creating a new stage."""
+    process_id: int
+    stage_name: str
+    stage_date: date
+    notes: Optional[str] = None
+    order: Optional[int] = None
+
+
+class StageUpdate(BaseModel):
+    """Schema for updating a stage."""
+    stage_name: Optional[str] = None
+    stage_date: Optional[date] = None
+    notes: Optional[str] = None
+    order: Optional[int] = None
+
+
+class StageResponse(BaseModel):
+    """Schema for stage response."""
+    id: int
+    process_id: int
+    stage_name: str
+    stage_date: str
+    notes: Optional[str] = None
+    order: int
+    created_at: str
+    updated_at: str
+    
+    class Config:
+        from_attributes = True
+
+
+class ProcessDetailResponse(ProcessResponse):
+    """Schema for process response with stages included."""
+    stages: List[StageResponse] = []
+
+    class Config:
+        from_attributes = True
+
+
+class ProcessShareToggle(BaseModel):
+    """Schema for toggling process sharing."""
+    is_public: bool
+
+
+# Feedback Schemas
+class FeedbackCreate(BaseModel):
+    """Schema for creating feedback."""
+    message: str
+    name: Optional[str] = None  # Required for anonymous users
+    email: Optional[str] = None  # Required for anonymous users
+
+
+class FeedbackResponse(BaseModel):
+    """Schema for feedback response."""
+    id: int
+    user_id: Optional[int] = None
+    name: Optional[str] = None
+    email: Optional[str] = None
+    message: str
+    created_at: str
+    # Include user info if available
+    username: Optional[str] = None
+    user_email: Optional[str] = None
+
+    class Config:
+        from_attributes = True
