@@ -13,7 +13,18 @@ import type {
   FeedbackCreate
 } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Ensure API URL uses HTTPS in production (browsers block mixed content)
+let rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+// Force HTTPS for Railway/production URLs
+if (rawApiUrl.includes('railway.app') || rawApiUrl.includes('railway.internal')) {
+  rawApiUrl = rawApiUrl.replace('http://', 'https://');
+  if (!rawApiUrl.startsWith('https://')) {
+    rawApiUrl = `https://${rawApiUrl}`;
+  }
+}
+
+const API_BASE_URL = rawApiUrl;
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -164,7 +175,7 @@ export const stageApi = {
   },
 
   create: async (data: StageCreate): Promise<Stage> => {
-    const response = await apiClient.post<Stage>('/api/stages', data);
+    const response = await apiClient.post<Stage>('/api/stages/', data);
     return response.data;
   },
 
