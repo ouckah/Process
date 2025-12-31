@@ -9,17 +9,8 @@ from sqlalchemy.pool import StaticPool
 from typing import Generator
 from dotenv import load_dotenv
 
-# Import models from API
-import sys
-from pathlib import Path
-
-# Add parent directory to path to import api modules
-# When root is 'bot', files are in /app/, api is at /app/../api/
-parent_dir = Path(__file__).parent.parent
-if str(parent_dir) not in sys.path:
-    sys.path.insert(0, str(parent_dir))
-
-from api.models import User, Base
+# Import models from local models file (bot is modular, doesn't depend on api)
+from models import User, Base
 
 load_dotenv()
 
