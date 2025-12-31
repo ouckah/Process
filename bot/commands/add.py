@@ -54,11 +54,24 @@ async def handle_add_process(discord_id: str, username: str, company_name: str, 
             f"Created process for **{company_name}**{pos_text} with stage **{stage_name}**"
         )
     except httpx.HTTPStatusError as e:
-        error_msg = e.response.json().get("detail", str(e)) if e.response.content else str(e)
+        try:
+            if e.response.content:
+                error_data = e.response.json()
+                if isinstance(error_data, dict):
+                    error_msg = error_data.get("detail", str(error_data))
+                else:
+                    error_msg = str(error_data)
+            else:
+                error_msg = f"HTTP {e.response.status_code}: {e.response.reason_phrase}"
+        except Exception:
+            error_msg = f"HTTP {e.response.status_code}: {e.response.reason_phrase}"
         return create_error_embed("Error", error_msg)
     except Exception as e:
-        print(f"Error adding process: {e}")
-        return create_error_embed("Error", f"Error creating process: {str(e)}")
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"Error adding process: {error_trace}")
+        error_msg = str(e) if str(e) else f"Unknown error: {type(e).__name__}"
+        return create_error_embed("Error", f"Error creating process: {error_msg}")
 
 
 def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
