@@ -383,32 +383,42 @@ async def list_processes(interaction: discord.Interaction):
 # Prefix commands
 @bot.command(name="add")
 async def add_process_prefix(ctx: commands.Context, *, args: str = None):
-    """Add a new process: p!add <company_name> <stage_name> ["position"]"""
+    """Add a new process: p!add <company_name> <stage_name> [position]"""
     if not args:
-        await ctx.send(f"❌ Usage: `{PREFIX}add <company_name> <stage_name> [\"position\"]`\nExamples:\n- `{PREFIX}add Google OA`\n- `{PREFIX}add Google \"Phone Screen\"`\n- `{PREFIX}add Google OA \"Software Engineer\"`\n- `{PREFIX}add Google \"Phone Screen\" \"Software Engineer\"`")
+        valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
+        await ctx.send(f"❌ Usage: `{PREFIX}add <company_name> <stage_name> [position]`\nExamples:\n- `{PREFIX}add Google OA`\n- `{PREFIX}add Google Technical Interview`\n- `{PREFIX}add Google OA Software Engineer`\n\nValid stage names: {valid_names}")
         return
     
-    # Parse arguments using shlex to handle quoted strings properly
-    import shlex
-    try:
-        parts = shlex.split(args)
-    except ValueError as e:
-        # If shlex fails (unmatched quotes), show helpful error
-        await ctx.send(f"❌ Invalid quotes in command. Use quotes for multi-word values:\nExample: `{PREFIX}add Google \"Phone Screen\" \"Software Engineer\"`")
-        return
-    
+    # Parse: split by spaces, then match stage name from VALID_STAGE_NAMES
+    parts = args.split()
     if len(parts) < 2:
-        await ctx.send(f"❌ Usage: `{PREFIX}add <company_name> <stage_name> [\"position\"]`\nExamples:\n- `{PREFIX}add Google OA`\n- `{PREFIX}add Google \"Phone Screen\"`\n- `{PREFIX}add Google OA \"Software Engineer\"`\n- `{PREFIX}add Google \"Phone Screen\" \"Software Engineer\"`")
+        valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
+        await ctx.send(f"❌ Usage: `{PREFIX}add <company_name> <stage_name> [position]`\nValid stage names: {valid_names}")
         return
     
     company_name = parts[0]
-    stage_name = parts[1]
-    position = parts[2] if len(parts) > 2 else None
+    remaining = parts[1:]
     
-    # If there are more than 3 parts, the user might have forgotten quotes
-    if len(parts) > 3:
-        await ctx.send(f"❌ Too many arguments. Use quotes for multi-word stage names or positions:\nExample: `{PREFIX}add Google \"Phone Screen\" \"Software Engineer\"`")
+    # Try to match stage name from VALID_STAGE_NAMES (check progressively longer combinations)
+    stage_name = None
+    stage_end_idx = None
+    
+    # Check from longest to shortest to match multi-word stage names first
+    for length in range(len(remaining), 0, -1):
+        potential_stage = ' '.join(remaining[:length])
+        if potential_stage in VALID_STAGE_NAMES:
+            stage_name = potential_stage
+            stage_end_idx = length
+            break
+    
+    if not stage_name:
+        valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
+        await ctx.send(f"❌ Invalid stage name. Valid stage names: {valid_names}\nNote: Custom stages (Other) are not supported via bot commands.")
         return
+    
+    # Everything after the matched stage name becomes position
+    position = ' '.join(remaining[stage_end_idx:]) if stage_end_idx < len(remaining) else None
+    position = position if position else None  # Convert empty string to None
     
     discord_id = str(ctx.author.id)
     username = ctx.author.name
