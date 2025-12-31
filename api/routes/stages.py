@@ -109,6 +109,7 @@ def post_stage(
 ):
     """
     Add a new stage to a process.
+    Allows duplicate stage names as long as the dates differ.
     """
     # get the process that the stage is associated with
     process = db.query(Process).filter(
@@ -117,6 +118,19 @@ def post_stage(
     ).first()
     if not process:
         raise HTTPException(status_code=404, detail=f"Process with id {stage_data.process_id} not found")
+
+    # Check for duplicate stage (same name and same date)
+    existing_stage = db.query(Stage).filter(
+        Stage.process_id == process.id,
+        Stage.stage_name == stage_data.stage_name,
+        Stage.stage_date == stage_data.stage_date
+    ).first()
+    
+    if existing_stage:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A stage '{stage_data.stage_name}' already exists for this process on {stage_data.stage_date}. Use a different date to add another stage with the same name."
+        )
 
     # create the new stage
     new_stage = Stage(
