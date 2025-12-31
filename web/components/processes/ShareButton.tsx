@@ -14,10 +14,7 @@ export function ShareButton({ process }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const toggleSharing = useToggleSharing();
 
-  // Use window.location.origin for client-side, fallback for SSR
-  const appUrl = typeof window !== 'undefined' 
-    ? window.location.origin 
-    : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
+  const appUrl = window.location.origin;
 
   const shareUrl = process.share_id
     ? `${appUrl}/share/${process.share_id}`
