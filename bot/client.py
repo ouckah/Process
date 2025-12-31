@@ -5,6 +5,10 @@ from database import get_db, get_or_create_discord_user
 
 load_dotenv()
 
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+if not DISCORD_TOKEN:
+    raise ValueError("DISCORD_TOKEN environment variable is not set")
+
 
 class Client(discord.Client):
     async def on_ready(self):
@@ -35,4 +39,4 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 client = Client(intents=intents)
-client.run(os.getenv('DISCORD_TOKEN'))
+client.run(DISCORD_TOKEN)

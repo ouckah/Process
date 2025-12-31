@@ -5,7 +5,6 @@ Shares the same database models and session factory as the API.
 import os
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import create_engine
-from sqlalchemy.pool import StaticPool
 from typing import Generator
 from dotenv import load_dotenv
 
@@ -14,16 +13,11 @@ from models import User, Base
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./process_tracker.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is not set")
 
-if DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(
-        DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-else:
-    engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL)
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
