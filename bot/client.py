@@ -60,7 +60,7 @@ async def api_request(method: str, endpoint: str, token: str, **kwargs):
 
 
 # Helper functions for command logic (shared by slash and prefix commands)
-async def handle_add_process(discord_id: str, username: str, company_name: str, stage_name: str, position: str = None) -> str:
+async def handle_add_process(discord_id: str, username: str, company_name: str, stage_name: str, position: str = None) -> discord.Embed:
     """Handle adding a process. Returns success/error message."""
     try:
         token = await get_user_token(discord_id, username)
@@ -72,8 +72,14 @@ async def handle_add_process(discord_id: str, username: str, company_name: str, 
                         and (p.get("position") or None) == (position or None)), None)
         
         if existing:
-            pos_text = f" for {position}" if position else ""
-            return f"❌ Process for **{company_name}**{pos_text} already exists. Use `{PREFIX}list` or `/list` to see all processes."
+            pos_text = f" ({position})" if position else ""
+            embed = discord.Embed(
+                title="❌ Process Already Exists",
+                description=f"Process for **{company_name}**{pos_text} already exists.",
+                color=0xFF0000  # Red
+            )
+            embed.add_field(name="Next Steps", value=f"Use `{PREFIX}list` or `/list` to see all processes.", inline=False)
+            return embed
         
         # Create process
         process = await api_request("POST", "/api/processes/", token, json={
@@ -91,16 +97,32 @@ async def handle_add_process(discord_id: str, username: str, company_name: str, 
         })
         
         pos_text = f" ({position})" if position else ""
-        return f"✅ Created process for **{company_name}**{pos_text} with stage **{stage_name}**"
+        embed = discord.Embed(
+            title="✅ Process Created",
+            description=f"Created process for **{company_name}**{pos_text} with stage **{stage_name}**",
+            color=0x00FF00  # Green
+        )
+        embed.timestamp = discord.utils.utcnow()
+        return embed
     except httpx.HTTPStatusError as e:
         error_msg = e.response.json().get("detail", str(e)) if e.response.content else str(e)
-        return f"❌ Error: {error_msg}"
+        embed = discord.Embed(
+            title="❌ Error",
+            description=error_msg,
+            color=0xFF0000  # Red
+        )
+        return embed
     except Exception as e:
         print(f"Error adding process: {e}")
-        return f"❌ Error creating process: {str(e)}"
+        embed = discord.Embed(
+            title="❌ Error",
+            description=f"Error creating process: {str(e)}",
+            color=0xFF0000  # Red
+        )
+        return embed
 
 
-async def handle_delete_process(discord_id: str, username: str, company_name: str, position: str = None) -> str:
+async def handle_delete_process(discord_id: str, username: str, company_name: str, position: str = None) -> discord.Embed:
     """Handle deleting a process. Returns success/error message."""
     try:
         token = await get_user_token(discord_id, username)
@@ -121,24 +143,56 @@ async def handle_delete_process(discord_id: str, username: str, company_name: st
         
         if not matching:
             pos_text = f" ({position})" if position else ""
-            return f"❌ Process for **{company_name}**{pos_text} not found. Use `{PREFIX}list` or `/list` to see all processes."
+            embed = discord.Embed(
+                title="❌ Process Not Found",
+                description=f"Process for **{company_name}**{pos_text} not found.",
+                color=0xFF0000  # Red
+            )
+            embed.add_field(name="Next Steps", value=f"Use `{PREFIX}list` or `/list` to see all processes.", inline=False)
+            return embed
         
         # If multiple matches and no position specified, return error
         if len(matching) > 1 and not position:
-            return f"❌ Multiple processes found for **{company_name}**. Please specify position: `{PREFIX}delete <company_name> <position>` or `/delete <company_name> <position>`"
+            embed = discord.Embed(
+                title="❌ Multiple Processes Found",
+                description=f"Multiple processes found for **{company_name}**.",
+                color=0xFF0000  # Red
+            )
+            embed.add_field(
+                name="Solution",
+                value=f"Please specify position: `{PREFIX}delete <company_name> <position>` or `/delete <company_name> <position>`",
+                inline=False
+            )
+            return embed
         
         process = matching[0]
         # Delete process
         await api_request("DELETE", f"/api/processes/{process['id']}", token)
         
         pos_text = f" ({position})" if position else ""
-        return f"✅ Deleted process for **{company_name}**{pos_text}"
+        embed = discord.Embed(
+            title="✅ Process Deleted",
+            description=f"Deleted process for **{company_name}**{pos_text}",
+            color=0x00FF00  # Green
+        )
+        embed.timestamp = discord.utils.utcnow()
+        return embed
     except httpx.HTTPStatusError as e:
         error_msg = e.response.json().get("detail", str(e)) if e.response.content else str(e)
-        return f"❌ Error: {error_msg}"
+        embed = discord.Embed(
+            title="❌ Error",
+            description=error_msg,
+            color=0xFF0000  # Red
+        )
+        return embed
     except Exception as e:
         print(f"Error deleting process: {e}")
-        return f"❌ Error deleting process: {str(e)}"
+        embed = discord.Embed(
+            title="❌ Error",
+            description=f"Error deleting process: {str(e)}",
+            color=0xFF0000  # Red
+        )
+        return embed
 
 
 async def handle_list_processes(discord_id: str, username: str) -> tuple[list[discord.Embed], int]:
@@ -344,8 +398,8 @@ async def add_process(interaction: discord.Interaction, company_name: str, stage
     
     discord_id = str(interaction.user.id)
     username = interaction.user.name
-    message = await handle_add_process(discord_id, username, company_name, stage_name, position)
-    await interaction.followup.send(message)
+    embed = await handle_add_process(discord_id, username, company_name, stage_name, position)
+    await interaction.followup.send(embed=embed)
 
 
 @bot.tree.command(name="delete", description="Delete a process by company name")
@@ -359,8 +413,8 @@ async def delete_process_cmd(interaction: discord.Interaction, company_name: str
     
     discord_id = str(interaction.user.id)
     username = interaction.user.name
-    message = await handle_delete_process(discord_id, username, company_name, position)
-    await interaction.followup.send(message)
+    embed = await handle_delete_process(discord_id, username, company_name, position)
+    await interaction.followup.send(embed=embed)
 
 
 @bot.tree.command(name="list", description="List all your processes")
@@ -413,7 +467,14 @@ async def add_process_prefix(ctx: commands.Context, *, args: str = None):
     
     if not stage_name:
         valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
-        await ctx.send(f"❌ Invalid stage name. Valid stage names: {valid_names}\nNote: Custom stages (Other) are not supported via bot commands.")
+        embed = discord.Embed(
+            title="❌ Invalid Stage Name",
+            description="The stage name you provided doesn't match any valid stage names.",
+            color=0xFF0000  # Red
+        )
+        embed.add_field(name="Valid Stage Names", value=valid_names, inline=False)
+        embed.add_field(name="Note", value="Custom stages (Other) are not supported via bot commands.", inline=False)
+        await ctx.send(embed=embed)
         return
     
     # Everything after the matched stage name becomes position
@@ -422,42 +483,42 @@ async def add_process_prefix(ctx: commands.Context, *, args: str = None):
     
     discord_id = str(ctx.author.id)
     username = ctx.author.name
-    message = await handle_add_process(discord_id, username, company_name, stage_name, position)
-    await ctx.send(message)
+    embed = await handle_add_process(discord_id, username, company_name, stage_name, position)
+    await ctx.send(embed=embed)
 
 
 @bot.command(name="delete")
 async def delete_process_prefix(ctx: commands.Context, *, args: str = None):
     """Delete a process: p!delete <company_name> ["position"]"""
     if not args:
-        await ctx.send(f"❌ Usage: `{PREFIX}delete <company_name> [\"position\"]`\nExamples:\n- `{PREFIX}delete Google`\n- `{PREFIX}delete Google \"Software Engineer\"`")
+        embed = discord.Embed(
+            title="❌ Usage Error",
+            description=f"Usage: `{PREFIX}delete <company_name> [position]`",
+            color=0xFF9900  # Orange
+        )
+        embed.add_field(name="Examples", value=f"• `{PREFIX}delete Google`\n• `{PREFIX}delete Google Software Engineer`", inline=False)
+        await ctx.send(embed=embed)
         return
     
-    # Parse arguments using shlex to handle quoted strings properly
-    import shlex
-    try:
-        parts = shlex.split(args)
-    except ValueError:
-        # If shlex fails (unmatched quotes), show helpful error
-        await ctx.send(f"❌ Invalid quotes in command. Use quotes for multi-word positions:\nExample: `{PREFIX}delete Google \"Software Engineer\"`")
-        return
-    
+    # Parse: split by spaces
+    parts = args.split()
     if len(parts) < 1:
-        await ctx.send(f"❌ Usage: `{PREFIX}delete <company_name> [\"position\"]`\nExamples:\n- `{PREFIX}delete Google`\n- `{PREFIX}delete Google \"Software Engineer\"`")
+        embed = discord.Embed(
+            title="❌ Usage Error",
+            description=f"Usage: `{PREFIX}delete <company_name> [position]`",
+            color=0xFF9900  # Orange
+        )
+        await ctx.send(embed=embed)
         return
     
     company_name = parts[0]
-    position = parts[1] if len(parts) > 1 else None
-    
-    # If there are more than 2 parts, the user might have forgotten quotes
-    if len(parts) > 2:
-        await ctx.send(f"❌ Too many arguments. Use quotes for multi-word positions:\nExample: `{PREFIX}delete Google \"Software Engineer\"`")
-        return
+    position = ' '.join(parts[1:]) if len(parts) > 1 else None
+    position = position if position else None  # Convert empty string to None
     
     discord_id = str(ctx.author.id)
     username = ctx.author.name
-    message = await handle_delete_process(discord_id, username, company_name, position)
-    await ctx.send(message)
+    embed = await handle_delete_process(discord_id, username, company_name, position)
+    await ctx.send(embed=embed)
 
 
 @bot.command(name="list")
