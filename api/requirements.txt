@@ -9,4 +9,5 @@ passlib[bcrypt]>=1.7.4
 httpx>=0.24.0
 bcrypt
 python-dotenv
+psycopg2-binary>=2.9.0
 
