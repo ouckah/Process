@@ -1,8 +1,16 @@
 import discord
 import os
-
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
-from bot.database import get_db, get_or_create_discord_user
+
+# Add parent directory to path for api module imports
+# When root is 'bot', files are in /app/, api is at /app/../api/
+parent_dir = Path(__file__).parent.parent
+if str(parent_dir) not in sys.path:
+    sys.path.insert(0, str(parent_dir))
+
+from database import get_db, get_or_create_discord_user
 
 load_dotenv()
 
