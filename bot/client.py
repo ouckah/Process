@@ -170,23 +170,7 @@ async def on_ready():
         print(f'Failed to sync commands: {e}')
 
 
-@bot.tree.command(name="add", description="Add a new process with an initial stage")
-@app_commands.describe(
-    company_name="The company name (e.g., Google, Microsoft)",
-    stage_name="The initial stage name (e.g., OA, Phone Screen, Reject)"
-)
-@app_commands.autocomplete(stage_name="stage_name_autocomplete")
-async def add_process(interaction: discord.Interaction, company_name: str, stage_name: str):
-    """Add a new process: /add <company_name> <stage_name>"""
-    await interaction.response.defer()
-    
-    discord_id = str(interaction.user.id)
-    username = interaction.user.name
-    message = await handle_add_process(discord_id, username, company_name, stage_name)
-    await interaction.followup.send(message)
-
-
-@bot.tree.autocomplete("stage_name_autocomplete")
+# Autocomplete function must be defined before the command that uses it
 async def stage_name_autocomplete(interaction: discord.Interaction, current: str):
     """Autocomplete for stage names."""
     choices = [
@@ -203,6 +187,22 @@ async def stage_name_autocomplete(interaction: discord.Interaction, current: str
         ]
     # Limit to 25 choices (Discord limit)
     return choices[:25]
+
+
+@bot.tree.command(name="add", description="Add a new process with an initial stage")
+@app_commands.describe(
+    company_name="The company name (e.g., Google, Microsoft)",
+    stage_name="The initial stage name (e.g., OA, Phone Screen, Reject)"
+)
+@app_commands.autocomplete(stage_name=stage_name_autocomplete)
+async def add_process(interaction: discord.Interaction, company_name: str, stage_name: str):
+    """Add a new process: /add <company_name> <stage_name>"""
+    await interaction.response.defer()
+    
+    discord_id = str(interaction.user.id)
+    username = interaction.user.name
+    message = await handle_add_process(discord_id, username, company_name, stage_name)
+    await interaction.followup.send(message)
 
 
 @bot.tree.command(name="delete", description="Delete a process by company name")
