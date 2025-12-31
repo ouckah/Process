@@ -18,14 +18,14 @@ async def handle_delete_process(discord_id: str, username: str, company_name: st
     try:
         token = await get_user_token(discord_id, username)
         
-        # Find process by company name and position
+        # Find process by company name and position - case-insensitive
         processes = await api_request("GET", "/api/processes/", token)
         matching = [p for p in processes 
                    if p["company_name"].lower() == company_name.lower()]
         
-        # Filter by position if provided
+        # Filter by position if provided - case-insensitive
         if position:
-            matching = [p for p in matching if (p.get("position") or None) == position]
+            matching = [p for p in matching if (p.get("position") or "").lower() == position.lower()]
         else:
             # If no position specified, prefer processes with no position
             # If none exist, take the first match

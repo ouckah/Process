@@ -19,11 +19,11 @@ async def handle_add_process(discord_id: str, username: str, company_name: str, 
     try:
         token = await get_user_token(discord_id, username)
         
-        # Check if process already exists (same company name and position)
+        # Check if process already exists (same company name and position) - case-insensitive
         processes = await api_request("GET", "/api/processes/", token)
         existing = next((p for p in processes 
                         if p["company_name"].lower() == company_name.lower() 
-                        and (p.get("position") or None) == (position or None)), None)
+                        and (p.get("position") or "").lower() == (position or "").lower()), None)
         
         if existing:
             pos_text = f" ({position})" if position else ""
@@ -116,11 +116,16 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
         stage_name = None
         stage_end_idx = None
         
+        # Create a case-insensitive lookup dictionary
+        stage_name_lookup = {name.lower(): name for name in VALID_STAGE_NAMES}
+        
         # Check from longest to shortest to match multi-word stage names first
         for length in range(len(remaining), 0, -1):
             potential_stage = ' '.join(remaining[:length])
-            if potential_stage in VALID_STAGE_NAMES:
-                stage_name = potential_stage
+            potential_stage_lower = potential_stage.lower()
+            if potential_stage_lower in stage_name_lookup:
+                # Use the original capitalized version from VALID_STAGE_NAMES
+                stage_name = stage_name_lookup[potential_stage_lower]
                 stage_end_idx = length
                 break
         
