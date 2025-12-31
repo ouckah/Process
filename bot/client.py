@@ -59,22 +59,25 @@ async def api_request(method: str, endpoint: str, token: str, **kwargs):
 
 
 # Helper functions for command logic (shared by slash and prefix commands)
-async def handle_add_process(discord_id: str, username: str, company_name: str, stage_name: str) -> str:
+async def handle_add_process(discord_id: str, username: str, company_name: str, stage_name: str, position: str = None) -> str:
     """Handle adding a process. Returns success/error message."""
     try:
         token = await get_user_token(discord_id, username)
         
-        # Check if process already exists
+        # Check if process already exists (same company name and position)
         processes = await api_request("GET", "/api/processes/", token)
-        existing = next((p for p in processes if p["company_name"].lower() == company_name.lower()), None)
+        existing = next((p for p in processes 
+                        if p["company_name"].lower() == company_name.lower() 
+                        and (p.get("position") or None) == (position or None)), None)
         
         if existing:
-            return f"❌ Process for **{company_name}** already exists. Use `{PREFIX}list` or `/list` to see all processes."
+            pos_text = f" for {position}" if position else ""
+            return f"❌ Process for **{company_name}**{pos_text} already exists. Use `{PREFIX}list` or `/list` to see all processes."
         
         # Create process
         process = await api_request("POST", "/api/processes/", token, json={
             "company_name": company_name,
-            "position": None
+            "position": position if position else None
         })
         
         # Add initial stage
@@ -86,7 +89,8 @@ async def handle_add_process(discord_id: str, username: str, company_name: str, 
             "order": 1
         })
         
-        return f"✅ Created process for **{company_name}** with stage **{stage_name}**"
+        pos_text = f" ({position})" if position else ""
+        return f"✅ Created process for **{company_name}**{pos_text} with stage **{stage_name}**"
     except httpx.HTTPStatusError as e:
         error_msg = e.response.json().get("detail", str(e)) if e.response.content else str(e)
         return f"❌ Error: {error_msg}"
@@ -95,22 +99,39 @@ async def handle_add_process(discord_id: str, username: str, company_name: str, 
         return f"❌ Error creating process: {str(e)}"
 
 
-async def handle_delete_process(discord_id: str, username: str, company_name: str) -> str:
+async def handle_delete_process(discord_id: str, username: str, company_name: str, position: str = None) -> str:
     """Handle deleting a process. Returns success/error message."""
     try:
         token = await get_user_token(discord_id, username)
         
-        # Find process by company name
+        # Find process by company name and position
         processes = await api_request("GET", "/api/processes/", token)
-        process = next((p for p in processes if p["company_name"].lower() == company_name.lower()), None)
+        matching = [p for p in processes 
+                   if p["company_name"].lower() == company_name.lower()]
         
-        if not process:
-            return f"❌ Process for **{company_name}** not found. Use `{PREFIX}list` or `/list` to see all processes."
+        # Filter by position if provided
+        if position:
+            matching = [p for p in matching if (p.get("position") or None) == position]
+        else:
+            # If no position specified, prefer processes with no position
+            # If none exist, take the first match
+            no_position = [p for p in matching if not p.get("position")]
+            matching = no_position if no_position else matching
         
+        if not matching:
+            pos_text = f" ({position})" if position else ""
+            return f"❌ Process for **{company_name}**{pos_text} not found. Use `{PREFIX}list` or `/list` to see all processes."
+        
+        # If multiple matches and no position specified, return error
+        if len(matching) > 1 and not position:
+            return f"❌ Multiple processes found for **{company_name}**. Please specify position: `{PREFIX}delete <company_name> <position>` or `/delete <company_name> <position>`"
+        
+        process = matching[0]
         # Delete process
         await api_request("DELETE", f"/api/processes/{process['id']}", token)
         
-        return f"✅ Deleted process for **{company_name}**"
+        pos_text = f" ({position})" if position else ""
+        return f"✅ Deleted process for **{company_name}**{pos_text}"
     except httpx.HTTPStatusError as e:
         error_msg = e.response.json().get("detail", str(e)) if e.response.content else str(e)
         return f"❌ Error: {error_msg}"
@@ -144,7 +165,8 @@ async def handle_list_processes(discord_id: str, username: str) -> str:
             status = p["status"]
             status_emoji = "🟢" if status == "active" else "🔴" if status == "rejected" else "✅"
             
-            lines.append(f"{status_emoji} **{p['company_name']}** - {latest_stage} ({status})")
+            position_text = f" ({p.get('position')})" if p.get("position") else ""
+            lines.append(f"{status_emoji} **{p['company_name']}**{position_text} - {latest_stage} ({status})")
         
         message = "\n".join(lines)
         # Discord message limit is 2000 characters
@@ -192,28 +214,32 @@ async def stage_name_autocomplete(interaction: discord.Interaction, current: str
 @bot.tree.command(name="add", description="Add a new process with an initial stage")
 @app_commands.describe(
     company_name="The company name (e.g., Google, Microsoft)",
-    stage_name="The initial stage name (e.g., OA, Phone Screen, Reject)"
+    stage_name="The initial stage name (e.g., OA, Phone Screen, Reject)",
+    position="The job position/title (optional, e.g., Software Engineer)"
 )
 @app_commands.autocomplete(stage_name=stage_name_autocomplete)
-async def add_process(interaction: discord.Interaction, company_name: str, stage_name: str):
-    """Add a new process: /add <company_name> <stage_name>"""
+async def add_process(interaction: discord.Interaction, company_name: str, stage_name: str, position: str = None):
+    """Add a new process: /add <company_name> <stage_name> [position]"""
     await interaction.response.defer()
     
     discord_id = str(interaction.user.id)
     username = interaction.user.name
-    message = await handle_add_process(discord_id, username, company_name, stage_name)
+    message = await handle_add_process(discord_id, username, company_name, stage_name, position)
     await interaction.followup.send(message)
 
 
 @bot.tree.command(name="delete", description="Delete a process by company name")
-@app_commands.describe(company_name="The company name to delete")
-async def delete_process_cmd(interaction: discord.Interaction, company_name: str):
-    """Delete a process: /delete <company_name>"""
+@app_commands.describe(
+    company_name="The company name to delete",
+    position="The job position/title (optional, required if multiple processes exist)"
+)
+async def delete_process_cmd(interaction: discord.Interaction, company_name: str, position: str = None):
+    """Delete a process: /delete <company_name> [position]"""
     await interaction.response.defer()
     
     discord_id = str(interaction.user.id)
     username = interaction.user.name
-    message = await handle_delete_process(discord_id, username, company_name)
+    message = await handle_delete_process(discord_id, username, company_name, position)
     await interaction.followup.send(message)
 
 
@@ -231,36 +257,70 @@ async def list_processes(interaction: discord.Interaction):
 # Prefix commands
 @bot.command(name="add")
 async def add_process_prefix(ctx: commands.Context, *, args: str = None):
-    """Add a new process: p!add <company_name> <stage_name>"""
+    """Add a new process: p!add <company_name> <stage_name> ["position"]"""
     if not args:
-        await ctx.send(f"❌ Usage: `{PREFIX}add <company_name> <stage_name>` or `/add <company_name> <stage_name>`\nExample: `{PREFIX}add Google OA` or `/add Google OA`")
+        await ctx.send(f"❌ Usage: `{PREFIX}add <company_name> <stage_name> [\"position\"]`\nExamples:\n- `{PREFIX}add Google OA`\n- `{PREFIX}add Google \"Phone Screen\"`\n- `{PREFIX}add Google OA \"Software Engineer\"`\n- `{PREFIX}add Google \"Phone Screen\" \"Software Engineer\"`")
         return
     
-    # Parse arguments - split by spaces, but handle multi-word stage names
-    parts = args.split()
+    # Parse arguments using shlex to handle quoted strings properly
+    import shlex
+    try:
+        parts = shlex.split(args)
+    except ValueError as e:
+        # If shlex fails (unmatched quotes), show helpful error
+        await ctx.send(f"❌ Invalid quotes in command. Use quotes for multi-word values:\nExample: `{PREFIX}add Google \"Phone Screen\" \"Software Engineer\"`")
+        return
+    
     if len(parts) < 2:
-        await ctx.send(f"❌ Usage: `{PREFIX}add <company_name> <stage_name>` or `/add <company_name> <stage_name>`\nExample: `{PREFIX}add Google OA` or `/add Google OA`")
+        await ctx.send(f"❌ Usage: `{PREFIX}add <company_name> <stage_name> [\"position\"]`\nExamples:\n- `{PREFIX}add Google OA`\n- `{PREFIX}add Google \"Phone Screen\"`\n- `{PREFIX}add Google OA \"Software Engineer\"`\n- `{PREFIX}add Google \"Phone Screen\" \"Software Engineer\"`")
         return
     
     company_name = parts[0]
-    stage_name = ' '.join(parts[1:])  # Join remaining parts for multi-word stage names
+    stage_name = parts[1]
+    position = parts[2] if len(parts) > 2 else None
+    
+    # If there are more than 3 parts, the user might have forgotten quotes
+    if len(parts) > 3:
+        await ctx.send(f"❌ Too many arguments. Use quotes for multi-word stage names or positions:\nExample: `{PREFIX}add Google \"Phone Screen\" \"Software Engineer\"`")
+        return
     
     discord_id = str(ctx.author.id)
     username = ctx.author.name
-    message = await handle_add_process(discord_id, username, company_name, stage_name)
+    message = await handle_add_process(discord_id, username, company_name, stage_name, position)
     await ctx.send(message)
 
 
 @bot.command(name="delete")
-async def delete_process_prefix(ctx: commands.Context, *, company_name: str = None):
-    """Delete a process: p!delete <company_name>"""
-    if not company_name:
-        await ctx.send(f"❌ Usage: `{PREFIX}delete <company_name>` or `/delete <company_name>`\nExample: `{PREFIX}delete Google` or `/delete Google`")
+async def delete_process_prefix(ctx: commands.Context, *, args: str = None):
+    """Delete a process: p!delete <company_name> ["position"]"""
+    if not args:
+        await ctx.send(f"❌ Usage: `{PREFIX}delete <company_name> [\"position\"]`\nExamples:\n- `{PREFIX}delete Google`\n- `{PREFIX}delete Google \"Software Engineer\"`")
+        return
+    
+    # Parse arguments using shlex to handle quoted strings properly
+    import shlex
+    try:
+        parts = shlex.split(args)
+    except ValueError:
+        # If shlex fails (unmatched quotes), show helpful error
+        await ctx.send(f"❌ Invalid quotes in command. Use quotes for multi-word positions:\nExample: `{PREFIX}delete Google \"Software Engineer\"`")
+        return
+    
+    if len(parts) < 1:
+        await ctx.send(f"❌ Usage: `{PREFIX}delete <company_name> [\"position\"]`\nExamples:\n- `{PREFIX}delete Google`\n- `{PREFIX}delete Google \"Software Engineer\"`")
+        return
+    
+    company_name = parts[0]
+    position = parts[1] if len(parts) > 1 else None
+    
+    # If there are more than 2 parts, the user might have forgotten quotes
+    if len(parts) > 2:
+        await ctx.send(f"❌ Too many arguments. Use quotes for multi-word positions:\nExample: `{PREFIX}delete Google \"Software Engineer\"`")
         return
     
     discord_id = str(ctx.author.id)
     username = ctx.author.name
-    message = await handle_delete_process(discord_id, username, company_name)
+    message = await handle_delete_process(discord_id, username, company_name, position)
     await ctx.send(message)
 
 

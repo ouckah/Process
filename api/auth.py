@@ -172,14 +172,51 @@ def merge_user_accounts(db: Session, source_user: User, target_user: User) -> No
     """
     Merge source_user into target_user.
     Transfers all processes, stages, and feedback from source to target.
+    If processes with the same company name AND matching position (both null or both same) exist,
+    merges their stages. Otherwise keeps them as separate processes.
     Deletes source_user after transfer.
     """
-    from api.models import Process, Feedback
+    from models import Process, Feedback, Stage
+    from sqlalchemy import func
     
-    # Transfer all processes (stages cascade automatically)
-    processes = db.query(Process).filter(Process.user_id == source_user.id).all()
-    for process in processes:
-        process.user_id = target_user.id
+    # Get all processes from source user
+    source_processes = db.query(Process).filter(Process.user_id == source_user.id).all()
+    
+    # Get all processes from target user (for matching)
+    target_processes = db.query(Process).filter(Process.user_id == target_user.id).all()
+    # Create a lookup key: (company_name_lower, position_or_none)
+    target_processes_by_key = {}
+    for p in target_processes:
+        key = (p.company_name.lower(), p.position)
+        target_processes_by_key[key] = p
+    
+    for source_process in source_processes:
+        # Create matching key for source process
+        key = (source_process.company_name.lower(), source_process.position)
+        
+        # Check if target user has a process with matching company name AND position
+        # (both None counts as a match, or both must be the same string)
+        if key in target_processes_by_key:
+            # Merge stages: transfer all stages from source process to target process
+            target_process = target_processes_by_key[key]
+            
+            # Get all stages from source process
+            source_stages = db.query(Stage).filter(Stage.process_id == source_process.id).all()
+            
+            # Get max order from target process to append stages
+            max_order = db.query(func.max(Stage.order)).filter(Stage.process_id == target_process.id).scalar() or 0
+            
+            # Transfer stages to target process
+            for stage in source_stages:
+                stage.process_id = target_process.id
+                # Update order to append after existing stages
+                stage.order = max_order + stage.order
+            
+            # Delete the source process (stages are already transferred)
+            db.delete(source_process)
+        else:
+            # No matching process, just transfer the process
+            source_process.user_id = target_user.id
     
     # Transfer all feedback
     feedback_items = db.query(Feedback).filter(Feedback.user_id == source_user.id).all()
@@ -189,7 +226,7 @@ def merge_user_accounts(db: Session, source_user: User, target_user: User) -> No
     # Commit transfers
     db.commit()
     
-    # Delete source user (cascade will handle relationships)
+    # Delete source user (cascade will handle any remaining relationships)
     db.delete(source_user)
     db.commit()
 
