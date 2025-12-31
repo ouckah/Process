@@ -138,3 +138,9 @@ class FeedbackResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class DiscordBotTokenRequest(BaseModel):
+    """Schema for Discord bot token request."""
+    discord_id: str
+    username: str

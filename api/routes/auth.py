@@ -21,7 +21,7 @@ from auth import (
     merge_user_accounts,
     is_admin_user
 )
-from schemas import UserResponse, TokenResponse, UserRegister
+from schemas import UserResponse, TokenResponse, UserRegister, DiscordBotTokenRequest
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -456,8 +456,7 @@ def google_oauth(
 
 @router.post("/discord/bot-token", response_model=TokenResponse)
 def get_discord_bot_token(
-    discord_id: str,
-    username: str,
+    request: DiscordBotTokenRequest,
     db: Session = Depends(get_db)
 ):
     """
@@ -465,6 +464,8 @@ def get_discord_bot_token(
     Creates ghost account if user doesn't exist.
     Used by Discord bot to authenticate API requests.
     """
+    discord_id = request.discord_id
+    username = request.username
     # Get or create user by discord_id
     user = get_user_by_discord_id(db, discord_id)
     
