@@ -71,4 +71,3 @@ export function ShareButton({ process }: ShareButtonProps) {
     </div>
   );
 }
-
