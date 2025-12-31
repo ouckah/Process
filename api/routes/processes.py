@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 
-from api.database import get_db
-from api.models import Process, ProcessStatus, User
-from api.schemas import ProcessCreate, ProcessResponse, ProcessUpdate, ProcessDetailResponse, StageResponse, ProcessShareToggle
-from api.auth import get_current_user
+from database import get_db
+from models import Process, ProcessStatus, User
+from schemas import ProcessCreate, ProcessResponse, ProcessUpdate, ProcessDetailResponse, StageResponse, ProcessShareToggle
+from auth import get_current_user
 
 router = APIRouter(prefix="/api/processes", tags=["processes"])
 

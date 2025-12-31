@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-from api.routes import processes, auth, stages, feedback
-from api.database import init_db
+from routes import processes, auth, stages, feedback
+from database import init_db
 
 app = FastAPI()
 
@@ -43,3 +43,9 @@ app.include_router(feedback.router)
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint for Railway and monitoring."""
+    return {"status": "healthy", "service": "api"}

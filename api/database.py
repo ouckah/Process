@@ -5,7 +5,7 @@ import os
 from typing import Generator
 from dotenv import load_dotenv
 
-from api.models import Base
+from models import Base
 
 
 load_dotenv()

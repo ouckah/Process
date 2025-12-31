@@ -3,10 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from api.database import get_db
-from api.models import Stage, Process, User
-from api.schemas import StageCreate, StageResponse, StageUpdate
-from api.auth import get_current_user
+from database import get_db
+from models import Stage, Process, User
+from schemas import StageCreate, StageResponse, StageUpdate
+from auth import get_current_user
 
 
 router = APIRouter(prefix="/api/stages", tags=["stages"])

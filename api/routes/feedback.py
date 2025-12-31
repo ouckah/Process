@@ -6,10 +6,10 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from jose import JWTError, jwt
 
-from api.database import get_db
-from api.models import Feedback, User
-from api.schemas import FeedbackCreate, FeedbackResponse
-from api.auth import get_current_admin_user, SECRET_KEY, ALGORITHM
+from database import get_db
+from models import Feedback, User
+from schemas import FeedbackCreate, FeedbackResponse
+from auth import get_current_admin_user, SECRET_KEY, ALGORITHM
 
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])
 
