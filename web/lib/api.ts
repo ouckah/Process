@@ -114,7 +114,7 @@ export const authApi = {
 // Process API
 export const processApi = {
   getAll: async (): Promise<Process[]> => {
-    const response = await apiClient.get<Process[]>('/api/processes');
+    const response = await apiClient.get<Process[]>('/api/processes/');
     return response.data;
   },
 
@@ -129,7 +129,7 @@ export const processApi = {
   },
 
   create: async (data: ProcessCreate): Promise<Process> => {
-    const response = await apiClient.post<Process>('/api/processes', data);
+    const response = await apiClient.post<Process>('/api/processes/', data);
     return response.data;
   },
 
