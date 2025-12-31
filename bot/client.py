@@ -20,16 +20,16 @@ class Client(discord.Client):
 
         # Get or create user account for Discord user
         # This ensures every Discord user has an account (ghost account if first time)
-        db = next(get_db())
-        try:
-            discord_id = str(message.author.id)
-            username = message.author.name
-            user = get_or_create_discord_user(db, discord_id, username)
-            print(f"User account: {user.id} (discord_id: {discord_id}, email: {user.email})")
-        except Exception as e:
-            print(f"Error getting/creating user: {e}")
-        finally:
-            db.close()
+        # db = next(get_db())
+        # try:
+        #     discord_id = str(message.author.id)
+        #     username = message.author.name
+        #     user = get_or_create_discord_user(db, discord_id, username)
+        #     print(f"User account: {user.id} (discord_id: {discord_id}, email: {user.email})")
+        # except Exception as e:
+        #     print(f"Error getting/creating user: {e}")
+        # finally:
+        #     db.close()
 
         if message.content.startswith('!hello'):
             await message.channel.send('Hello!')
