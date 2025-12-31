@@ -1,15 +1,41 @@
 import datetime
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List
 
 from database import get_db
-from models import Stage, Process, User
+from models import Stage, Process, User, ProcessStatus
 from schemas import StageCreate, StageResponse, StageUpdate
 from auth import get_current_user
 
 
 router = APIRouter(prefix="/api/stages", tags=["stages"])
+
+
+def calculate_status_from_stages(stages: List) -> ProcessStatus:
+    """
+    Calculate process status based on the most recent stage.
+    - If most recent stage is "Reject" → REJECTED
+    - If most recent stage is "Offer" → COMPLETED
+    - Otherwise → ACTIVE
+    """
+    if not stages:
+        return ProcessStatus.ACTIVE
+    
+    # Get the most recent stage (stages are ordered by 'order' field)
+    most_recent_stage = stages[-1] if stages else None
+    
+    if not most_recent_stage:
+        return ProcessStatus.ACTIVE
+    
+    stage_name_lower = most_recent_stage.stage_name.lower().strip()
+    
+    if stage_name_lower == "reject":
+        return ProcessStatus.REJECTED
+    elif stage_name_lower == "offer":
+        return ProcessStatus.COMPLETED
+    else:
+        return ProcessStatus.ACTIVE
 
 
 @router.get("/{stage_id}", response_model=StageResponse)
@@ -106,6 +132,13 @@ def post_stage(
     db.commit()
     db.refresh(new_stage)  # refresh to get the generated ID
     
+    # Recalculate process status from stages
+    db.refresh(process, ["stages"])
+    calculated_status = calculate_status_from_stages(process.stages)
+    if process.status != calculated_status:
+        process.status = calculated_status
+        db.commit()
+    
     # Convert to response format with ISO string dates
     return StageResponse(
         id=new_stage.id,
@@ -149,6 +182,14 @@ def update_stage(
 
     db.commit()
     db.refresh(stage)
+    
+    # Recalculate process status from stages
+    process = db.query(Process).options(joinedload(Process.stages)).filter(Process.id == stage.process_id).first()
+    if process:
+        calculated_status = calculate_status_from_stages(process.stages)
+        if process.status != calculated_status:
+            process.status = calculated_status
+            db.commit()
 
     # Convert to response format with ISO string dates
     return StageResponse(
@@ -180,6 +221,7 @@ def delete_stage(
         raise HTTPException(status_code=404, detail=f"Stage with id {stage_id} not found")
 
     # Store stage data before deletion
+    process_id = stage.process_id
     stage_data = {
         "id": stage.id,
         "process_id": stage.process_id,
@@ -193,5 +235,13 @@ def delete_stage(
     
     db.delete(stage)
     db.commit()
+    
+    # Recalculate process status from remaining stages
+    process = db.query(Process).options(joinedload(Process.stages)).filter(Process.id == process_id).first()
+    if process:
+        calculated_status = calculate_status_from_stages(process.stages)
+        if process.status != calculated_status:
+            process.status = calculated_status
+            db.commit()
 
     return StageResponse(**stage_data)
