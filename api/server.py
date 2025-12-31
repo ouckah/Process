@@ -31,7 +31,12 @@ app.add_middleware(
 # Initialize database on startup
 @app.on_event("startup")
 def startup_event():
-    init_db()
+    try:
+        init_db()
+        print("Database initialized successfully")
+    except Exception as e:
+        print(f"Warning: Database initialization failed: {e}")
+        print("Server will continue, but database operations may fail")
 
 # Register routers
 app.include_router(auth.router)
