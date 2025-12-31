@@ -230,11 +230,20 @@ async def list_processes(interaction: discord.Interaction):
 
 # Prefix commands
 @bot.command(name="add")
-async def add_process_prefix(ctx: commands.Context, company_name: str, *, stage_name: str = None):
+async def add_process_prefix(ctx: commands.Context, *, args: str = None):
     """Add a new process: p!add <company_name> <stage_name>"""
-    if not stage_name:
+    if not args:
         await ctx.send(f"❌ Usage: `{PREFIX}add <company_name> <stage_name>` or `/add <company_name> <stage_name>`\nExample: `{PREFIX}add Google OA` or `/add Google OA`")
         return
+    
+    # Parse arguments - split by spaces, but handle multi-word stage names
+    parts = args.split()
+    if len(parts) < 2:
+        await ctx.send(f"❌ Usage: `{PREFIX}add <company_name> <stage_name>` or `/add <company_name> <stage_name>`\nExample: `{PREFIX}add Google OA` or `/add Google OA`")
+        return
+    
+    company_name = parts[0]
+    stage_name = ' '.join(parts[1:])  # Join remaining parts for multi-word stage names
     
     discord_id = str(ctx.author.id)
     username = ctx.author.name
