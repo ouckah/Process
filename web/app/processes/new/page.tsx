@@ -8,7 +8,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProcessForm } from '@/components/processes/ProcessForm';
 import { Loader2 } from 'lucide-react';
-import type { ProcessCreate } from '@/types';
+import type { ProcessCreate, ProcessUpdate } from '@/types';
 
 export default function NewProcessPage() {
   const { loading: authLoading, isAuthenticated } = useAuth();
@@ -21,8 +21,9 @@ export default function NewProcessPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  const handleSubmit = (data: ProcessCreate) => {
-    createProcess.mutate(data, {
+  const handleSubmit = (data: ProcessCreate | ProcessUpdate) => {
+    // For new process, we know it's always ProcessCreate (all fields required)
+    createProcess.mutate(data as ProcessCreate, {
       onSuccess: (process) => {
         router.push(`/processes/${process.id}`);
       },
