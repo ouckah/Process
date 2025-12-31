@@ -453,3 +453,44 @@ def google_oauth(
     
     return {"access_token": access_token, "token_type": "bearer"}
 
+
+@router.post("/discord/bot-token", response_model=TokenResponse)
+def get_discord_bot_token(
+    discord_id: str,
+    username: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get authentication token for Discord bot user.
+    Creates ghost account if user doesn't exist.
+    Used by Discord bot to authenticate API requests.
+    """
+    # Get or create user by discord_id
+    user = get_user_by_discord_id(db, discord_id)
+    
+    if not user:
+        # Create ghost account
+        user = User(
+            discord_id=discord_id,
+            username=username,
+            email=None,
+            hashed_password=None,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    else:
+        # Update username if changed
+        if user.username != username:
+            user.username = username
+            db.commit()
+            db.refresh(user)
+    
+    # Create token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(user.id)}, expires_delta=access_token_expires
+    )
+    
+    return {"access_token": access_token, "token_type": "bearer"}
+
