@@ -195,52 +195,8 @@ def discord_oauth_callback(
                 web_user = get_user_by_email(db, email)  # Web account (has email)
             
             # Handle all merging scenarios
-            if ghost_user and web_user:
-                # Scenario: Ghost account exists AND web account exists (same email)
-                # Merge: Transfer processes from ghost to web, delete ghost
-                if ghost_user.id != web_user.id:
-                    merge_user_accounts(db, ghost_user, web_user)
-                    # Update web account with discord_id
-                    web_user.discord_id = discord_id
-                    if not web_user.username:
-                        web_user.username = username
-                    db.commit()
-                    db.refresh(web_user)
-                    user = web_user
-                else:
-                    # Same user, just update
-                    user = ghost_user
-                    if not user.email:
-                        user.email = email
-                    db.commit()
-                    db.refresh(user)
-            elif ghost_user and not web_user:
-                # Scenario: Ghost account exists, no web account
-                # Convert ghost to full account by adding email
-                if email:
-                    ghost_user.email = email
-                    if not ghost_user.username:
-                        ghost_user.username = username
-                    db.commit()
-                    db.refresh(ghost_user)
-                    user = ghost_user
-                else:
-                    # No email from Discord, can't convert - just update username
-                    if not ghost_user.username:
-                        ghost_user.username = username
-                    db.commit()
-                    db.refresh(ghost_user)
-                    user = ghost_user
-            elif not ghost_user and web_user:
-                # Scenario: No ghost account, web account exists
-                # Link discord_id to web account
-                web_user.discord_id = discord_id
-                if not web_user.username:
-                    web_user.username = username
-                db.commit()
-                db.refresh(web_user)
-                user = web_user
-            elif user_id:
+            # IMPORTANT: If user_id is provided in state, prioritize that over email/discord lookups
+            if user_id:
                 # Scenario: Explicit user_id in state (linking from profile page)
                 user = db.query(User).filter(User.id == user_id).first()
                 if user:
@@ -293,6 +249,51 @@ def discord_oauth_callback(
                     db.add(user)
                     db.commit()
                     db.refresh(user)
+            elif ghost_user and web_user:
+                # Scenario: Ghost account exists AND web account exists (same email)
+                # Merge: Transfer processes from ghost to web, delete ghost
+                if ghost_user.id != web_user.id:
+                    merge_user_accounts(db, ghost_user, web_user)
+                    # Update web account with discord_id
+                    web_user.discord_id = discord_id
+                    if not web_user.username:
+                        web_user.username = username
+                    db.commit()
+                    db.refresh(web_user)
+                    user = web_user
+                else:
+                    # Same user, just update
+                    user = ghost_user
+                    if not user.email:
+                        user.email = email
+                    db.commit()
+                    db.refresh(user)
+            elif ghost_user and not web_user:
+                # Scenario: Ghost account exists, no web account
+                # Convert ghost to full account by adding email
+                if email:
+                    ghost_user.email = email
+                    if not ghost_user.username:
+                        ghost_user.username = username
+                    db.commit()
+                    db.refresh(ghost_user)
+                    user = ghost_user
+                else:
+                    # No email from Discord, can't convert - just update username
+                    if not ghost_user.username:
+                        ghost_user.username = username
+                    db.commit()
+                    db.refresh(ghost_user)
+                    user = ghost_user
+            elif not ghost_user and web_user:
+                # Scenario: No ghost account, web account exists
+                # Link discord_id to web account
+                web_user.discord_id = discord_id
+                if not web_user.username:
+                    web_user.username = username
+                db.commit()
+                db.refresh(web_user)
+                user = web_user
             else:
                 # Scenario: Neither exists - create new user
                 if not email:
