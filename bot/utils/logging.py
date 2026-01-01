@@ -39,19 +39,32 @@ def log_command(
         raw_args: Raw command arguments (for prefix commands)
         parsed_args: Dictionary of parsed argument names and values
     """
-    log_parts = [
-        f"[{command_type.upper()}] {command_name}",
-        f"User: {username} ({user_id})",
+    # Format command type and name
+    command_header = f"{command_type.upper()}/{command_name}"
+    
+    # Format user info
+    user_info = f"{username} ({user_id})"
+    
+    # Build log message with cleaner formatting
+    lines = [
+        f"Command: {command_header}",
+        f"User: {user_info}",
     ]
     
     if raw_args:
-        log_parts.append(f"Raw Args: {raw_args}")
+        lines.append(f"Raw Args: {raw_args}")
     
     if parsed_args:
-        parsed_str = ", ".join([f"{k}={repr(v)}" for k, v in parsed_args.items() if v is not None])
-        if parsed_str:
-            log_parts.append(f"Parsed: {parsed_str}")
+        # Format parsed args more cleanly
+        parsed_items = []
+        for k, v in parsed_args.items():
+            if v is not None:
+                parsed_items.append(f"  {k}: {repr(v)}")
+        if parsed_items:
+            lines.append("Parsed Args:")
+            lines.extend(parsed_items)
     
-    log_message = " | ".join(log_parts)
+    # Join with newlines for better readability
+    log_message = "\n".join(lines)
     logger.info(log_message)
 

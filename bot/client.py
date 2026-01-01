@@ -13,9 +13,12 @@ from commands import list as list_command
 # Configure root logger to ensure all logs are visible
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s | %(levelname)s | %(message)s',
+    format='[%(asctime)s] [%(levelname)-8s] %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
+
+# Suppress verbose httpx HTTP request logging (only show warnings/errors)
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 load_dotenv()
 
