@@ -42,12 +42,16 @@ def create_usage_embed(description: str, examples: Optional[str] = None, fields:
     return embed
 
 
-def create_info_embed(title: str, description: str) -> discord.Embed:
+def create_info_embed(title: str, description: str, fields: Optional[list[dict]] = None) -> discord.Embed:
     """Create an info embed (gray)."""
     embed = discord.Embed(
         title=title,
         description=description,
         color=0x808080  # Gray
     )
+    if fields:
+        for field in fields:
+            embed.add_field(**field)
+    embed.timestamp = discord.utils.utcnow()
     return embed
 
