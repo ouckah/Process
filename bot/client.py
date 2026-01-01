@@ -9,7 +9,7 @@ from utils.constants import DEFAULT_PREFIX
 from utils.autocomplete import stage_name_autocomplete
 from commands import add, delete
 from commands import list as list_command
-from commands import dashboard
+# from commands import dashboard  # Temporarily commented out to test
 from utils.auth import API_URL
 
 # Configure root logger to ensure all logs are visible
@@ -71,7 +71,7 @@ async def on_message(message):
 add.setup_add_command(bot, stage_name_autocomplete)
 delete.setup_delete_command(bot)
 list_command.setup_list_command(bot)
-dashboard.setup_dashboard_command(bot)
+# dashboard.setup_dashboard_command(bot)  # Temporarily commented out to test
 
 
 if __name__ == "__main__":
