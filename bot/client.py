@@ -2,12 +2,20 @@
 import discord
 from discord.ext import commands
 import os
+import logging
 from dotenv import load_dotenv
 
 from utils.constants import DEFAULT_PREFIX
 from utils.autocomplete import stage_name_autocomplete
 from commands import add, delete
 from commands import list as list_command
+
+# Configure root logger to ensure all logs are visible
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(levelname)s | %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 load_dotenv()
 

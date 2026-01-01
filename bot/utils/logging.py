@@ -1,13 +1,12 @@
 """Logging utilities for Discord bot commands."""
 import logging
-import datetime
 from typing import Optional, Dict, Any
 
-# Configure logger
-logger = logging.getLogger('bot.commands')
+# Get or create logger - use root logger to ensure logs are visible
+logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Create handler if it doesn't exist
+# Ensure handler exists (may already be set up by basicConfig in client.py)
 if not logger.handlers:
     handler = logging.StreamHandler()
     handler.setLevel(logging.INFO)
@@ -40,8 +39,6 @@ def log_command(
         raw_args: Raw command arguments (for prefix commands)
         parsed_args: Dictionary of parsed argument names and values
     """
-    timestamp = datetime.datetime.utcnow().isoformat()
-    
     log_parts = [
         f"[{command_type.upper()}] {command_name}",
         f"User: {username} ({user_id})",
