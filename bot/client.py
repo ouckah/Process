@@ -51,7 +51,8 @@ intents.message_content = True
 # Allow PREFIX to be overridden by environment variable
 bot_prefix = os.getenv("PREFIX", DEFAULT_PREFIX)
 
-bot = commands.Bot(command_prefix=bot_prefix, intents=intents)
+# Disable default help command so we can use our custom one
+bot = commands.Bot(command_prefix=bot_prefix, intents=intents, help_command=None)
 
 
 @bot.event
