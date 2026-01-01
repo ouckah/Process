@@ -75,6 +75,120 @@ async def handle_add_process(discord_id: str, username: str, company_name: str, 
         return handle_command_error(e, "creating process")
 
 
+async def handle_legacy_process_command(ctx: commands.Context):
+    """Handle legacy !process command: !process <company_name> <stage_name> [\"position\"]"""
+    from utils.embeds import create_usage_embed, create_error_embed
+    
+    # Extract args (everything after "!process ")
+    content = ctx.message.content
+    if not content.startswith("!process"):
+        return
+    
+    args = content[9:].strip()  # Remove "!process " prefix
+    
+    # Reuse the same parsing logic as the add command
+    if not args:
+        valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
+        embed = create_usage_embed(
+            f"Usage: `!process <company_name> <stage_name>`",
+            examples=f"• `!process Google OA`\n• `!process Capital One OA`\n• `!process Google Phone Screen`",
+            fields=[{"name": "Valid Stage Names", "value": valid_names, "inline": False}]
+        )
+        await ctx.send(embed=embed)
+        return
+    
+    # Parse arguments - extract quoted position first, then match stage name from end
+    # Format: !process <company> <stage> ["position"]
+    # This allows: !process capital one oa "software engineer"
+    
+    # First, check if there's a quoted string at the end (position)
+    position = None
+    args_for_stage_match = args.strip()
+    
+    # Check if the last character is a quote and extract quoted position
+    if args_for_stage_match and (args_for_stage_match[-1] == '"' or args_for_stage_match[-1] == "'"):
+        # Find the matching opening quote
+        quote_char = args_for_stage_match[-1]
+        last_quote_pos = len(args_for_stage_match) - 1
+        # Search backwards for the matching opening quote
+        for i in range(last_quote_pos - 1, -1, -1):
+            if args_for_stage_match[i] == quote_char and (i == 0 or args_for_stage_match[i-1].isspace()):
+                # Found the opening quote, extract position
+                position = args_for_stage_match[i+1:last_quote_pos].strip()
+                # Remove the quoted position from args
+                args_for_stage_match = args_for_stage_match[:i].strip()
+                break
+    
+    # Now parse the remaining args to find company and stage
+    parts = args_for_stage_match.split()
+    
+    if len(parts) < 2:
+        valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
+        embed = create_usage_embed(
+            f"Usage: `!process <company_name> <stage_name> [\"position\"]`",
+            examples=f"• `!process Google OA`\n• `!process Capital One OA`\n• `!process Google Phone Screen`\n• `!process Google OA \"Software Engineer\"`",
+            fields=[{"name": "Valid Stage Names", "value": valid_names, "inline": False}]
+        )
+        await ctx.send(embed=embed)
+        return
+    
+    # Create a case-insensitive lookup dictionary for stage names
+    stage_name_lookup = {name.lower(): name for name in VALID_STAGE_NAMES}
+    
+    # Try to match stage name from the end of the args (reverse order)
+    # This allows multi-word company names to work without quotes
+    stage_name = None
+    stage_start_idx = None
+    
+    # Check from longest to shortest stage name combinations, starting from the end
+    for length in range(len(parts), 0, -1):
+        # Try matching the last N words as a stage name
+        potential_stage_parts = parts[-length:]
+        potential_stage = ' '.join(potential_stage_parts).lower()
+        
+        if potential_stage in stage_name_lookup:
+            # Found a match! Use the original capitalized version
+            stage_name = stage_name_lookup[potential_stage]
+            stage_start_idx = len(parts) - length
+            break
+    
+    if not stage_name:
+        valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
+        embed = create_error_embed(
+            "Invalid Stage Name",
+            "The stage name you provided doesn't match any valid stage names.",
+            fields=[
+                {"name": "Valid Stage Names", "value": valid_names, "inline": False},
+                {"name": "Note", "value": "Custom stages (Other) are not supported via bot commands.", "inline": False}
+            ]
+        )
+        await ctx.send(embed=embed)
+        return
+    
+    # Everything before the stage name is the company name (can be multi-word)
+    company_name = ' '.join(parts[:stage_start_idx])
+    
+    discord_id = str(ctx.author.id)
+    username = ctx.author.name
+    
+    # Log the command (as legacy/process but note it's translated to add)
+    log_command(
+        command_type="prefix",
+        command_name="process",
+        user_id=discord_id,
+        username=username,
+        raw_args=args,
+        parsed_args={
+            "company_name": company_name,
+            "stage_name": stage_name,
+            "position": position
+        }
+    )
+    
+    embed = await handle_add_process(discord_id, username, company_name, stage_name, position)
+    await ctx.send(embed=embed)
+
+
 def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
     """Setup add command (both slash and prefix)."""
     from utils.embeds import create_usage_embed, create_error_embed

@@ -36,6 +36,7 @@ intents.message_content = True
 
 # Allow PREFIX to be overridden by environment variable
 bot_prefix = os.getenv("PREFIX", DEFAULT_PREFIX)
+
 bot = commands.Bot(command_prefix=bot_prefix, intents=intents)
 
 
@@ -47,6 +48,22 @@ async def on_ready():
         print(f'Synced {len(synced)} command(s)')
     except Exception as e:
         print(f'Failed to sync commands: {e}')
+
+
+@bot.event
+async def on_message(message):
+    """Handle legacy !process command specifically."""
+    # Only handle !process, not other ! commands
+    if message.content.startswith("!process"):
+        # Create context and call the legacy process handler
+        ctx = await bot.get_context(message)
+        # Import here to avoid circular imports
+        from commands.add import handle_legacy_process_command
+        await handle_legacy_process_command(ctx)
+        return
+    
+    # Process other commands normally
+    await bot.process_commands(message)
 
 
 # Setup commands
