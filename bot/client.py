@@ -9,8 +9,8 @@ from utils.constants import DEFAULT_PREFIX
 from utils.autocomplete import stage_name_autocomplete
 from commands import add, delete
 from commands import list as list_command
-# Test: Try importing dashboard but not setting it up
-from commands import dashboard
+# Don't import dashboard at module level - it breaks network connectivity for unknown reasons
+# from commands import dashboard
 from utils.auth import API_URL
 
 # Configure root logger to ensure all logs are visible
@@ -45,6 +45,17 @@ bot = commands.Bot(command_prefix=bot_prefix, intents=intents)
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
+    
+    # Lazy load dashboard command - importing at module level breaks network connectivity
+    # This is a workaround for an unknown issue where importing dashboard module
+    # prevents the bot from connecting to the API via private networking
+    try:
+        from commands import dashboard
+        dashboard.setup_dashboard_command(bot)
+        logger.info("Dashboard command loaded successfully")
+    except Exception as e:
+        logger.error(f"Failed to load dashboard command: {e}")
+    
     try:
         synced = await bot.tree.sync()
         print(f'Synced {len(synced)} command(s)')
@@ -72,8 +83,7 @@ async def on_message(message):
 add.setup_add_command(bot, stage_name_autocomplete)
 delete.setup_delete_command(bot)
 list_command.setup_list_command(bot)
-# Test: Import dashboard but don't setup - does this break connectivity?
-# dashboard.setup_dashboard_command(bot)
+# Dashboard command setup moved to on_ready() to avoid import-time issues
 
 
 if __name__ == "__main__":
