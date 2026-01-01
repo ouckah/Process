@@ -9,6 +9,7 @@ from utils.constants import DEFAULT_PREFIX
 from utils.autocomplete import stage_name_autocomplete
 from commands import add, delete
 from commands import list as list_command
+from utils.auth import API_URL
 
 # Configure root logger to ensure all logs are visible
 logging.basicConfig(
@@ -25,6 +26,10 @@ load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 if not DISCORD_TOKEN:
     raise ValueError("DISCORD_TOKEN environment variable is not set")
+
+# Log API URL on startup (for debugging connection issues)
+logger = logging.getLogger(__name__)
+logger.info(f"Bot configured to use API URL: {API_URL}")
 
 intents = discord.Intents.default()
 intents.message_content = True
