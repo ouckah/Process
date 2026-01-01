@@ -17,6 +17,12 @@ PREFIX = os.getenv("PREFIX", "p!")
 async def handle_add_process(discord_id: str, username: str, company_name: str, stage_name: str, position: str = None) -> discord.Embed:
     """Handle adding a stage to a process (or create process if it doesn't exist). Returns success/error embed."""
     try:
+        # Strip quotes from position if present (user might have quoted it for parsing)
+        if position:
+            position = position.strip('"\'')
+            if not position:  # If position becomes empty after stripping, set to None
+                position = None
+        
         token = await get_user_token(discord_id, username)
         
         # Check if process already exists (same company name and position) - case-insensitive

@@ -16,6 +16,12 @@ PREFIX = os.getenv("PREFIX", "p!")
 async def handle_delete_process(discord_id: str, username: str, company_name: str, position: str = None) -> discord.Embed:
     """Handle deleting a process. Returns success/error embed."""
     try:
+        # Strip quotes from position if present (user might have quoted it for parsing)
+        if position:
+            position = position.strip('"\'')
+            if not position:  # If position becomes empty after stripping, set to None
+                position = None
+        
         token = await get_user_token(discord_id, username)
         
         # Find process by company name and position - case-insensitive
