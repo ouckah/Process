@@ -106,10 +106,10 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
             
             # Examples
             if info.get("examples"):
-                examples_text = "\n".join([f"`{ex}`" for ex in info["examples"]])
+                examples_text = "\n".join(info["examples"])
                 embed.add_field(
                     name="Examples",
-                    value=examples_text,
+                    value=f"```\n{examples_text}\n```",
                     inline=False
                 )
             
