@@ -381,26 +381,14 @@ def link_discord_account(
             # Check if Discord ID is already linked to another account
             existing_discord_user = get_user_by_discord_id(db, discord_id)
             
-            # IMPORTANT: Check for email conflicts BEFORE merging
-            # If the existing account has a different email than current_user, this is a conflict
             if existing_discord_user and existing_discord_user.id != current_user.id:
-                # Check if existing account has an email that conflicts
-                if existing_discord_user.email and existing_discord_user.email != current_user.email:
-                    # The Discord account is linked to a different email - conflict
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Discord account is already linked to {existing_discord_user.email}. Please disconnect it from that account first or use a different Discord account."
-                    )
-                # Only merge if it's a ghost account (no email) or same email
-                if not existing_discord_user.email or existing_discord_user.email == current_user.email:
-                    merge_user_accounts(db, existing_discord_user, current_user)
-                else:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Cannot link Discord account: account conflict detected."
-                    )
+                # Account with this Discord ID exists - merge it into current_user
+                # This handles both ghost accounts and accounts with different emails
+                # The merge preserves current_user's email and transfers all data
+                merge_user_accounts(db, existing_discord_user, current_user)
             
             # Check if Discord email is already used by a different account (after merge)
+            # This prevents conflicts if the Discord email belongs to yet another account
             if email:
                 existing_email_user = get_user_by_email(db, email)
                 if existing_email_user and existing_email_user.id != current_user.id:
