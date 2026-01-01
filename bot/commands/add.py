@@ -4,7 +4,6 @@ from discord import app_commands
 from discord.ext import commands
 import httpx
 import os
-import shlex
 from dotenv import load_dotenv
 
 from utils.auth import get_user_token, api_request
@@ -101,55 +100,70 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
     # Prefix command
     @bot.command(name="add")
     async def add_process_prefix(ctx: commands.Context, *, args: str = None):
-        """Add a new process: p!add <company_name> <stage_name> [position]"""
+        """Add a new process: p!add <company_name> <stage_name> [\"position\"]"""
         if not args:
             valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
             embed = create_usage_embed(
-                f"Usage: `{PREFIX}add <company_name> <stage_name> [position]`",
-                examples=f"• `{PREFIX}add Google OA`\n• `{PREFIX}add Google Technical Interview`\n• `{PREFIX}add Google OA Software Engineer`",
+                f"Usage: `{PREFIX}add <company_name> <stage_name>`",
+                examples=f"• `{PREFIX}add Google OA`\n• `{PREFIX}add Capital One OA`\n• `{PREFIX}add Google Phone Screen`",
                 fields=[{"name": "Valid Stage Names", "value": valid_names, "inline": False}]
             )
             await ctx.send(embed=embed)
             return
         
-        # Parse arguments using shlex to handle quoted strings properly
-        try:
-            parts = shlex.split(args)
-        except ValueError:
-            embed = create_error_embed(
-                "Invalid Quotes",
-                f"Invalid quotes in command. Use quotes for multi-word values:\nExample: `{PREFIX}add Google \"Phone Screen\" \"Software Engineer\"`"
-            )
-            await ctx.send(embed=embed)
-            return
+        # Parse arguments - extract quoted position first, then match stage name from end
+        # Format: p!add <company> <stage> ["position"]
+        # This allows: p!add capital one oa "software engineer"
+        
+        # First, check if there's a quoted string at the end (position)
+        position = None
+        args_for_stage_match = args.strip()
+        
+        # Check if the last character is a quote and extract quoted position
+        if args_for_stage_match and (args_for_stage_match[-1] == '"' or args_for_stage_match[-1] == "'"):
+            # Find the matching opening quote
+            quote_char = args_for_stage_match[-1]
+            last_quote_pos = len(args_for_stage_match) - 1
+            # Search backwards for the matching opening quote
+            for i in range(last_quote_pos - 1, -1, -1):
+                if args_for_stage_match[i] == quote_char and (i == 0 or args_for_stage_match[i-1].isspace()):
+                    # Found the opening quote, extract position
+                    position = args_for_stage_match[i+1:last_quote_pos].strip()
+                    # Remove the quoted position from args
+                    args_for_stage_match = args_for_stage_match[:i].strip()
+                    break
+        
+        # Now parse the remaining args to find company and stage
+        parts = args_for_stage_match.split()
         
         if len(parts) < 2:
             valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
             embed = create_usage_embed(
-                f"Usage: `{PREFIX}add <company_name> <stage_name> [position]`",
+                f"Usage: `{PREFIX}add <company_name> <stage_name> [\"position\"]`",
+                examples=f"• `{PREFIX}add Google OA`\n• `{PREFIX}add Capital One OA`\n• `{PREFIX}add Google Phone Screen`\n• `{PREFIX}add Google OA \"Software Engineer\"`",
                 fields=[{"name": "Valid Stage Names", "value": valid_names, "inline": False}]
             )
             await ctx.send(embed=embed)
             return
         
-        company_name = parts[0]
-        remaining = parts[1:]
-        
-        # Try to match stage name from VALID_STAGE_NAMES (check progressively longer combinations)
-        stage_name = None
-        stage_end_idx = None
-        
-        # Create a case-insensitive lookup dictionary
+        # Create a case-insensitive lookup dictionary for stage names
         stage_name_lookup = {name.lower(): name for name in VALID_STAGE_NAMES}
         
-        # Check from longest to shortest to match multi-word stage names first
-        for length in range(len(remaining), 0, -1):
-            potential_stage = ' '.join(remaining[:length])
-            potential_stage_lower = potential_stage.lower()
-            if potential_stage_lower in stage_name_lookup:
-                # Use the original capitalized version from VALID_STAGE_NAMES
-                stage_name = stage_name_lookup[potential_stage_lower]
-                stage_end_idx = length
+        # Try to match stage name from the end of the args (reverse order)
+        # This allows multi-word company names to work without quotes
+        stage_name = None
+        stage_start_idx = None
+        
+        # Check from longest to shortest stage name combinations, starting from the end
+        for length in range(len(parts), 0, -1):
+            # Try matching the last N words as a stage name
+            potential_stage_parts = parts[-length:]
+            potential_stage = ' '.join(potential_stage_parts).lower()
+            
+            if potential_stage in stage_name_lookup:
+                # Found a match! Use the original capitalized version
+                stage_name = stage_name_lookup[potential_stage]
+                stage_start_idx = len(parts) - length
                 break
         
         if not stage_name:
@@ -165,9 +179,8 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
             await ctx.send(embed=embed)
             return
         
-        # Everything after the matched stage name becomes position
-        position = ' '.join(remaining[stage_end_idx:]) if stage_end_idx < len(remaining) else None
-        position = position if position else None  # Convert empty string to None
+        # Everything before the stage name is the company name (can be multi-word)
+        company_name = ' '.join(parts[:stage_start_idx])
         
         discord_id = str(ctx.author.id)
         username = ctx.author.name
