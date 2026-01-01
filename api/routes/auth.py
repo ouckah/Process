@@ -249,7 +249,21 @@ def discord_oauth_callback(
                     if existing_discord_user and existing_discord_user.id != user.id:
                         # Merge ghost account into target user
                         merge_user_accounts(db, existing_discord_user, user)
+                    
+                    # Check if Discord email is already used by a different account
+                    if email:
+                        existing_email_user = get_user_by_email(db, email)
+                        if existing_email_user and existing_email_user.id != user.id:
+                            # Discord email belongs to another account - this is a conflict
+                            raise HTTPException(
+                                status_code=status.HTTP_400_BAD_REQUEST,
+                                detail=f"Discord email ({email}) is already associated with another account. Please use a different Discord account or contact support."
+                            )
+                    
                     user.discord_id = discord_id
+                    # IMPORTANT: Only update email if user doesn't have one (never change existing email)
+                    # This preserves the original email the user registered with, preventing
+                    # authentication issues if Discord email differs from web account email
                     if email and not user.email:
                         user.email = email
                     if not user.username:
@@ -371,9 +385,21 @@ def link_discord_account(
                 # Ghost account exists - merge it into current user
                 merge_user_accounts(db, existing_discord_user, current_user)
             
+            # Check if Discord email is already used by a different account
+            if email:
+                existing_email_user = get_user_by_email(db, email)
+                if existing_email_user and existing_email_user.id != current_user.id:
+                    # Discord email belongs to another account - this is a conflict
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Discord email ({email}) is already associated with another account. Please use a different Discord account or contact support."
+                    )
+            
             # Link Discord account to current user
             current_user.discord_id = discord_id
-            # Update email if not set and Discord provides it
+            # IMPORTANT: Only update email if user doesn't have one (never change existing email)
+            # This preserves the original email the user registered with, preventing
+            # authentication issues if Discord email differs from web account email
             if email and not current_user.email:
                 current_user.email = email
             db.commit()
