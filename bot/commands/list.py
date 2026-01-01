@@ -7,6 +7,7 @@ import httpx
 
 from utils.auth import get_user_token, api_request
 from utils.embeds import create_info_embed, create_error_embed
+from utils.errors import handle_command_error
 import os
 from dotenv import load_dotenv
 
@@ -96,7 +97,8 @@ async def handle_list_processes(discord_id: str, username: str) -> tuple[list[di
             try:
                 detail = await api_request("GET", f"/api/processes/{p['id']}/detail", token)
                 process_details.append(detail)
-            except:
+            except Exception:
+                # If we can't get detail, use the basic process info
                 process_details.append(p)
         
         # Create embeds with pagination (max 25 fields per embed, Discord limit)
@@ -156,13 +158,8 @@ async def handle_list_processes(discord_id: str, username: str) -> tuple[list[di
             embeds.append(embed)
         
         return embeds, total_pages
-    except httpx.HTTPStatusError as e:
-        error_msg = e.response.json().get("detail", str(e)) if e.response.content else str(e)
-        error_embed = create_error_embed("Error", error_msg)
-        return [error_embed], 1
     except Exception as e:
-        print(f"Error listing processes: {e}")
-        error_embed = create_error_embed("Error", f"Error listing processes: {str(e)}")
+        error_embed = handle_command_error(e, "listing processes")
         return [error_embed], 1
 
 

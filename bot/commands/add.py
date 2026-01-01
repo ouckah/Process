@@ -4,11 +4,13 @@ from discord import app_commands
 from discord.ext import commands
 import httpx
 import os
+import shlex
 from dotenv import load_dotenv
 
 from utils.auth import get_user_token, api_request
 from utils.embeds import create_success_embed, create_error_embed
 from utils.constants import VALID_STAGE_NAMES
+from utils.errors import handle_command_error
 
 load_dotenv()
 PREFIX = os.getenv("PREFIX", "p!")
@@ -69,25 +71,8 @@ async def handle_add_process(discord_id: str, username: str, company_name: str, 
                 "Process Created",
                 f"Created process for **{company_name}**{pos_text} with stage **{stage_name}**"
             )
-    except httpx.HTTPStatusError as e:
-        try:
-            if e.response.content:
-                error_data = e.response.json()
-                if isinstance(error_data, dict):
-                    error_msg = error_data.get("detail", str(error_data))
-                else:
-                    error_msg = str(error_data)
-            else:
-                error_msg = f"HTTP {e.response.status_code}: {e.response.reason_phrase}"
-        except Exception:
-            error_msg = f"HTTP {e.response.status_code}: {e.response.reason_phrase}"
-        return create_error_embed("Error", error_msg)
     except Exception as e:
-        import traceback
-        error_trace = traceback.format_exc()
-        print(f"Error adding process: {error_trace}")
-        error_msg = str(e) if str(e) else f"Unknown error: {type(e).__name__}"
-        return create_error_embed("Error", f"Error creating process: {error_msg}")
+        return handle_command_error(e, "creating process")
 
 
 def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
@@ -127,8 +112,17 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
             await ctx.send(embed=embed)
             return
         
-        # Parse: split by spaces, then match stage name from VALID_STAGE_NAMES
-        parts = args.split()
+        # Parse arguments using shlex to handle quoted strings properly
+        try:
+            parts = shlex.split(args)
+        except ValueError:
+            embed = create_error_embed(
+                "Invalid Quotes",
+                f"Invalid quotes in command. Use quotes for multi-word values:\nExample: `{PREFIX}add Google \"Phone Screen\" \"Software Engineer\"`"
+            )
+            await ctx.send(embed=embed)
+            return
+        
         if len(parts) < 2:
             valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
             embed = create_usage_embed(

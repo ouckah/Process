@@ -4,10 +4,12 @@ from discord import app_commands
 from discord.ext import commands
 import httpx
 import os
+import shlex
 from dotenv import load_dotenv
 
 from utils.auth import get_user_token, api_request
 from utils.embeds import create_success_embed, create_error_embed, create_usage_embed
+from utils.errors import handle_command_error
 
 load_dotenv()
 PREFIX = os.getenv("PREFIX", "p!")
@@ -67,12 +69,8 @@ async def handle_delete_process(discord_id: str, username: str, company_name: st
             "Process Deleted",
             f"Deleted process for **{company_name}**{pos_text}"
         )
-    except httpx.HTTPStatusError as e:
-        error_msg = e.response.json().get("detail", str(e)) if e.response.content else str(e)
-        return create_error_embed("Error", error_msg)
     except Exception as e:
-        print(f"Error deleting process: {e}")
-        return create_error_embed("Error", f"Error deleting process: {str(e)}")
+        return handle_command_error(e, "deleting process")
 
 
 def setup_delete_command(bot: commands.Bot):
@@ -105,8 +103,17 @@ def setup_delete_command(bot: commands.Bot):
             await ctx.send(embed=embed)
             return
         
-        # Parse: split by spaces
-        parts = args.split()
+        # Parse arguments using shlex to handle quoted strings properly
+        try:
+            parts = shlex.split(args)
+        except ValueError:
+            embed = create_error_embed(
+                "Invalid Quotes",
+                f"Invalid quotes in command. Use quotes for multi-word positions:\nExample: `{PREFIX}delete Google \"Software Engineer\"`"
+            )
+            await ctx.send(embed=embed)
+            return
+        
         if len(parts) < 1:
             embed = create_usage_embed(f"Usage: `{PREFIX}delete <company_name> [position]`")
             await ctx.send(embed=embed)
