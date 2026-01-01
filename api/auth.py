@@ -173,7 +173,8 @@ def merge_user_accounts(db: Session, source_user: User, target_user: User) -> No
     Merge source_user into target_user.
     Transfers all processes, stages, and feedback from source to target.
     If processes with the same company name AND matching position (both null or both same) exist,
-    merges their stages. Otherwise keeps them as separate processes.
+    the source (Discord) process overwrites the target (web) process.
+    Otherwise keeps them as separate processes.
     Deletes source_user after transfer.
     """
     from models import Process, Feedback, Stage
@@ -197,23 +198,14 @@ def merge_user_accounts(db: Session, source_user: User, target_user: User) -> No
         # Check if target user has a process with matching company name AND position
         # (both None counts as a match, or both must be the same string)
         if key in target_processes_by_key:
-            # Merge stages: transfer all stages from source process to target process
+            # Discord process overwrites web process: delete the web process and keep the Discord one
             target_process = target_processes_by_key[key]
             
-            # Get all stages from source process
-            source_stages = db.query(Stage).filter(Stage.process_id == source_process.id).all()
+            # Delete the target (web) process - cascade will delete its stages
+            db.delete(target_process)
             
-            # Get max order from target process to append stages
-            max_order = db.query(func.max(Stage.order)).filter(Stage.process_id == target_process.id).scalar() or 0
-            
-            # Transfer stages to target process
-            for stage in source_stages:
-                stage.process_id = target_process.id
-                # Update order to append after existing stages
-                stage.order = max_order + stage.order
-            
-            # Delete the source process (stages are already transferred)
-            db.delete(source_process)
+            # Transfer the source (Discord) process to target user
+            source_process.user_id = target_user.id
         else:
             # No matching process, just transfer the process
             source_process.user_id = target_user.id
