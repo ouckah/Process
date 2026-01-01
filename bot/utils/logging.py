@@ -1,5 +1,6 @@
 """Logging utilities for Discord bot commands."""
 import logging
+import json
 from typing import Optional, Dict, Any
 
 # Get or create logger - use root logger to ensure logs are visible
@@ -46,9 +47,12 @@ def log_command(
         parts.append(f"raw={raw_args}")
     
     if parsed_args:
-        parsed_items = [f"{k}={repr(v)}" for k, v in parsed_args.items() if v is not None]
-        if parsed_items:
-            parts.append(f"parsed=[{', '.join(parsed_items)}]")
+        # Filter out None values and format as JSON
+        filtered_args = {k: v for k, v in parsed_args.items() if v is not None}
+        if filtered_args:
+            # Format as compact JSON (single line with spacing)
+            parsed_json = json.dumps(filtered_args, separators=(', ', ': '))
+            parts.append(f"parsed={parsed_json}")
     
     log_message = " | ".join(parts)
     logger.info(log_message)
