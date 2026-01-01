@@ -69,12 +69,14 @@ async def on_ready():
         from commands import add, delete
         from commands import list as list_command
         from commands import dashboard
+        from commands import help as help_command
         
         # Setup all commands (add new commands here following the pattern above)
         add.setup_add_command(bot, stage_name_autocomplete)
         delete.setup_delete_command(bot)
         list_command.setup_list_command(bot)
         dashboard.setup_dashboard_command(bot)
+        help_command.setup_help_command(bot)
         
         logger.info("All commands loaded successfully")
     except Exception as e:
