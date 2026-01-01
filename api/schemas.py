@@ -31,7 +31,7 @@ class UserRegister(BaseModel):
 class UserResponse(BaseModel):
     """Schema for user response."""
     id: int
-    email: str
+    email: Optional[str] = None  # Can be None for ghost accounts (Discord-only users)
     username: str
     discord_id: Optional[str] = None
     google_id: Optional[str] = None
