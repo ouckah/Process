@@ -1,4 +1,20 @@
-"""Main Discord bot client."""
+"""
+Main Discord bot client.
+
+Command Registration Pattern:
+-----------------------------
+All command modules are imported and registered in the on_ready() event handler,
+not at module level. This ensures:
+1. Bot and network stack are fully initialized before command setup
+2. Prevents import-time issues that could affect network connectivity
+3. Consistent pattern for all commands
+
+To add a new command:
+1. Create your command module in bot/commands/your_command.py
+2. Implement a setup_your_command(bot) function
+3. In on_ready(), add: from commands import your_command
+4. In on_ready(), add: your_command.setup_your_command(bot)
+"""
 import discord
 from discord.ext import commands
 import os
@@ -7,10 +23,6 @@ from dotenv import load_dotenv
 
 from utils.constants import DEFAULT_PREFIX
 from utils.autocomplete import stage_name_autocomplete
-from commands import add, delete
-from commands import list as list_command
-# Don't import dashboard at module level - it breaks network connectivity for unknown reasons
-# from commands import dashboard
 from utils.auth import API_URL
 
 # Configure root logger to ensure all logs are visible
@@ -44,18 +56,31 @@ bot = commands.Bot(command_prefix=bot_prefix, intents=intents)
 
 @bot.event
 async def on_ready():
+    """Initialize bot and register all commands after bot is ready."""
     print(f'Logged in as {bot.user}')
     
-    # Lazy load dashboard command - importing at module level breaks network connectivity
-    # This is a workaround for an unknown issue where importing dashboard module
-    # prevents the bot from connecting to the API via private networking
+    # Load and setup all commands after bot is ready
+    # This ensures network stack and bot are fully initialized before command registration
+    # 
+    # PATTERN: When adding a new command:
+    #   1. Import: from commands import your_command
+    #   2. Setup: your_command.setup_your_command(bot)
     try:
+        from commands import add, delete
+        from commands import list as list_command
         from commands import dashboard
+        
+        # Setup all commands (add new commands here following the pattern above)
+        add.setup_add_command(bot, stage_name_autocomplete)
+        delete.setup_delete_command(bot)
+        list_command.setup_list_command(bot)
         dashboard.setup_dashboard_command(bot)
-        logger.info("Dashboard command loaded successfully")
+        
+        logger.info("All commands loaded successfully")
     except Exception as e:
-        logger.error(f"Failed to load dashboard command: {e}")
+        logger.error(f"Failed to load commands: {e}", exc_info=True)
     
+    # Sync slash commands with Discord
     try:
         synced = await bot.tree.sync()
         print(f'Synced {len(synced)} command(s)')
@@ -79,11 +104,8 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
-# Setup commands
-add.setup_add_command(bot, stage_name_autocomplete)
-delete.setup_delete_command(bot)
-list_command.setup_list_command(bot)
-# Dashboard command setup moved to on_ready() to avoid import-time issues
+# Commands are now loaded and registered in on_ready() to ensure proper initialization
+# See on_ready() function above for command registration
 
 
 if __name__ == "__main__":
