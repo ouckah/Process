@@ -5,7 +5,6 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 
-from utils.embeds import create_info_embed
 from utils.logging import log_command
 
 load_dotenv()
@@ -16,60 +15,92 @@ async def handle_help_command() -> discord.Embed:
     """Handle help command. Returns embed with command information."""
     prefix = PREFIX
     
-    return create_info_embed(
-        "📚 Bot Commands",
-        "Here are all available commands for the Process Tracker bot:",
-        fields=[
-            {
-                "name": f"`{prefix}add` or `/add`",
-                "value": "Add a stage to an existing process or create a new process.\n"
-                         f"**Usage:** `{prefix}add <company_name> <stage_name> [position]`\n"
-                         f"**Examples:**\n"
-                         f"• `{prefix}add Google OA`\n"
-                         f"• `{prefix}add Microsoft \"Technical Interview\" \"Software Engineer\"`\n"
-                         f"• `{prefix}add Amazon Phone Screen`",
-                "inline": False
-            },
-            {
-                "name": f"`{prefix}delete` or `/delete`",
-                "value": "Delete a process by company name and optional position.\n"
-                         f"**Usage:** `{prefix}delete <company_name> [position]`\n"
-                         f"**Examples:**\n"
-                         f"• `{prefix}delete Google`\n"
-                         f"• `{prefix}delete Microsoft \"Software Engineer\"`",
-                "inline": False
-            },
-            {
-                "name": f"`{prefix}list` or `/list`",
-                "value": "List all your job application processes.\n"
-                         f"**Usage:** `{prefix}list`\n"
-                         "Shows all processes with their stages and current status.",
-                "inline": False
-            },
-            {
-                "name": f"`{prefix}dashboard` or `/dashboard`",
-                "value": "Get a link to your web dashboard or sign up instructions.\n"
-                         f"**Usage:** `{prefix}dashboard`\n"
-                         "If you have a web account, you'll get a direct link. Otherwise, you'll get instructions to sign up and connect your Discord account.",
-                "inline": False
-            },
-            {
-                "name": f"`!process` (Legacy)",
-                "value": f"Legacy command that translates to `{prefix}add`.\n"
-                         f"**Usage:** `!process <company_name> <stage_name> [position]`\n"
-                         f"**Example:** `!process Google OA`",
-                "inline": False
-            },
-            {
-                "name": "💡 Tips",
-                "value": "• Stage names are case-insensitive\n"
-                         "• Company names can be multiple words (no quotes needed)\n"
-                         "• Position titles should be in quotes if they contain spaces\n"
-                         "• Use `/` commands for autocomplete suggestions",
-                "inline": False
-            }
-        ]
+    # Create a fancy embed with custom color
+    embed = discord.Embed(
+        title="📚 Process Tracker Bot Commands",
+        description="Track your job application processes directly from Discord!\n"
+                   "Use slash commands (`/`) for autocomplete or prefix commands (`p!`) for quick access.",
+        color=0x5865F2  # Discord blurple color
     )
+    
+    # Add author info
+    embed.set_author(
+        name="Process Tracker Bot"
+    )
+    
+    # Commands section with fancy formatting
+    embed.add_field(
+        name="➕ Add Process/Stage",
+        value=f"```\n{prefix}add <company> <stage> [position]\n/add\n```"
+              f"**Description:** Add a stage to an existing process or create a new one\n\n"
+              f"**Examples:**\n"
+              f"```\n{prefix}add Google OA\n"
+              f"{prefix}add Microsoft \"Technical Interview\" \"SWE\"\n"
+              f"{prefix}add Amazon Phone Screen\n```",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="🗑️ Delete Process",
+        value=f"```\n{prefix}delete <company> [position]\n/delete\n```"
+              f"**Description:** Remove a process by company name\n\n"
+              f"**Examples:**\n"
+              f"```\n{prefix}delete Google\n"
+              f"{prefix}delete Microsoft \"Software Engineer\"\n```",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="📋 List Processes",
+        value=f"```\n{prefix}list\n/list\n```"
+              f"**Description:** View all your processes with stages and status\n\n"
+              f"Shows paginated results with interactive navigation",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="🌐 Dashboard",
+        value=f"```\n{prefix}dashboard\n/dashboard\n```"
+              f"**Description:** Get your web dashboard link or signup instructions\n\n"
+              f"• **Has account:** Direct link to dashboard\n"
+              f"• **No account:** Instructions to sign up and connect",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="❓ Help",
+        value=f"```\n{prefix}help\n/help\n```"
+              f"**Description:** Show this help message",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="⚡ Legacy Command",
+        value=f"```\n!process <company> <stage> [position]\n```"
+              f"**Description:** Old command format (translates to `{prefix}add`)\n\n"
+              f"**Example:** `!process Google OA`",
+        inline=False
+    )
+    
+    # Tips section with better formatting
+    embed.add_field(
+        name="💡 Pro Tips",
+        value="```diff\n"
+              "+ Stage names are case-insensitive\n"
+              "+ Company names can be multiple words (no quotes needed)\n"
+              "+ Position titles use quotes if they contain spaces\n"
+              "+ Use / commands for autocomplete suggestions\n"
+              "+ List command supports pagination for many processes\n```",
+        inline=False
+    )
+    
+    # Footer with additional info
+    embed.set_footer(
+        text=f"Prefix: {prefix} | Use /help or {prefix}help anytime"
+    )
+    embed.timestamp = discord.utils.utcnow()
+    
+    return embed
 
 
 def setup_help_command(bot: commands.Bot):
