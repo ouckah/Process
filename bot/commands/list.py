@@ -8,6 +8,7 @@ import httpx
 from utils.auth import get_user_token, api_request
 from utils.embeds import create_info_embed, create_error_embed
 from utils.errors import handle_command_error
+from utils.logging import log_command
 import os
 from dotenv import load_dotenv
 
@@ -169,10 +170,18 @@ def setup_list_command(bot: commands.Bot):
     @bot.tree.command(name="list", description="List all your processes")
     async def list_processes(interaction: discord.Interaction):
         """List all processes: /list"""
-        await interaction.response.defer()
-        
         discord_id = str(interaction.user.id)
         username = interaction.user.name
+        
+        # Log the command
+        log_command(
+            command_type="slash",
+            command_name="list",
+            user_id=discord_id,
+            username=username
+        )
+        
+        await interaction.response.defer()
         embeds, total_pages = await handle_list_processes(discord_id, username)
         
         if total_pages > 1:
@@ -188,6 +197,15 @@ def setup_list_command(bot: commands.Bot):
         """List all processes: p!list"""
         discord_id = str(ctx.author.id)
         username = ctx.author.name
+        
+        # Log the command
+        log_command(
+            command_type="prefix",
+            command_name="list",
+            user_id=discord_id,
+            username=username
+        )
+        
         embeds, total_pages = await handle_list_processes(discord_id, username)
         
         if total_pages > 1:

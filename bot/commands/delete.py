@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from utils.auth import get_user_token, api_request
 from utils.embeds import create_success_embed, create_error_embed, create_usage_embed
 from utils.errors import handle_command_error
+from utils.logging import log_command
 
 load_dotenv()
 PREFIX = os.getenv("PREFIX", "p!")
@@ -84,10 +85,22 @@ def setup_delete_command(bot: commands.Bot):
     )
     async def delete_process_cmd(interaction: discord.Interaction, company_name: str, position: str = None):
         """Delete a process: /delete <company_name> [position]"""
-        await interaction.response.defer()
-        
         discord_id = str(interaction.user.id)
         username = interaction.user.name
+        
+        # Log the command
+        log_command(
+            command_type="slash",
+            command_name="delete",
+            user_id=discord_id,
+            username=username,
+            parsed_args={
+                "company_name": company_name,
+                "position": position
+            }
+        )
+        
+        await interaction.response.defer()
         embed = await handle_delete_process(discord_id, username, company_name, position)
         await interaction.followup.send(embed=embed)
     
@@ -125,6 +138,20 @@ def setup_delete_command(bot: commands.Bot):
         
         discord_id = str(ctx.author.id)
         username = ctx.author.name
+        
+        # Log the command
+        log_command(
+            command_type="prefix",
+            command_name="delete",
+            user_id=discord_id,
+            username=username,
+            raw_args=args,
+            parsed_args={
+                "company_name": company_name,
+                "position": position
+            }
+        )
+        
         embed = await handle_delete_process(discord_id, username, company_name, position)
         await ctx.send(embed=embed)
 
