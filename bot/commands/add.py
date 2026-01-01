@@ -15,44 +15,54 @@ PREFIX = os.getenv("PREFIX", "p!")
 
 
 async def handle_add_process(discord_id: str, username: str, company_name: str, stage_name: str, position: str = None) -> discord.Embed:
-    """Handle adding a process. Returns success/error embed."""
+    """Handle adding a stage to a process (or create process if it doesn't exist). Returns success/error embed."""
     try:
         token = await get_user_token(discord_id, username)
         
         # Check if process already exists (same company name and position) - case-insensitive
         processes = await api_request("GET", "/api/processes/", token)
-        existing = next((p for p in processes 
+        existing_process = next((p for p in processes 
                         if p["company_name"].lower() == company_name.lower() 
                         and (p.get("position") or "").lower() == (position or "").lower()), None)
         
-        if existing:
-            pos_text = f" ({position})" if position else ""
-            return create_error_embed(
-                "Process Already Exists",
-                f"Process for **{company_name}**{pos_text} already exists.",
-                fields=[{"name": "Next Steps", "value": f"Use `{PREFIX}list` or `/list` to see all processes.", "inline": False}]
-            )
-        
-        # Create process
-        process = await api_request("POST", "/api/processes/", token, json={
-            "company_name": company_name,
-            "position": position if position else None
-        })
-        
-        # Add initial stage
         from datetime import date
-        await api_request("POST", "/api/stages/", token, json={
-            "process_id": process["id"],
-            "stage_name": stage_name,
-            "stage_date": date.today().isoformat(),
-            "order": 1
-        })
+        today = date.today()
         
-        pos_text = f" ({position})" if position else ""
-        return create_success_embed(
-            "Process Created",
-            f"Created process for **{company_name}**{pos_text} with stage **{stage_name}**"
-        )
+        if existing_process:
+            # Process exists, add stage to it
+            # API will check for duplicate (same name and date) and reject if found
+            await api_request("POST", "/api/stages/", token, json={
+                "process_id": existing_process["id"],
+                "stage_name": stage_name,
+                "stage_date": today.isoformat(),
+                "order": None  # Let API set the order automatically
+            })
+            
+            pos_text = f" ({position})" if position else ""
+            return create_success_embed(
+                "Stage Added",
+                f"Added stage **{stage_name}** to **{company_name}**{pos_text}"
+            )
+        else:
+            # Process doesn't exist, create it and add initial stage
+            process = await api_request("POST", "/api/processes/", token, json={
+                "company_name": company_name,
+                "position": position if position else None
+            })
+            
+            # Add initial stage
+            await api_request("POST", "/api/stages/", token, json={
+                "process_id": process["id"],
+                "stage_name": stage_name,
+                "stage_date": today.isoformat(),
+                "order": 1
+            })
+            
+            pos_text = f" ({position})" if position else ""
+            return create_success_embed(
+                "Process Created",
+                f"Created process for **{company_name}**{pos_text} with stage **{stage_name}**"
+            )
     except httpx.HTTPStatusError as e:
         try:
             if e.response.content:
