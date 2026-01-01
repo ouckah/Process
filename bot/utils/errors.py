@@ -31,6 +31,28 @@ def handle_command_error(e: Exception, command_name: str) -> Embed:
             error_msg = f"HTTP {e.response.status_code}: {e.response.reason_phrase}"
         
         return create_error_embed("Error", error_msg)
+    elif isinstance(e, (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.TimeoutException)):
+        # Handle connection/timeout errors with user-friendly messages
+        error_trace = traceback.format_exc()
+        print(f"Error {command_name} (connection timeout): {error_trace}")
+        return create_error_embed(
+            "Connection Error",
+            "Unable to connect to the API server. The service may be temporarily unavailable. Please try again later."
+        )
+    elif isinstance(e, httpx.ConnectError):
+        # Handle general connection errors
+        error_trace = traceback.format_exc()
+        print(f"Error {command_name} (connection error): {error_trace}")
+        return create_error_embed(
+            "Connection Error",
+            "Unable to connect to the API server. Please check your network connection and try again."
+        )
+    elif isinstance(e, httpx.RequestError):
+        # Handle other HTTP request errors
+        error_trace = traceback.format_exc()
+        print(f"Error {command_name} (request error): {error_trace}")
+        error_msg = str(e) if str(e) else f"Request failed: {type(e).__name__}"
+        return create_error_embed("Request Error", error_msg)
     else:
         # Handle general exceptions
         error_trace = traceback.format_exc()
