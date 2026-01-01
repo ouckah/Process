@@ -244,13 +244,18 @@ def discord_oauth_callback(
                 # Scenario: Explicit user_id in state (linking from profile page)
                 user = db.query(User).filter(User.id == user_id).first()
                 if user:
+                    # Store original email to ensure we don't accidentally change it
+                    original_email = user.email
+                    
                     # Check if discord_id is already linked to another account
                     existing_discord_user = get_user_by_discord_id(db, discord_id)
                     if existing_discord_user and existing_discord_user.id != user.id:
                         # Merge ghost account into target user
                         merge_user_accounts(db, existing_discord_user, user)
+                        # Refresh user after merge to ensure we have the latest state
+                        db.refresh(user)
                     
-                    # Check if Discord email is already used by a different account
+                    # Check if Discord email is already used by a different account (after merge)
                     if email:
                         existing_email_user = get_user_by_email(db, email)
                         if existing_email_user and existing_email_user.id != user.id:
@@ -266,6 +271,9 @@ def discord_oauth_callback(
                     # authentication issues if Discord email differs from web account email
                     if email and not user.email:
                         user.email = email
+                    # Explicitly ensure email hasn't changed (safety check)
+                    if original_email and user.email != original_email:
+                        user.email = original_email
                     if not user.username:
                         user.username = username
                     db.commit()
@@ -386,6 +394,8 @@ def link_discord_account(
                 # This handles both ghost accounts and accounts with different emails
                 # The merge preserves current_user's email and transfers all data
                 merge_user_accounts(db, existing_discord_user, current_user)
+                # Refresh current_user after merge to ensure we have the latest state
+                db.refresh(current_user)
             
             # Check if Discord email is already used by a different account (after merge)
             # This prevents conflicts if the Discord email belongs to yet another account
@@ -399,12 +409,20 @@ def link_discord_account(
                     )
             
             # Link Discord account to current user
+            # IMPORTANT: Preserve the original email - NEVER change it
+            # Store original email to ensure we don't accidentally change it
+            original_email = current_user.email
+            
             current_user.discord_id = discord_id
             # IMPORTANT: Only update email if user doesn't have one (never change existing email)
             # This preserves the original email the user registered with, preventing
             # authentication issues if Discord email differs from web account email
             if email and not current_user.email:
                 current_user.email = email
+            # Explicitly ensure email hasn't changed (safety check)
+            if original_email and current_user.email != original_email:
+                current_user.email = original_email
+            
             db.commit()
             db.refresh(current_user)
             
