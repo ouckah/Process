@@ -12,7 +12,7 @@ from utils.logging import log_command
 
 load_dotenv()
 PREFIX = os.getenv("PREFIX", "p!")
-WEB_URL = os.getenv("WEB_URL", "http://localhost:3000")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 
 async def handle_dashboard_command(discord_id: str, username: str) -> discord.Embed:
@@ -28,7 +28,7 @@ async def handle_dashboard_command(discord_id: str, username: str) -> discord.Em
         
         if has_web_account:
             # User has web account - send dashboard link
-            dashboard_url = f"{WEB_URL}/dashboard"
+            dashboard_url = f"{FRONTEND_URL}/dashboard"
             return create_info_embed(
                 "📊 Dashboard",
                 f"Access your dashboard at: [**Open Dashboard**]({dashboard_url})",
@@ -40,8 +40,8 @@ async def handle_dashboard_command(discord_id: str, username: str) -> discord.Em
             )
         else:
             # User doesn't have web account - send signup link and instructions
-            signup_url = f"{WEB_URL}/register"
-            profile_url = f"{WEB_URL}/profile"
+            signup_url = f"{FRONTEND_URL}/register"
+            profile_url = f"{FRONTEND_URL}/profile"
             return create_info_embed(
                 "🔗 Connect Your Account",
                 f"To access the dashboard, you need to create a web account and link your Discord.",
