@@ -71,26 +71,49 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
         command_name = command_name.lower().strip()
         if command_name in COMMAND_INFO:
             info = COMMAND_INFO[command_name]
+            
+            # Map command names to emojis and display names
+            command_display = {
+                "add": ("➕", "Add Process/Stage"),
+                "delete": ("🗑️", "Delete Process"),
+                "list": ("📋", "List Processes"),
+                "dashboard": ("🌐", "Dashboard"),
+                "help": ("❓", "Help")
+            }
+            
+            emoji, display_name = command_display.get(command_name, ("📚", command_name.title()))
+            
             embed = discord.Embed(
-                title=f"📚 {command_name.upper()} Command",
-                description=info["description"],
+                title=f"{emoji} {display_name}",
+                description="",
                 color=0x5865F2
             )
             
+            # Usage section
+            usage_text = f"```\n{info['usage']}\n{info.get('slash', '')}\n```"
             embed.add_field(
                 name="Usage",
-                value=f"```\n{info['usage']}\n{info.get('slash', '')}\n```",
+                value=usage_text,
                 inline=False
             )
             
+            # Description
+            embed.add_field(
+                name="Description",
+                value=info["description"],
+                inline=False
+            )
+            
+            # Examples
             if info.get("examples"):
-                examples_text = "\n".join([f"• `{ex}`" for ex in info["examples"]])
+                examples_text = "\n".join([f"`{ex}`" for ex in info["examples"]])
                 embed.add_field(
                     name="Examples",
                     value=examples_text,
                     inline=False
                 )
             
+            # Notes if available
             if info.get("notes"):
                 embed.add_field(
                     name="Note",
