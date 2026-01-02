@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord.ui import View, Button
 import httpx
 
-from utils.auth import get_user_token, api_request
+from utils.auth import get_user_token, api_request, API_URL
 from utils.embeds import create_info_embed, create_error_embed
 from utils.errors import handle_command_error
 from utils.logging import log_command
@@ -77,40 +77,113 @@ class ProcessListView(View):
             await interaction.response.defer()
 
 
-async def handle_list_processes(discord_id: str, username: str) -> tuple[list[discord.Embed], int]:
-    """Handle listing processes. Returns list of embeds and total page count."""
+async def get_public_profile(username: str):
+    """Get public profile for a user (unauthenticated request)."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            # URL encode the username in case it has special characters
+            import urllib.parse
+            encoded_username = urllib.parse.quote(username, safe='')
+            response = await client.get(f"{API_URL}/api/profiles/{encoded_username}")
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                raise Exception(f"User '{username}' not found")
+            raise
+        except httpx.RequestError as e:
+            raise Exception(f"Failed to fetch profile: {str(e)}")
+
+
+async def handle_list_processes(discord_id: str, username: str, target_username: str = None) -> tuple[list[discord.Embed], int]:
+    """Handle listing processes. Returns list of embeds and total page count.
+    
+    Args:
+        discord_id: Discord ID of the user making the request
+        username: Discord username of the user making the request
+        target_username: Optional username to view public processes of another user
+    """
     try:
-        token = await get_user_token(discord_id, username)
-        
-        # Get all processes
-        processes = await api_request("GET", "/api/processes/", token)
-        
-        if not processes:
-            embed = create_info_embed(
-                "📋 Your Processes",
-                f"You don't have any processes yet. Use `{PREFIX}add <company> <stage>` or `/add <company> <stage>` to create one!"
-            )
-            return [embed], 1
-        
-        # Get details for all processes
-        process_details = []
-        for p in processes:
-            try:
-                detail = await api_request("GET", f"/api/processes/{p['id']}/detail", token)
-                process_details.append(detail)
-            except Exception:
-                # If we can't get detail, use the basic process info
-                process_details.append(p)
+        # If viewing another user's profile
+        if target_username:
+            # Get public profile (no authentication required)
+            profile = await get_public_profile(target_username)
+            
+            # Check if user is anonymous
+            if profile.get("is_anonymous", False):
+                embed = create_error_embed(
+                    "User is Anonymous",
+                    f"The user '{target_username}' has anonymous mode enabled and their processes are not publicly visible."
+                )
+                return [embed], 1
+            
+            # Get public processes from profile
+            process_details = profile.get("processes", [])
+            
+            if not process_details:
+                display_name = profile.get("display_name") or target_username
+                embed = create_info_embed(
+                    f"📋 {display_name}'s Public Processes",
+                    f"{display_name} doesn't have any public processes yet."
+                )
+                return [embed], 1
+            
+            # Get full details for each process (need to fetch details to get stages)
+            process_details_with_stages = []
+            for p in process_details:
+                try:
+                    # Use unauthenticated request to get process detail via share_id
+                    if p.get("share_id"):
+                        async with httpx.AsyncClient(timeout=10.0) as client:
+                            detail_response = await client.get(f"{API_URL}/api/processes/share/{p['share_id']}")
+                            if detail_response.status_code == 200:
+                                process_details_with_stages.append(detail_response.json())
+                            else:
+                                # If share link doesn't work, use basic info
+                                process_details_with_stages.append(p)
+                    else:
+                        process_details_with_stages.append(p)
+                except Exception:
+                    # If we can't get detail, use the basic process info
+                    process_details_with_stages.append(p)
+            
+            display_name = profile.get("display_name") or target_username
+            title_prefix = f"📋 {display_name}'s Public Processes"
+        else:
+            # Viewing own processes
+            token = await get_user_token(discord_id, username)
+            
+            # Get all processes
+            processes = await api_request("GET", "/api/processes/", token)
+            
+            if not processes:
+                embed = create_info_embed(
+                    "📋 Your Processes",
+                    f"You don't have any processes yet. Use `{PREFIX}add <company> <stage>` or `/add <company> <stage>` to create one!"
+                )
+                return [embed], 1
+            
+            # Get details for all processes
+            process_details_with_stages = []
+            for p in processes:
+                try:
+                    detail = await api_request("GET", f"/api/processes/{p['id']}/detail", token)
+                    process_details_with_stages.append(detail)
+                except Exception:
+                    # If we can't get detail, use the basic process info
+                    process_details_with_stages.append(p)
+            
+            title_prefix = "📋 Your Processes"
         
         # Create embeds with pagination (max 25 fields per embed, Discord limit)
         embeds = []
         items_per_page = 10  # Reasonable number per page
-        total_pages = (len(process_details) + items_per_page - 1) // items_per_page
+        total_pages = (len(process_details_with_stages) + items_per_page - 1) // items_per_page
         
         for page in range(total_pages):
             start_idx = page * items_per_page
-            end_idx = min(start_idx + items_per_page, len(process_details))
-            page_processes = process_details[start_idx:end_idx]
+            end_idx = min(start_idx + items_per_page, len(process_details_with_stages))
+            page_processes = process_details_with_stages[start_idx:end_idx]
             
             # Determine embed color based on overall status
             has_active = any(p.get("status") == "active" for p in page_processes)
@@ -127,7 +200,7 @@ async def handle_list_processes(discord_id: str, username: str) -> tuple[list[di
                 color = 0x808080  # Gray
             
             embed = discord.Embed(
-                title=f"📋 Your Processes ({len(process_details)})",
+                title=f"{title_prefix} ({len(process_details_with_stages)})",
                 color=color
             )
             
@@ -167,22 +240,24 @@ async def handle_list_processes(discord_id: str, username: str) -> tuple[list[di
 def setup_list_command(bot: commands.Bot):
     """Setup list command (both slash and prefix)."""
     # Slash command
-    @bot.tree.command(name="list", description="List all your processes")
-    async def list_processes(interaction: discord.Interaction):
-        """List all processes: /list"""
+    @bot.tree.command(name="list", description="List your processes or view someone else's public processes")
+    @app_commands.describe(username="Optional: Username to view public processes of another user")
+    async def list_processes(interaction: discord.Interaction, username: str = None):
+        """List all processes: /list [username]"""
         discord_id = str(interaction.user.id)
-        username = interaction.user.name
+        user_username = interaction.user.name
         
         # Log the command
         log_command(
             command_type="slash",
             command_name="list",
             user_id=discord_id,
-            username=username
+            username=user_username,
+            parsed_args={"target_username": username} if username else None
         )
         
         await interaction.response.defer()
-        embeds, total_pages = await handle_list_processes(discord_id, username)
+        embeds, total_pages = await handle_list_processes(discord_id, user_username, target_username=username)
         
         if total_pages > 1:
             # Send first page and add pagination buttons
@@ -193,8 +268,8 @@ def setup_list_command(bot: commands.Bot):
     
     # Prefix command
     @bot.command(name="list")
-    async def list_processes_prefix(ctx: commands.Context):
-        """List all processes: p!list"""
+    async def list_processes_prefix(ctx: commands.Context, *, target_username: str = None):
+        """List all processes: p!list [username]"""
         discord_id = str(ctx.author.id)
         username = ctx.author.name
         
@@ -203,10 +278,12 @@ def setup_list_command(bot: commands.Bot):
             command_type="prefix",
             command_name="list",
             user_id=discord_id,
-            username=username
+            username=username,
+            raw_args=target_username if target_username else None,
+            parsed_args={"target_username": target_username} if target_username else None
         )
         
-        embeds, total_pages = await handle_list_processes(discord_id, username)
+        embeds, total_pages = await handle_list_processes(discord_id, username, target_username=target_username)
         
         if total_pages > 1:
             # Send first page and add pagination buttons

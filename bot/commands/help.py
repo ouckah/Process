@@ -35,11 +35,14 @@ COMMAND_INFO = {
     },
     "list": {
         "category": "processes",
-        "description": "List all your job application processes with stages and status",
-        "usage": f"{PREFIX}list",
-        "examples": [f"{PREFIX}list"],
+        "description": "List your processes or view someone else's public processes",
+        "usage": f"{PREFIX}list [username]",
+        "examples": [
+            f"{PREFIX}list",
+            f"{PREFIX}list johndoe"
+        ],
         "slash": "/list",
-        "notes": "Shows paginated results with interactive navigation"
+        "notes": "Without username: Shows your processes. With username: Shows public processes of that user (if not anonymous). Shows paginated results with interactive navigation."
     },
     "dashboard": {
         "category": "account",
