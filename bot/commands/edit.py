@@ -31,11 +31,6 @@ async def handle_edit_process(
             if not position:
                 position = None
         
-        if new_position:
-            new_position = new_position.strip('"\'')
-            if not new_position:
-                new_position = None
-        
         if not field or not new_value:
             return create_usage_embed(
                 f"Usage: `{PREFIX}edit <company> [position] <field> <new_value>`",
