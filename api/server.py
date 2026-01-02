@@ -16,8 +16,18 @@ allowed_origins = [
 ]
 
 # Add production frontend URL if provided
-if FRONTEND_URL and FRONTEND_URL not in allowed_origins:
-    allowed_origins.append(FRONTEND_URL)
+if FRONTEND_URL:
+    # Normalize URL - remove trailing slash
+    normalized_url = FRONTEND_URL.rstrip('/')
+    if normalized_url not in allowed_origins:
+        allowed_origins.append(normalized_url)
+    
+    # Log for debugging
+    print(f"FRONTEND_URL from env: {FRONTEND_URL}")
+    print(f"Normalized URL: {normalized_url}")
+
+# Log final allowed origins for debugging
+print(f"Final CORS allowed origins: {allowed_origins}")
 
 # Add CORS middleware
 app.add_middleware(
