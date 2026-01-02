@@ -125,12 +125,12 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
         <div className="mb-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               Comments & Questions
             </h2>
             {user && (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 flex-shrink-0">
                 <Button
                   variant="outline"
                   size="sm"
@@ -157,7 +157,7 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
           </div>
 
           {/* Filter buttons */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mt-4 mb-4">
             <button
               onClick={() => setFilter('all')}
               className={`px-3 py-1 text-sm rounded ${
@@ -192,9 +192,15 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
         </div>
 
         {!user && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            Please log in to post comments or ask questions.
-          </p>
+          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <p className="text-sm text-yellow-800 dark:text-yellow-300">
+              <strong>Sign in required:</strong> Please{' '}
+              <a href="/login" className="underline font-medium hover:text-yellow-900 dark:hover:text-yellow-200">
+                log in
+              </a>
+              {' '}to post comments or ask questions.
+            </p>
+          </div>
         )}
 
         {showCommentForm && (
