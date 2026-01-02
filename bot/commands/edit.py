@@ -30,17 +30,13 @@ async def handle_edit_process(
                 position = None
         
         if not field or not new_value:
+            valid_fields = ', '.join([f"`{name}`" for name in ["company name", "position", "privacy"]])
             return create_usage_embed(
                 f"Usage: `{PREFIX}edit <company> [position] <field> <new_value>`",
-                examples=[
-                    f"{PREFIX}edit Google company name Alphabet",
-                    f'{PREFIX}edit Google "SWE" position "Software Engineer"',
-                    f"{PREFIX}edit Google privacy public",
-                    f'{PREFIX}edit Google "SWE" privacy private'
-                ],
+                examples=f"• `{PREFIX}edit Google company name Alphabet`\n• `{PREFIX}edit Google \"SWE\" position \"Software Engineer\"`\n• `{PREFIX}edit Google privacy public`",
                 fields=[{
-                    "name": "What can you edit?",
-                    "value": "• **company name**: Change the company name\n• **position**: Change the job title/position\n• **privacy**: Set to public or private (values: public, private)",
+                    "name": "Valid Field Names",
+                    "value": valid_fields,
                     "inline": False
                 }]
             )
@@ -286,17 +282,13 @@ def setup_edit_command(bot: commands.Bot):
         username = ctx.author.name
         
         if not args:
+            valid_fields = ', '.join([f"`{name}`" for name in ["company name", "position", "privacy"]])
             embed = create_usage_embed(
                 f"Usage: `{PREFIX}edit <company> [position] <field> <new_value>`",
-                examples=[
-                    f"{PREFIX}edit Google company name Alphabet",
-                    f'{PREFIX}edit Google "SWE" position "Software Engineer"',
-                    f"{PREFIX}edit Google privacy public",
-                    f'{PREFIX}edit Google "SWE" privacy private'
-                ],
+                examples=f"• `{PREFIX}edit Google company name Alphabet`\n• `{PREFIX}edit Google \"SWE\" position \"Software Engineer\"`\n• `{PREFIX}edit Google privacy public`",
                 fields=[{
-                    "name": "What can you edit?",
-                    "value": "• **company name**: Change the company name\n• **position**: Change the job title/position\n• **privacy**: Set to public or private (values: public, private)",
+                    "name": "Valid Field Names",
+                    "value": valid_fields,
                     "inline": False
                 }]
             )
