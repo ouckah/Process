@@ -10,6 +10,7 @@ interface StatusChartProps {
 }
 
 const COLORS: Record<string, string> = {
+  'Applied': '#FDE68A', // pastel yellow
   'OA': '#3B82F6', // blue
   'Phone Screen': '#60A5FA', // light blue
   'Technical Interview': '#818CF8', // indigo

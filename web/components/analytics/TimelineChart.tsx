@@ -106,6 +106,7 @@ export function TimelineChart({ processes, processDetails = [] }: TimelineChartP
   const stageColors: Record<string, string> = {
     'Offer': '#10B981',
     'Reject': '#EF4444',
+    'Applied': '#FDE68A', // pastel yellow
     'OA': '#3B82F6',
     'Phone Screen': '#60A5FA',
     'Technical Interview': '#818CF8',
