@@ -2,6 +2,7 @@ import datetime
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, or_
 from typing import List
 
 from database import get_db
@@ -169,12 +170,50 @@ def post_process(
     """
     Create a new process for the authenticated user.
     Status is automatically set to ACTIVE (will be calculated from stages later).
+    Prevents duplicate processes with the same company name and position (case-insensitive).
     """
+    # Check for duplicate process (same company name and position, case-insensitive)
+    # Normalize position: treat None, empty string, or whitespace-only as None
+    position_value = process_data.position.strip() if process_data.position and process_data.position.strip() else None
+    
+    # Build query for case-insensitive company name match
+    query = db.query(Process).filter(
+        Process.user_id == current_user.id,
+        func.lower(Process.company_name) == func.lower(process_data.company_name)
+    )
+    
+    # Handle position matching: both None/empty or both same (case-insensitive)
+    if position_value is None:
+        # Match processes where position is None, empty string, or whitespace-only
+        # This prevents creating duplicate processes with same company and no job title
+        query = query.filter(
+            or_(
+                Process.position.is_(None),
+                Process.position == "",
+                func.trim(Process.position) == ""
+            )
+        )
+    else:
+        # Match processes where position matches (case-insensitive, trimmed)
+        # This prevents creating duplicate processes with same company and same job title
+        query = query.filter(
+            func.lower(func.trim(Process.position)) == func.lower(position_value)
+        )
+    
+    existing_process = query.first()
+    
+    if existing_process:
+        position_text = f" for position '{position_value}'" if position_value else ""
+        raise HTTPException(
+            status_code=400,
+            detail=f"A process for company '{process_data.company_name}'{position_text} already exists. Please use a different company name or position."
+        )
+    
     # Status is ignored - always starts as ACTIVE (no stages yet)
     new_process = Process(
         user_id = current_user.id,  # Get from authenticated user
         company_name = process_data.company_name,
-        position = process_data.position,
+        position = position_value,
         status = ProcessStatus.ACTIVE,  # Always ACTIVE for new processes
     )
     
@@ -206,6 +245,7 @@ def update_process(
     """
     Update a process by ID (only if owned by current user).
     Only provided fields will be updated.
+    Prevents duplicate processes with the same company name and position (case-insensitive).
     """
     process = db.query(Process).filter(
         Process.id == process_id,
@@ -214,12 +254,54 @@ def update_process(
     if not process:
         raise HTTPException(status_code=404, detail=f"Process with id {process_id} not found")
     
+    # Determine the new values (use existing if not provided in update)
+    new_company_name = update_data.company_name if update_data.company_name is not None else process.company_name
+    new_position = update_data.position if update_data.position is not None else process.position
+    # Normalize position: treat None, empty string, or whitespace-only as None
+    new_position_value = new_position.strip() if new_position and new_position.strip() else None
+    
+    # Check if the update would create a duplicate (excluding the current process)
+    # Only check if company_name or position is being changed
+    if (update_data.company_name is not None or update_data.position is not None):
+        query = db.query(Process).filter(
+            Process.user_id == current_user.id,
+            Process.id != process_id,  # Exclude the current process
+            func.lower(Process.company_name) == func.lower(new_company_name)
+        )
+        
+        # Handle position matching: both None/empty or both same (case-insensitive)
+        if new_position_value is None:
+            # Match processes where position is None, empty string, or whitespace-only
+            # This prevents updating to create duplicate processes with same company and no job title
+            query = query.filter(
+                or_(
+                    Process.position.is_(None),
+                    Process.position == "",
+                    func.trim(Process.position) == ""
+                )
+            )
+        else:
+            # Match processes where position matches (case-insensitive, trimmed)
+            # This prevents updating to create duplicate processes with same company and same job title
+            query = query.filter(
+                func.lower(func.trim(Process.position)) == func.lower(new_position_value)
+            )
+        
+        existing_process = query.first()
+        
+        if existing_process:
+            position_text = f" for position '{new_position_value}'" if new_position_value else ""
+            raise HTTPException(
+                status_code=400,
+                detail=f"A process for company '{new_company_name}'{position_text} already exists. Please use a different company name or position."
+            )
+    
     # update only the fields that are provided
     # Status is ignored - it's automatically calculated from stages
     if update_data.company_name is not None:
         process.company_name = update_data.company_name
     if update_data.position is not None:
-        process.position = update_data.position
+        process.position = new_position_value
     
     # Load stages to calculate status
     db.refresh(process, ["stages"])
