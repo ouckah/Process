@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 PREFIX = os.getenv("PREFIX", "p!")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 
 class ProcessListView(View):
@@ -131,9 +132,10 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                     target_username = await get_username_from_discord_id(target_discord_id)
                 except Exception as e:
                     if str(e) == "USER_NOT_REGISTERED":
+                        register_url = f"{FRONTEND_URL}/register"
                         embed = create_error_embed(
                             "User Not Registered",
-                            "This user has not registered with the bot yet. They need to use a bot command (like `p!add`) to create an account and submit a process first."
+                            f"This user has not registered yet. They need to use a bot command (like `p!add`) OR [register on the website]({register_url}) to create an account and submit a process first."
                         )
                         return [embed], 1
                     raise
@@ -143,9 +145,10 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 profile = await get_public_profile(target_username)
             except Exception as e:
                 if str(e) == "USER_NOT_FOUND":
+                    register_url = f"{FRONTEND_URL}/register"
                     embed = create_error_embed(
                         "User Not Found",
-                        "This user either has not registered with the bot or has not submitted any processes yet. They need to use a bot command (like `p!add`) to create an account and add processes."
+                        f"This user either has not registered or has not submitted any processes yet. They need to use a bot command (like `p!add`) OR [register on the website]({register_url}) to create an account and add processes."
                     )
                     return [embed], 1
                 raise
