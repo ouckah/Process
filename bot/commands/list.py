@@ -77,6 +77,23 @@ class ProcessListView(View):
             await interaction.response.defer()
 
 
+async def get_username_from_discord_id(target_discord_id: str) -> str:
+    """Get username from Discord ID by checking if user exists (doesn't create account)."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            response = await client.get(f"{API_URL}/api/profiles/discord/{target_discord_id}/username")
+            response.raise_for_status()
+            data = response.json()
+            return data.get("username")
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                # User doesn't exist
+                raise Exception("USER_NOT_REGISTERED")
+            raise
+        except httpx.RequestError as e:
+            raise Exception(f"Failed to check user: {str(e)}")
+
+
 async def get_public_profile(username: str):
     """Get public profile for a user (unauthenticated request)."""
     async with httpx.AsyncClient(timeout=10.0) as client:
@@ -89,31 +106,55 @@ async def get_public_profile(username: str):
             return response.json()
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
-                raise Exception(f"User '{username}' not found")
+                # Better error message
+                raise Exception("USER_NOT_FOUND")
             raise
         except httpx.RequestError as e:
             raise Exception(f"Failed to fetch profile: {str(e)}")
 
 
-async def handle_list_processes(discord_id: str, username: str, target_username: str = None) -> tuple[list[discord.Embed], int]:
+async def handle_list_processes(discord_id: str, username: str, target_username: str = None, target_discord_id: str = None) -> tuple[list[discord.Embed], int]:
     """Handle listing processes. Returns list of embeds and total page count.
     
     Args:
         discord_id: Discord ID of the user making the request
         username: Discord username of the user making the request
         target_username: Optional username to view public processes of another user
+        target_discord_id: Optional Discord ID if target is a mention
     """
     try:
         # If viewing another user's profile
-        if target_username:
+        if target_username or target_discord_id:
+            # If we have a Discord ID (from mention), check if they exist and get their username
+            if target_discord_id:
+                try:
+                    target_username = await get_username_from_discord_id(target_discord_id)
+                except Exception as e:
+                    if str(e) == "USER_NOT_REGISTERED":
+                        embed = create_error_embed(
+                            "User Not Registered",
+                            "This user has not registered with the bot yet. They need to use a bot command (like `p!add`) to create an account and submit a process first."
+                        )
+                        return [embed], 1
+                    raise
+            
             # Get public profile (no authentication required)
-            profile = await get_public_profile(target_username)
+            try:
+                profile = await get_public_profile(target_username)
+            except Exception as e:
+                if str(e) == "USER_NOT_FOUND":
+                    embed = create_error_embed(
+                        "User Not Found",
+                        "This user either has not registered with the bot or has not submitted any processes yet. They need to use a bot command (like `p!add`) to create an account and add processes."
+                    )
+                    return [embed], 1
+                raise
             
             # Check if user is anonymous
             if profile.get("is_anonymous", False):
                 embed = create_error_embed(
                     "User is Anonymous",
-                    f"The user '{target_username}' has anonymous mode enabled and their processes are not publicly visible."
+                    "This user has anonymous mode enabled and their processes are not publicly visible."
                 )
                 return [embed], 1
             
@@ -241,11 +282,18 @@ def setup_list_command(bot: commands.Bot):
     """Setup list command (both slash and prefix)."""
     # Slash command
     @bot.tree.command(name="list", description="List your processes or view someone else's public processes")
-    @app_commands.describe(username="Optional: Username to view public processes of another user")
-    async def list_processes(interaction: discord.Interaction, username: str = None):
-        """List all processes: /list [username]"""
+    @app_commands.describe(user="Optional: User to view public processes of")
+    async def list_processes(interaction: discord.Interaction, user: discord.User = None):
+        """List all processes: /list [user]"""
         discord_id = str(interaction.user.id)
         user_username = interaction.user.name
+        
+        target_username = None
+        target_discord_id = None
+        
+        # Handle user mention
+        if user:
+            target_discord_id = str(user.id)
         
         # Log the command
         log_command(
@@ -253,11 +301,19 @@ def setup_list_command(bot: commands.Bot):
             command_name="list",
             user_id=discord_id,
             username=user_username,
-            parsed_args={"target_username": username} if username else None
+            parsed_args={
+                "target_username": target_username,
+                "target_discord_id": target_discord_id
+            } if (target_username or target_discord_id) else None
         )
         
         await interaction.response.defer()
-        embeds, total_pages = await handle_list_processes(discord_id, user_username, target_username=username)
+        embeds, total_pages = await handle_list_processes(
+            discord_id, 
+            user_username, 
+            target_username=target_username,
+            target_discord_id=target_discord_id
+        )
         
         if total_pages > 1:
             # Send first page and add pagination buttons
@@ -268,10 +324,33 @@ def setup_list_command(bot: commands.Bot):
     
     # Prefix command
     @bot.command(name="list")
-    async def list_processes_prefix(ctx: commands.Context, *, target_username: str = None):
-        """List all processes: p!list [username]"""
+    async def list_processes_prefix(ctx: commands.Context, *, args: str = None):
+        """List all processes: p!list [@mention or username]"""
         discord_id = str(ctx.author.id)
         username = ctx.author.name
+        
+        target_username = None
+        target_discord_id = None
+        
+        # Parse arguments - check for mentions first
+        if args:
+            args = args.strip()
+            
+            # Check if there are mentions in the message
+            if ctx.message.mentions:
+                # Use the first mention
+                mentioned_user = ctx.message.mentions[0]
+                target_discord_id = str(mentioned_user.id)
+            else:
+                # Check if it's a mention format like <@123456789> or <@!123456789>
+                import re
+                mention_pattern = r'<@!?(\d+)>'
+                match = re.match(mention_pattern, args)
+                if match:
+                    target_discord_id = match.group(1)
+                else:
+                    # Treat as username
+                    target_username = args
         
         # Log the command
         log_command(
@@ -279,11 +358,19 @@ def setup_list_command(bot: commands.Bot):
             command_name="list",
             user_id=discord_id,
             username=username,
-            raw_args=target_username if target_username else None,
-            parsed_args={"target_username": target_username} if target_username else None
+            raw_args=args,
+            parsed_args={
+                "target_username": target_username,
+                "target_discord_id": target_discord_id
+            } if (target_username or target_discord_id) else None
         )
         
-        embeds, total_pages = await handle_list_processes(discord_id, username, target_username=target_username)
+        embeds, total_pages = await handle_list_processes(
+            discord_id, 
+            username, 
+            target_username=target_username,
+            target_discord_id=target_discord_id
+        )
         
         if total_pages > 1:
             # Send first page and add pagination buttons

@@ -40,6 +40,26 @@ def calculate_status_from_stages(stages: List) -> ProcessStatus:
         return ProcessStatus.ACTIVE
 
 
+@router.get("/discord/{discord_id}/username")
+def get_username_by_discord_id(
+    discord_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get username for a user by Discord ID.
+    Returns 404 if user doesn't exist.
+    No authentication required - read-only check.
+    """
+    from auth import get_user_by_discord_id
+    
+    user = get_user_by_discord_id(db, discord_id)
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"username": user.username, "discord_id": user.discord_id}
+
+
 @router.get("/{username}", response_model=PublicProfileResponse)
 def get_public_profile(
     username: str,
