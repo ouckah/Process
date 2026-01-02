@@ -85,3 +85,4 @@ export function getAllTemplates(): ProcessTemplate[] {
   return [...DEFAULT_TEMPLATES, ...getCustomTemplates()];
 }
 
+
