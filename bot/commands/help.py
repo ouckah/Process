@@ -97,6 +97,16 @@ COMMAND_INFO = {
         ],
         "slash": "/anon",
         "notes": "Controls whether your username is shown on your public profile"
+    },
+    "sankey": {
+        "category": "analytics",
+        "description": "Generate a Sankey diagram visualization of your public processes",
+        "usage": f"{PREFIX}sankey",
+        "examples": [
+            f"{PREFIX}sankey"
+        ],
+        "slash": "/sankey",
+        "notes": "Shows the flow of stages across all your public processes. Requires at least one public process."
     }
 }
 
@@ -120,7 +130,8 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
                 "dashboard": ("🌐", "Dashboard"),
                 "help": ("❓", "Help"),
                 "privacy": ("🔒", "Privacy Settings"),
-                "anon": ("👤", "Anonymous Mode")
+                "anon": ("👤", "Anonymous Mode"),
+                "sankey": ("📊", "Sankey Diagram")
             }
             
             emoji, display_name = command_display.get(command_name, ("📚", command_name.title()))
