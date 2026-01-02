@@ -6,6 +6,7 @@ import { useQueries } from '@tanstack/react-query';
 import { processApi } from '@/lib/api';
 import { MetricsCards } from './MetricsCards';
 import { StatusChart } from './StatusChart';
+import { SankeyChart } from './SankeyChart';
 import { TimelineChart } from './TimelineChart';
 import { Loader2 } from 'lucide-react';
 import type { ProcessDetail } from '@/types';
@@ -56,6 +57,10 @@ export function ProcessAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <StatusChart processes={processes} processDetails={processDetails} />
         <TimelineChart processes={processes} processDetails={processDetails} />
+      </div>
+
+      <div className="w-full">
+        <SankeyChart processes={processes} processDetails={processDetails} />
       </div>
     </div>
   );
