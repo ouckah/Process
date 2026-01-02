@@ -10,4 +10,5 @@ httpx>=0.24.0
 bcrypt
 python-dotenv
 psycopg2-binary>=2.9.0
+matplotlib>=3.7.0
 

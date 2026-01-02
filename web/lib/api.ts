@@ -256,5 +256,37 @@ export const commentApi = {
   },
 };
 
+// Analytics API
+export interface PublicAnalyticsResponse {
+  username: string;
+  display_name: string | null;
+  is_anonymous: boolean;
+  processes: Process[];
+  process_details: ProcessDetail[];
+  stats: {
+    total_public_processes: number;
+    stage_counts: Record<string, number>;
+  };
+}
+
+export const analyticsApi = {
+  getPublicAnalytics: async (username: string): Promise<PublicAnalyticsResponse> => {
+    // No auth token needed for public endpoint
+    const response = await apiClient.get<PublicAnalyticsResponse>(
+      `/api/analytics/${encodeURIComponent(username)}/public`,
+      {
+        headers: {
+          Authorization: undefined, // Remove auth header for public endpoint
+        },
+      }
+    );
+    return response.data;
+  },
+
+  getSankeyImageUrl: (username: string): string => {
+    return `${API_BASE_URL}/api/analytics/${encodeURIComponent(username)}/sankey-image`;
+  },
+};
+
 export default apiClient;
 

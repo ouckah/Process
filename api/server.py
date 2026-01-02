@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-from routes import processes, auth, stages, feedback, profiles, comments
+from routes import processes, auth, stages, feedback, profiles, comments, analytics
 from database import init_db
 
 app = FastAPI()
@@ -55,6 +55,7 @@ app.include_router(stages.router)
 app.include_router(feedback.router)
 app.include_router(profiles.router)
 app.include_router(comments.router)
+app.include_router(analytics.router)
 
 
 @app.get("/")
