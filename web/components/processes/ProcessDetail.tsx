@@ -56,7 +56,7 @@ export function ProcessDetail({ processId, onEdit }: ProcessDetailProps) {
 
   if (error || !process) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
         Failed to load process. Please try again.
       </div>
     );
@@ -96,7 +96,11 @@ export function ProcessDetail({ processId, onEdit }: ProcessDetailProps) {
   };
 
   const handleDeleteProcess = () => {
-    deleteProcess.mutate(processId);
+    deleteProcess.mutate(processId, {
+      onSuccess: () => {
+        router.push('/dashboard');
+      },
+    });
   };
 
   const handleProcessUpdate = (data: ProcessUpdate) => {
@@ -121,10 +125,10 @@ export function ProcessDetail({ processId, onEdit }: ProcessDetailProps) {
   return (
     <div className="space-y-6">
       {/* Process Header */}
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
         {isEditMode ? (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Edit Process</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Edit Process</h2>
             <ProcessForm
               process={process}
               onSubmit={handleProcessUpdate}
@@ -136,13 +140,13 @@ export function ProcessDetail({ processId, onEdit }: ProcessDetailProps) {
           <div className="flex items-start justify-between mb-4">
             <div>
               <div className="flex items-center space-x-3 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">{process.company_name}</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{process.company_name}</h1>
                 <StatusBadge status={process.status} />
               </div>
               {process.position && (
-                <p className="text-xl text-gray-600 mb-2">{process.position}</p>
+                <p className="text-xl text-gray-600 dark:text-gray-400 mb-2">{process.position}</p>
               )}
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
+              <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                 <span>Created: {formatDate(process.created_at)}</span>
                 {process.updated_at !== process.created_at && (
                   <span>Updated: {formatDate(process.updated_at)}</span>
@@ -176,9 +180,9 @@ export function ProcessDetail({ processId, onEdit }: ProcessDetailProps) {
       </div>
 
       {/* Timeline and Stages */}
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Process Timeline</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Process Timeline</h2>
           <Button
             size="sm"
             onClick={() => {

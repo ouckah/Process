@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { MarkdownTextarea } from '@/components/ui/MarkdownTextarea';
 import { STAGE_TYPES } from '@/lib/stageTypes';
 import type { Stage, StageCreate, StageUpdate } from '@/types';
 
@@ -16,18 +17,20 @@ interface StageFormProps {
 }
 
 export function StageForm({ processId, stage, onSubmit, onCancel, loading }: StageFormProps) {
-  // Get today's date in YYYY-MM-DD format for default
-  const getTodayDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  // Get current date and time in YYYY-MM-DDTHH:mm format for default
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   const [stageName, setStageName] = useState('');
   const [customStageName, setCustomStageName] = useState('');
-  const [stageDate, setStageDate] = useState(getTodayDate());
+  const [stageDateTime, setStageDateTime] = useState(getCurrentDateTime());
   const [notes, setNotes] = useState('');
   const [order, setOrder] = useState<number | ''>('');
 
@@ -42,7 +45,14 @@ export function StageForm({ processId, stage, onSubmit, onCancel, loading }: Sta
         setStageName('Other');
         setCustomStageName(stage.stage_name);
       }
-      setStageDate(stage.stage_date.split('T')[0]); // Extract date part from ISO string
+      // Parse ISO datetime string to datetime-local format (YYYY-MM-DDTHH:mm)
+      const stageDate = new Date(stage.stage_date);
+      const year = stageDate.getFullYear();
+      const month = String(stageDate.getMonth() + 1).padStart(2, '0');
+      const day = String(stageDate.getDate()).padStart(2, '0');
+      const hours = String(stageDate.getHours()).padStart(2, '0');
+      const minutes = String(stageDate.getMinutes()).padStart(2, '0');
+      setStageDateTime(`${year}-${month}-${day}T${hours}:${minutes}`);
       setNotes(stage.notes || '');
       setOrder(stage.order);
     }
@@ -59,9 +69,12 @@ export function StageForm({ processId, stage, onSubmit, onCancel, loading }: Sta
       return;
     }
     
+    // Convert datetime-local format to ISO string for API
+    const stageDateISO = new Date(stageDateTime).toISOString();
+    
     const data: StageCreate | StageUpdate = {
       stage_name: finalStageName,
-      stage_date: stageDate,
+      stage_date: stageDateISO,
       notes: notes || null,
     };
 
@@ -110,18 +123,19 @@ export function StageForm({ processId, stage, onSubmit, onCancel, loading }: Sta
       )}
 
       <Input
-        label="Date"
-        type="date"
-        value={stageDate}
-        onChange={(e) => setStageDate(e.target.value)}
+        label="Date & Time"
+        type="datetime-local"
+        value={stageDateTime}
+        onChange={(e) => setStageDateTime(e.target.value)}
         required
       />
 
-      <Input
+      <MarkdownTextarea
         label="Notes (optional)"
         value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        placeholder="Additional notes about this stage"
+        onChange={setNotes}
+        placeholder="Additional notes about this stage (Markdown supported)"
+        rows={4}
       />
 
       {!stage && (

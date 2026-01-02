@@ -7,13 +7,72 @@
   --background-rgb: 255, 255, 255;
 }
 
+.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 17, 24, 39;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background-color: rgb(var(--background-rgb));
   min-height: 100vh;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 html {
   background-color: white;
+}
+
+.dark html {
+  background-color: rgb(17, 24, 39);
+}
+
+/* Print Styles */
+@media print {
+  @page {
+    margin: 1cm;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  /* Hide navigation and non-essential elements */
+  header,
+  footer,
+  nav,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure content is visible */
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Page breaks */
+  .page-break {
+    page-break-after: always;
+  }
+
+  /* Avoid breaking cards */
+  .bg-white {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Optimize colors for printing */
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  a {
+    text-decoration: underline;
+  }
 }
 

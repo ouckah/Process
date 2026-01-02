@@ -50,14 +50,14 @@ export function RegisterForm() {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow-md">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md dark:shadow-gray-900/50">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Create an account</h2>
-          <p className="text-sm text-gray-600">Get started with process tracking</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Create an account</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Get started with process tracking</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
             {error}
           </div>
         )}
@@ -103,9 +103,9 @@ export function RegisterForm() {
           {loading ? 'Creating account...' : 'Create account'}
         </Button>
 
-        <p className="text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
           Already have an account?{' '}
-          <Link href="/login" className="text-primary-600 hover:text-primary-700 font-medium">
+          <Link href="/login" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium">
             Sign in
           </Link>
         </p>
