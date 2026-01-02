@@ -143,6 +143,25 @@ def get_current_user(
     return user
 
 
+def get_current_user_optional(
+    token: Optional[str] = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """Get the current authenticated user from JWT token, or None if not authenticated."""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if user_id is None:
+            return None
+        user_id = int(user_id)
+        user = db.query(User).filter(User.id == user_id).first()
+        return user
+    except (JWTError, ValueError, TypeError):
+        return None
+
+
 def is_admin_user(user: User) -> bool:
     """Check if a user is an admin based on email."""
     if not user.email:

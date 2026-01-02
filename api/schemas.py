@@ -28,6 +28,44 @@ class UserRegister(BaseModel):
         }
 
 
+class UserUpdate(BaseModel):
+    """Schema for updating user information."""
+    username: Optional[str] = None
+    display_name: Optional[str] = None
+    is_anonymous: Optional[bool] = None
+    comments_enabled: Optional[bool] = None
+    
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v):
+        """Validate username format."""
+        if v is None:
+            return v
+        if not v.strip():
+            raise ValueError('Username cannot be empty')
+        if len(v) < 3:
+            raise ValueError('Username must be at least 3 characters long')
+        if len(v) > 30:
+            raise ValueError('Username must be at most 30 characters long')
+        # Allow alphanumeric, underscores, and hyphens
+        if not v.replace('_', '').replace('-', '').isalnum():
+            raise ValueError('Username can only contain letters, numbers, underscores, and hyphens')
+        return v.strip()
+    
+    @field_validator('display_name')
+    @classmethod
+    def validate_display_name(cls, v):
+        """Validate display name format."""
+        if v is None:
+            return v
+        v = v.strip()
+        if not v:
+            return None  # Empty string becomes None
+        if len(v) > 100:
+            raise ValueError('Display name must be at most 100 characters long')
+        return v
+
+
 class UserResponse(BaseModel):
     """Schema for user response."""
     id: int
@@ -192,3 +230,78 @@ class DiscordBotTokenRequest(BaseModel):
     """Schema for Discord bot token request."""
     discord_id: str
     username: str
+
+
+# Profile Comment Schemas
+class ProfileCommentCreate(BaseModel):
+    """Schema for creating a profile comment."""
+    content: str
+    is_question: bool = False
+    author_display_name: Optional[str] = None  # Required if posting anonymously
+    parent_comment_id: Optional[int] = None  # For replies
+    
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v):
+        """Validate comment content."""
+        if not v or not v.strip():
+            raise ValueError('Comment content cannot be empty')
+        if len(v) > 2000:
+            raise ValueError('Comment content must be at most 2000 characters long')
+        return v.strip()
+
+
+class ProfileCommentUpdate(BaseModel):
+    """Schema for updating a profile comment."""
+    content: Optional[str] = None
+    
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v):
+        """Validate comment content."""
+        if v is None:
+            return v
+        if not v.strip():
+            raise ValueError('Comment content cannot be empty')
+        if len(v) > 2000:
+            raise ValueError('Comment content must be at most 2000 characters long')
+        return v.strip()
+
+
+class ProfileCommentResponse(BaseModel):
+    """Schema for profile comment response."""
+    id: int
+    profile_user_id: int
+    author_id: Optional[int] = None
+    author_display_name: Optional[str] = None
+    author_username: Optional[str] = None  # Only if not anonymous
+    parent_comment_id: Optional[int] = None
+    content: str
+    is_question: bool
+    is_answered: bool
+    upvotes: int
+    user_has_upvoted: bool = False  # Whether the current user has upvoted
+    created_at: str
+    updated_at: str
+    replies: List['ProfileCommentResponse'] = []  # Nested replies
+    
+    class Config:
+        from_attributes = True
+
+
+# Update forward reference
+ProfileCommentResponse.model_rebuild()
+
+
+class PublicProfileResponse(BaseModel):
+    """Schema for public profile response."""
+    username: str
+    display_name: Optional[str] = None
+    is_anonymous: bool
+    comments_enabled: bool
+    account_created_at: str
+    processes: List[ProcessResponse]
+    stats: dict  # Detailed stats will be included here
+    
+    class Config:
+        from_attributes = True

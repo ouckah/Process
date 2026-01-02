@@ -11,9 +11,11 @@ interface MarkdownTextareaProps {
   label?: string;
   placeholder?: string;
   rows?: number;
+  disabled?: boolean;
+  maxLength?: number;
 }
 
-export function MarkdownTextarea({ value, onChange, label, placeholder, rows = 4 }: MarkdownTextareaProps) {
+export function MarkdownTextarea({ value, onChange, label, placeholder, rows = 4, disabled = false, maxLength }: MarkdownTextareaProps) {
   const [isPreview, setIsPreview] = useState(false);
 
   const renderMarkdown = (text: string): string => {
@@ -73,7 +75,9 @@ export function MarkdownTextarea({ value, onChange, label, placeholder, rows = 4
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder || 'Enter notes (Markdown supported)'}
             rows={rows}
-            className="w-full p-3 border-0 focus:outline-none focus:ring-0 resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+            disabled={disabled}
+            maxLength={maxLength}
+            className="w-full p-3 border-0 focus:outline-none focus:ring-0 resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
           />
         )}
       </div>

@@ -21,7 +21,7 @@ from auth import (
     merge_user_accounts,
     is_admin_user
 )
-from schemas import UserResponse, TokenResponse, UserRegister, DiscordBotTokenRequest
+from schemas import UserResponse, UserUpdate, TokenResponse, UserRegister, DiscordBotTokenRequest
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -103,6 +103,59 @@ def login(
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     """Get current authenticated user info."""
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "username": current_user.username,
+        "discord_id": current_user.discord_id,
+        "google_id": current_user.google_id,
+    }
+
+
+@router.patch("/me", response_model=UserResponse)
+def update_me(
+    user_data: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update current authenticated user info."""
+    from auth import get_user_by_username
+    
+    # Update username if provided
+    if user_data.username is not None:
+        # Check if username is already taken (case-insensitive, excluding current user)
+        existing_user = get_user_by_username(db, user_data.username)
+        if existing_user and existing_user.id != current_user.id:
+            raise HTTPException(
+                status_code=409,
+                detail="Username is already taken"
+            )
+        current_user.username = user_data.username
+    
+    # Update display_name if provided
+    if user_data.display_name is not None:
+        display_name = user_data.display_name.strip() if user_data.display_name else None
+        if display_name and len(display_name) > 100:
+            raise HTTPException(
+                status_code=400,
+                detail="Display name must be at most 100 characters long."
+            )
+        current_user.display_name = display_name
+    
+    # Update is_anonymous if provided
+    if user_data.is_anonymous is not None:
+        current_user.is_anonymous = user_data.is_anonymous
+        # If disabling anonymous mode, clear display_name (not needed when not anonymous)
+        if not user_data.is_anonymous:
+            current_user.display_name = None
+    
+    # Update comments_enabled if provided
+    if user_data.comments_enabled is not None:
+        current_user.comments_enabled = user_data.comments_enabled
+    
+    db.commit()
+    db.refresh(current_user)
+    
     return {
         "id": current_user.id,
         "email": current_user.email,

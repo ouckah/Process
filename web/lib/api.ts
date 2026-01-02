@@ -10,7 +10,11 @@ import type {
   StageCreate,
   StageUpdate,
   Feedback,
-  FeedbackCreate
+  FeedbackCreate,
+  PublicProfileResponse,
+  ProfileComment,
+  ProfileCommentCreate,
+  ProfileCommentUpdate
 } from '@/types';
 
 // Ensure API URL uses HTTPS in production (browsers block mixed content)
@@ -120,6 +124,10 @@ export const authApi = {
         const response = await apiClient.delete<{ message: string }>('/auth/discord/disconnect');
         return response.data;
       },
+      updateProfile: async (data: { username?: string; display_name?: string | null; is_anonymous?: boolean; comments_enabled?: boolean }): Promise<User> => {
+        const response = await apiClient.patch<User>('/auth/me', data);
+        return response.data;
+      },
     };
 
 // Process API
@@ -199,6 +207,51 @@ export const feedbackApi = {
 
   getAll: async (): Promise<Feedback[]> => {
     const response = await apiClient.get<Feedback[]>('/api/feedback/');
+    return response.data;
+  },
+};
+
+// Profile API
+export const profileApi = {
+  getPublicProfile: async (username: string): Promise<PublicProfileResponse> => {
+    const response = await apiClient.get<PublicProfileResponse>(`/api/profiles/${username}`);
+    return response.data;
+  },
+};
+
+// Comment API
+export const commentApi = {
+  getComments: async (username: string): Promise<ProfileComment[]> => {
+    const response = await apiClient.get<ProfileComment[]>(`/api/profiles/${username}/comments`);
+    return response.data;
+  },
+
+  createComment: async (username: string, data: ProfileCommentCreate): Promise<ProfileComment> => {
+    const response = await apiClient.post<ProfileComment>(`/api/profiles/${username}/comments`, data);
+    return response.data;
+  },
+
+  updateComment: async (username: string, commentId: number, data: ProfileCommentUpdate): Promise<ProfileComment> => {
+    const response = await apiClient.patch<ProfileComment>(`/api/profiles/${username}/comments/${commentId}`, data);
+    return response.data;
+  },
+
+  deleteComment: async (username: string, commentId: number): Promise<void> => {
+    await apiClient.delete(`/api/profiles/${username}/comments/${commentId}`);
+  },
+
+  replyToComment: async (username: string, commentId: number, data: ProfileCommentCreate): Promise<ProfileComment> => {
+    const response = await apiClient.post<ProfileComment>(`/api/profiles/${username}/comments/${commentId}/reply`, data);
+    return response.data;
+  },
+
+  markAsAnswered: async (username: string, commentId: number): Promise<ProfileComment> => {
+    const response = await apiClient.patch<ProfileComment>(`/api/profiles/${username}/comments/${commentId}/answer`);
+    return response.data;
+  },
+
+  upvoteComment: async (username: string, commentId: number): Promise<ProfileComment> => {
+    const response = await apiClient.post<ProfileComment>(`/api/profiles/${username}/comments/${commentId}/upvote`);
     return response.data;
   },
 };

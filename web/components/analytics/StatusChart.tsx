@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import type { Process, ProcessDetail } from '@/types';
 
 interface StatusChartProps {
@@ -33,41 +33,34 @@ export function StatusChart({ processes, processDetails = [] }: StatusChartProps
     return map;
   }, [processDetails]);
 
-  // Calculate status distribution based on most recent stage name
-  // This includes all stage names including "Offer" and "Reject" as valid stage names
+  // Calculate aggregated count of each stage name across all processes
+  // Count ALL stages, not just the most recent one
   const statusData = useMemo(() => {
     const stageCounts: Record<string, number> = {};
 
     processes.forEach(process => {
       const detail = processDetailsMap.get(process.id);
-      let stageName = 'Active'; // Default if no stages
-
+      
       if (detail?.stages && detail.stages.length > 0) {
-        // Find the most recent stage by order (highest order number = most recent)
-        // This will correctly identify "Offer" and "Reject" stages as the most recent
-        const mostRecentStage = detail.stages.reduce((latest, stage) => {
-          return stage.order > latest.order ? stage : latest;
-        }, detail.stages[0]);
-        
-        // Use the most recent stage name (could be "Offer", "Reject", or any other stage)
-        stageName = mostRecentStage.stage_name;
+        // Count every stage, not just the most recent
+        detail.stages.forEach(stage => {
+          const stageName = stage.stage_name;
+          stageCounts[stageName] = (stageCounts[stageName] || 0) + 1;
+        });
       }
-
-      // Count all stage names including "Offer" and "Reject"
-      stageCounts[stageName] = (stageCounts[stageName] || 0) + 1;
     });
 
     // Convert to array format for chart
     return Object.entries(stageCounts)
       .map(([name, value]) => ({
         name,
-        value,
+        count: value,
         color: COLORS[name] || COLORS['Other'],
       }))
-      .sort((a, b) => b.value - a.value); // Sort by value descending
+      .sort((a, b) => b.count - a.count); // Sort by count descending
   }, [processes, processDetailsMap]);
 
-  const filteredStatusData = statusData.filter(item => item.value > 0);
+  const filteredStatusData = statusData.filter(item => item.count > 0);
 
   if (filteredStatusData.length === 0) {
     return (
@@ -79,26 +72,25 @@ export function StatusChart({ processes, processDetails = [] }: StatusChartProps
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Status Distribution (Most Recent Stage)</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-          <Pie
-            data={filteredStatusData}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-            outerRadius={80}
-            fill="#8884d8"
-            dataKey="value"
-          >
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Stage Distribution (All Stages)</h3>
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart data={filteredStatusData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis 
+            dataKey="name" 
+            angle={-45}
+            textAnchor="end"
+            height={100}
+            interval={0}
+          />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="count" radius={[4, 4, 0, 0]}>
             {filteredStatusData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
-          </Pie>
-          <Tooltip />
-          <Legend />
-        </PieChart>
+          </Bar>
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );

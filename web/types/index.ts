@@ -6,6 +6,9 @@ export interface User {
   username: string;
   discord_id?: string | null;
   google_id?: string | null;
+  display_name?: string | null;
+  is_anonymous?: boolean;
+  comments_enabled?: boolean;
 }
 
 export interface TokenResponse {
@@ -81,5 +84,50 @@ export interface FeedbackCreate {
   message: string;
   name?: string | null;
   email?: string | null;
+}
+
+export interface PublicProfileResponse {
+  username: string;
+  display_name?: string | null;
+  is_anonymous: boolean;
+  comments_enabled: boolean;
+  account_created_at: string;
+  processes: Process[];
+  stats: {
+    total_public_processes: number;
+    offers_received: number;
+    active_applications: number;
+    rejected: number;
+    success_rate: number;
+    comment_count?: number;
+  };
+}
+
+export interface ProfileComment {
+  id: number;
+  profile_user_id: number;
+  author_id?: number | null;
+  author_display_name?: string | null;
+  author_username?: string | null;
+  parent_comment_id?: number | null;
+  content: string;
+  is_question: boolean;
+  is_answered: boolean;
+  upvotes: number;
+  user_has_upvoted: boolean;
+  created_at: string;
+  updated_at: string;
+  replies: ProfileComment[];
+}
+
+export interface ProfileCommentCreate {
+  content: string;
+  is_question?: boolean;
+  author_display_name?: string | null;
+  parent_comment_id?: number | null;
+}
+
+export interface ProfileCommentUpdate {
+  content?: string | null;
 }
 

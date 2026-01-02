@@ -22,12 +22,17 @@ class User(Base):
     email = Column(String, unique=True, nullable=True)  # Nullable for ghost accounts created via Discord bot
     username = Column(String, nullable=False)
     hashed_password = Column(String, nullable=True)  # Nullable for OAuth users
+    display_name = Column(String(100), nullable=True)  # Pseudonym for public display
+    is_anonymous = Column(Boolean, default=False)  # Hide username on public profile
+    comments_enabled = Column(Boolean, default=True)  # Allow comments on public profile
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
     
     # Relationships
     processes = relationship("Process", back_populates="user", cascade="all, delete-orphan")
     feedback = relationship("Feedback", back_populates="user", cascade="all, delete-orphan")
+    profile_comments = relationship("ProfileComment", foreign_keys="ProfileComment.profile_user_id", back_populates="profile_user", cascade="all, delete-orphan")
+    authored_comments = relationship("ProfileComment", foreign_keys="ProfileComment.author_id", back_populates="author")
 
     def __repr__(self):
         email_str = self.email if self.email else "no-email"
@@ -89,3 +94,44 @@ class Feedback(Base):
 
     def __repr__(self):
         return f"Feedback(id={self.id}, user_id={self.user_id}, created_at={self.created_at})"
+
+
+class ProfileComment(Base):
+    __tablename__ = 'profile_comments'
+
+    id = Column(Integer, primary_key=True)
+    profile_user_id = Column(Integer, ForeignKey('users.id'), nullable=False)  # Profile owner
+    author_id = Column(Integer, ForeignKey('users.id'), nullable=True)  # Comment author (null if anonymous)
+    author_display_name = Column(String(100), nullable=True)  # For anonymous comments
+    parent_comment_id = Column(Integer, ForeignKey('profile_comments.id'), nullable=True)  # For replies
+    content = Column(String(2000), nullable=False)
+    is_question = Column(Boolean, default=False)  # Distinguish Q&A from comments
+    is_answered = Column(Boolean, default=False)  # For Q&A
+    is_deleted = Column(Boolean, default=False)  # Soft delete for moderation
+    upvotes = Column(Integer, default=0)  # Upvote count
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    profile_user = relationship("User", foreign_keys=[profile_user_id], back_populates="profile_comments")
+    author = relationship("User", foreign_keys=[author_id], back_populates="authored_comments")
+    parent_comment = relationship("ProfileComment", remote_side=[id], backref="replies")
+
+    def __repr__(self):
+        return f"ProfileComment(id={self.id}, profile_user_id={self.profile_user_id}, author_id={self.author_id}, created_at={self.created_at})"
+
+
+class CommentUpvote(Base):
+    __tablename__ = 'comment_upvotes'
+
+    id = Column(Integer, primary_key=True)
+    comment_id = Column(Integer, ForeignKey('profile_comments.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    comment = relationship("ProfileComment", backref="upvote_records")
+    user = relationship("User")
+
+    def __repr__(self):
+        return f"CommentUpvote(id={self.id}, comment_id={self.comment_id}, user_id={self.user_id})"
