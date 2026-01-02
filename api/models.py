@@ -61,7 +61,7 @@ class Stage(Base):
     id = Column(Integer, primary_key=True)
     process_id = Column(Integer, ForeignKey('processes.id'), nullable=False)
     stage_name = Column(String(100), nullable=False)  # e.g., "OA", "Phone Screen", "Reject"
-    stage_date = Column(Date, nullable=False)          # e.g., 2025-12-03
+    stage_date = Column(DateTime, nullable=False)      # e.g., 2025-12-03 14:30:00
     notes = Column(String(500), nullable=True)         # Optional notes
     order = Column(Integer, nullable=False)            # For sequencing (1, 2, 3, ...)
     created_at = Column(DateTime, default=datetime.utcnow)
