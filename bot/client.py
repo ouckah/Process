@@ -72,6 +72,7 @@ async def on_ready():
         from commands import dashboard
         from commands import help as help_command
         from commands import privacy, anon
+        from commands import edit
         
         # Setup all commands (add new commands here following the pattern above)
         add.setup_add_command(bot, stage_name_autocomplete)
@@ -81,14 +82,15 @@ async def on_ready():
         help_command.setup_help_command(bot)
         privacy.setup_privacy_command(bot)
         anon.setup_anon_command(bot)
+        edit.setup_edit_command(bot)
         
         # Try to import and setup edit command separately to catch any import errors
-        try:
-            from commands import edit
-            edit.setup_edit_command(bot)
-            logger.info("Edit command loaded successfully")
-        except Exception as edit_error:
-            logger.error(f"Failed to load edit command: {edit_error}", exc_info=True)
+        # try:
+        #     from commands import edit
+        #     edit.setup_edit_command(bot)
+        #     logger.info("Edit command loaded successfully")
+        # except Exception as edit_error:
+        #     logger.error(f"Failed to load edit command: {edit_error}", exc_info=True)
             # Continue without edit command
         
         logger.info("All commands loaded successfully")
