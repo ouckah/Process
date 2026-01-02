@@ -71,11 +71,11 @@ export function CommentItem({
           </div>
         </div>
 
-        <div className="prose prose-sm dark:prose-invert max-w-none mb-3 whitespace-pre-wrap text-gray-900 dark:text-gray-100">
+        <div className="prose prose-sm dark:prose-invert max-w-none mb-4 pr-4 whitespace-pre-wrap text-gray-900 dark:text-gray-100">
           {comment.content}
         </div>
 
-        <div className="flex items-center space-x-4 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center flex-wrap gap-3 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
           {user && (
             <button
               onClick={() => onUpvote(comment.id)}
