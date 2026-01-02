@@ -210,11 +210,20 @@ def post_process(
         )
     
     # Status is ignored - always starts as ACTIVE (no stages yet)
+    # Discord users can set privacy preference via p!privacy command
+    is_public = False
+    share_id = None
+    if current_user.discord_id is not None and current_user.discord_privacy_mode == 'public':
+        is_public = True
+        share_id = str(uuid.uuid4())
+    
     new_process = Process(
         user_id = current_user.id,  # Get from authenticated user
         company_name = process_data.company_name,
         position = position_value,
         status = ProcessStatus.ACTIVE,  # Always ACTIVE for new processes
+        is_public = is_public,
+        share_id = share_id,
     )
     
     # add to database

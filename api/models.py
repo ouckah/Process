@@ -25,6 +25,7 @@ class User(Base):
     display_name = Column(String(100), nullable=True)  # Pseudonym for public display
     is_anonymous = Column(Boolean, default=False)  # Hide username on public profile
     comments_enabled = Column(Boolean, default=True)  # Allow comments on public profile
+    discord_privacy_mode = Column(String(10), default='private')  # Discord privacy preference: 'private' or 'public'
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
     

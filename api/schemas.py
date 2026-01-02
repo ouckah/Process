@@ -34,6 +34,7 @@ class UserUpdate(BaseModel):
     display_name: Optional[str] = None
     is_anonymous: Optional[bool] = None
     comments_enabled: Optional[bool] = None
+    discord_privacy_mode: Optional[str] = None
     
     @field_validator('username')
     @classmethod

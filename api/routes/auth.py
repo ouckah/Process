@@ -153,6 +153,15 @@ def update_me(
     if user_data.comments_enabled is not None:
         current_user.comments_enabled = user_data.comments_enabled
     
+    # Update discord_privacy_mode if provided
+    if user_data.discord_privacy_mode is not None:
+        if user_data.discord_privacy_mode not in ['private', 'public']:
+            raise HTTPException(
+                status_code=400,
+                detail="discord_privacy_mode must be 'private' or 'public'"
+            )
+        current_user.discord_privacy_mode = user_data.discord_privacy_mode
+    
     db.commit()
     db.refresh(current_user)
     

@@ -58,6 +58,28 @@ COMMAND_INFO = {
             f"{PREFIX}help add"
         ],
         "slash": "/help"
+    },
+    "privacy": {
+        "category": "settings",
+        "description": "Set default privacy mode for processes created via Discord bot",
+        "usage": f"{PREFIX}privacy <private | public>",
+        "examples": [
+            f"{PREFIX}privacy private",
+            f"{PREFIX}privacy public"
+        ],
+        "slash": "/privacy",
+        "notes": "Sets whether new processes are private or public by default"
+    },
+    "anon": {
+        "category": "settings",
+        "description": "Enable or disable anonymous mode for your profile",
+        "usage": f"{PREFIX}anon <enable | disable>",
+        "examples": [
+            f"{PREFIX}anon enable",
+            f"{PREFIX}anon disable"
+        ],
+        "slash": "/anon",
+        "notes": "Controls whether your username is shown on your public profile"
     }
 }
 
