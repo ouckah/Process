@@ -6,6 +6,7 @@ export interface StageType {
 }
 
 export const STAGE_TYPES: StageType[] = [
+  { value: 'Applied', label: 'Applied' },
   { value: 'OA', label: 'OA (Online Assessment)', abbreviation: 'OA' },
   { value: 'Phone Screen', label: 'Phone Screen' },
   { value: 'Technical Interview', label: 'Technical Interview' },

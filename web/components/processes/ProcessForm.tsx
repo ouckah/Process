@@ -10,9 +10,10 @@ interface ProcessFormProps {
   onSubmit: (data: ProcessCreate | ProcessUpdate) => void;
   onCancel: () => void;
   loading?: boolean;
+  error?: string | null;
 }
 
-export function ProcessForm({ process, onSubmit, onCancel, loading }: ProcessFormProps) {
+export function ProcessForm({ process, onSubmit, onCancel, loading, error }: ProcessFormProps) {
   const [companyName, setCompanyName] = useState('');
   const [position, setPosition] = useState('');
 
@@ -36,7 +37,22 @@ export function ProcessForm({ process, onSubmit, onCancel, loading }: ProcessFor
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}>
+      {error && (
+        <div 
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded"
+          style={{ 
+            wordBreak: 'break-word', 
+            overflowWrap: 'break-word', 
+            width: '100%', 
+            maxWidth: '100%',
+            boxSizing: 'border-box'
+          }}
+        >
+          <p className="text-sm" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{error}</p>
+        </div>
+      )}
+
       <Input
         label="Company Name"
         value={companyName}

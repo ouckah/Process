@@ -2,6 +2,7 @@
 
 # Valid stage names matching the web app dropdown
 VALID_STAGE_NAMES = [
+    'Applied',
     'OA',
     'Phone Screen',
     'Technical Interview',

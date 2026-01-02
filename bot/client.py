@@ -71,6 +71,7 @@ async def on_ready():
         from commands import list as list_command
         from commands import dashboard
         from commands import help as help_command
+        from commands import privacy, anon
         
         # Setup all commands (add new commands here following the pattern above)
         add.setup_add_command(bot, stage_name_autocomplete)
@@ -78,6 +79,8 @@ async def on_ready():
         list_command.setup_list_command(bot)
         dashboard.setup_dashboard_command(bot)
         help_command.setup_help_command(bot)
+        privacy.setup_privacy_command(bot)
+        anon.setup_anon_command(bot)
         
         logger.info("All commands loaded successfully")
     except Exception as e:

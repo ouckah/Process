@@ -35,11 +35,14 @@ COMMAND_INFO = {
     },
     "list": {
         "category": "processes",
-        "description": "List all your job application processes with stages and status",
-        "usage": f"{PREFIX}list",
-        "examples": [f"{PREFIX}list"],
+        "description": "List your processes or view someone else's public processes",
+        "usage": f"{PREFIX}list [username]",
+        "examples": [
+            f"{PREFIX}list",
+            f"{PREFIX}list johndoe"
+        ],
         "slash": "/list",
-        "notes": "Shows paginated results with interactive navigation"
+        "notes": "Without username: Shows your processes. With username: Shows public processes of that user (if not anonymous). Shows paginated results with interactive navigation."
     },
     "dashboard": {
         "category": "account",
@@ -58,6 +61,28 @@ COMMAND_INFO = {
             f"{PREFIX}help add"
         ],
         "slash": "/help"
+    },
+    "privacy": {
+        "category": "settings",
+        "description": "Set default privacy mode for processes created via Discord bot",
+        "usage": f"{PREFIX}privacy <private | public>",
+        "examples": [
+            f"{PREFIX}privacy private",
+            f"{PREFIX}privacy public"
+        ],
+        "slash": "/privacy",
+        "notes": "Sets whether new processes are private or public by default"
+    },
+    "anon": {
+        "category": "settings",
+        "description": "Enable or disable anonymous mode for your profile",
+        "usage": f"{PREFIX}anon <enable | disable>",
+        "examples": [
+            f"{PREFIX}anon enable",
+            f"{PREFIX}anon disable"
+        ],
+        "slash": "/anon",
+        "notes": "Controls whether your username is shown on your public profile"
     }
 }
 
@@ -136,7 +161,7 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
     
     # General overview - quick rundown
     embed = discord.Embed(
-        title="📚 Process Tracker",
+        title="📚 Process",
         description=f"All commands\n"
                    f"Get information about a specific command with `{prefix}help COMMAND_NAME`\n"
                    f"Use slash commands (`/`) for autocomplete suggestions!",

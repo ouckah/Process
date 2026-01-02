@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, username: string, password: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (data: { username?: string }) => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -88,6 +89,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
+  const updateProfile = async (data: { username?: string }) => {
+    try {
+      const updatedUser = await authApi.updateProfile(data);
+      setUser(updatedUser);
+    } catch (error: any) {
+      console.error('Profile update error:', error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -96,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        updateProfile,
         isAuthenticated: !!user,
       }}
     >

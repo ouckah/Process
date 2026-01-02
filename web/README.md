@@ -1,4 +1,4 @@
-# Process Tracker Web Frontend
+# Process Web Frontend
 
 Next.js frontend application for tracking job application processes and stages.
 

@@ -17,7 +17,7 @@ interface StageTimelineProps {
 export function StageTimeline({ stages, onStageClick, onEdit, onDelete }: StageTimelineProps) {
   if (stages.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
         No stages yet. Add your first stage to see the timeline!
       </div>
     );
@@ -29,7 +29,7 @@ export function StageTimeline({ stages, onStageClick, onEdit, onDelete }: StageT
   return (
     <div className="relative">
       {/* Timeline line */}
-      <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-300" />
+      <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-300 dark:bg-gray-600" />
 
       <div className="space-y-6">
         {sortedStages.map((stage, index) => (
@@ -38,8 +38,8 @@ export function StageTimeline({ stages, onStageClick, onEdit, onDelete }: StageT
             className="relative flex items-start space-x-4 group"
           >
             {/* Timeline dot */}
-            <div className="relative z-10 flex items-center justify-center w-16 h-16 bg-white border-4 border-primary-500 rounded-full">
-              <span className="text-sm font-semibold text-primary-600">{stage.order}</span>
+            <div className="relative z-10 flex items-center justify-center w-16 h-16 bg-white dark:bg-gray-800 border-4 border-primary-500 dark:border-primary-400 rounded-full">
+              <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">{stage.order}</span>
             </div>
 
             {/* Content */}
@@ -47,11 +47,11 @@ export function StageTimeline({ stages, onStageClick, onEdit, onDelete }: StageT
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-1">
-                    <h4 className="text-lg font-semibold text-gray-900">{getStageDisplayName(stage.stage_name)}</h4>
-                    <span className="text-sm text-gray-500">{formatDate(stage.stage_date)}</span>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{getStageDisplayName(stage.stage_name)}</h4>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(stage.stage_date)}</span>
                   </div>
                   {stage.notes && (
-                    <p className="text-sm text-gray-600">{stage.notes}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{stage.notes}</p>
                   )}
                 </div>
                 {(onEdit || onDelete) && (
