@@ -27,9 +27,6 @@ export function Header() {
                 <Link href="/dashboard" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
                   Dashboard
                 </Link>
-                <Link href="/processes" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-                  Processes
-                </Link>
                 {adminData?.is_admin && (
                   <Link href="/admin/feedback" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
                     Admin
