@@ -33,6 +33,19 @@ COMMAND_INFO = {
         ],
         "slash": "/delete"
     },
+    "edit": {
+        "category": "processes",
+        "description": "Edit a process (company name, position, or privacy)",
+        "usage": f"{PREFIX}edit <company> [position] <field> <new_value>",
+        "examples": [
+            f"{PREFIX}edit Google company name Alphabet",
+            f'{PREFIX}edit Google "SWE" position "Software Engineer"',
+            f"{PREFIX}edit Google privacy public",
+            f'{PREFIX}edit Google "SWE" privacy private'
+        ],
+        "slash": "/edit",
+        "notes": "Fields: company name, position, privacy. The API prevents duplicate processes with the same company name and position."
+    },
     "list": {
         "category": "processes",
         "description": "List your processes or view someone else's public processes",
@@ -102,9 +115,12 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
             command_display = {
                 "add": ("➕", "Add Process/Stage"),
                 "delete": ("🗑️", "Delete Process"),
+                "edit": ("✏️", "Edit Process"),
                 "list": ("📋", "List Processes"),
                 "dashboard": ("🌐", "Dashboard"),
-                "help": ("❓", "Help")
+                "help": ("❓", "Help"),
+                "privacy": ("🔒", "Privacy Settings"),
+                "anon": ("👤", "Anonymous Mode")
             }
             
             emoji, display_name = command_display.get(command_name, ("📚", command_name.title()))
@@ -169,20 +185,35 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
         color=0x5865F2
     )
     
-    # Group commands by category
-    categories = {
-        "processes": ["add", "delete", "list"],
-        "account": ["dashboard"],
-        "misc": ["help"]
-    }
+    # Group commands by category dynamically from COMMAND_INFO
+    categories = {}
+    for cmd_name, cmd_info in COMMAND_INFO.items():
+        category = cmd_info.get("category", "misc")
+        if category not in categories:
+            categories[category] = []
+        categories[category].append(cmd_name)
     
+    # Display categories in a specific order
+    category_order = ["processes", "account", "settings", "misc"]
+    for category in category_order:
+        if category in categories:
+            commands = categories[category]
+            command_list = ", ".join([f"`{cmd}`" for cmd in commands])
+            embed.add_field(
+                name=category.title(),
+                value=command_list,
+                inline=False
+            )
+    
+    # Add any remaining categories not in the order list
     for category, commands in categories.items():
-        command_list = ", ".join([f"`{cmd}`" for cmd in commands])
-        embed.add_field(
-            name=category.title(),
-            value=command_list,
-            inline=False
-        )
+        if category not in category_order:
+            command_list = ", ".join([f"`{cmd}`" for cmd in commands])
+            embed.add_field(
+                name=category.title(),
+                value=command_list,
+                inline=False
+            )
     
     # Legacy command
     embed.add_field(
