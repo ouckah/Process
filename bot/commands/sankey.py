@@ -3,6 +3,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import os
+import httpx
 from urllib.parse import quote
 
 from utils.auth import get_user_token, api_request, API_URL
@@ -32,7 +33,6 @@ async def handle_sankey_command(discord_id: str, username: str) -> discord.Embed
         # Check if user has public processes by calling the public analytics endpoint
         try:
             # Use unauthenticated request to check public analytics
-            import httpx
             async with httpx.AsyncClient(timeout=10.0) as client:
                 analytics_response = await client.get(
                     f"{API_URL}/api/analytics/{quote(user_username)}/public"
