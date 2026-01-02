@@ -7,7 +7,7 @@ import { ReactQueryProvider } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Process Tracker',
+  title: 'Process',
   description: 'Track your job application processes and stages',
 };
 

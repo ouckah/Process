@@ -136,7 +136,7 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
     
     # General overview - quick rundown
     embed = discord.Embed(
-        title="📚 Process Tracker",
+        title="📚 Process",
         description=f"All commands\n"
                    f"Get information about a specific command with `{prefix}help COMMAND_NAME`\n"
                    f"Use slash commands (`/`) for autocomplete suggestions!",
