@@ -63,11 +63,11 @@ async def handle_sankey_command(discord_id: str, username: str) -> tuple[discord
         # Generate Sankey diagram image
         try:
             image_file = generate_sankey_image(sankey_data)
-        except ImportError:
+        except ImportError as e:
             # If plotting library not available, return text representation
             return create_info_embed(
                 "Sankey Diagram",
-                "Sankey diagram generation requires additional dependencies. Please use the website dashboard to view your Sankey diagram.",
+                "Sankey diagram generation requires matplotlib. Please use the website dashboard to view your Sankey diagram.",
                 fields=[{
                     "name": "View on Website",
                     "value": f"Visit your dashboard and go to Analytics view to see the Sankey diagram.",
@@ -175,12 +175,15 @@ def transform_processes_to_sankey(processes, process_details):
 
 
 def generate_sankey_image(sankey_data):
-    """Generate a Sankey diagram image using plotly."""
+    """Generate a Sankey diagram image using matplotlib."""
     try:
-        import plotly.graph_objects as go
-        import plotly.io as pio
+        import matplotlib
+        matplotlib.use('Agg')  # Use non-interactive backend
+        import matplotlib.pyplot as plt
+        from matplotlib.patches import FancyBboxPatch, PathPatch
+        from matplotlib.path import Path
     except ImportError:
-        raise ImportError("plotly is required for Sankey diagram generation. Install with: pip install plotly kaleido")
+        raise ImportError("matplotlib is required for Sankey diagram generation. Install with: pip install matplotlib")
     
     nodes = sankey_data["nodes"]
     links = sankey_data["links"]
@@ -206,41 +209,119 @@ def generate_sankey_image(sankey_data):
         'Other': '#6B7280',
     }
     
-    # Prepare data for plotly Sankey - include count in label
-    node_labels = []
-    node_colors = []
-    for node in nodes:
-        name = node["name"]
-        count = node.get("count", 0)
-        # Format: count on top, name below (using newline)
-        node_labels.append(f"{count}\n{name}")
-        node_colors.append(COLORS.get(name, '#8884d8'))
+    # Create figure
+    fig, ax = plt.subplots(figsize=(14, 8))
+    ax.set_xlim(0, 10)
+    ax.set_ylim(0, len(nodes) + 1)
+    ax.axis('off')
     
-    # Create Sankey diagram
-    fig = go.Figure(data=[go.Sankey(
-        node=dict(
-            label=node_labels,
-            color=node_colors,
-        ),
-        link=dict(
-            source=[link["source"] for link in links],
-            target=[link["target"] for link in links],
-            value=[link["value"] for link in links],
+    # Calculate node positions (vertical layout)
+    node_height = 0.6
+    node_width = 1.5
+    spacing = 1.0
+    start_y = len(nodes) * spacing / 2
+    
+    node_positions = {}
+    for i, node in enumerate(nodes):
+        y_pos = start_y - i * spacing
+        node_positions[i] = {
+            'x': 1.5,
+            'y': y_pos,
+            'width': node_width,
+            'height': node_height,
+            'name': node["name"],
+            'count': node.get("count", 0),
+            'color': COLORS.get(node["name"], '#8884d8')
+        }
+    
+    # Draw nodes
+    for idx, pos in node_positions.items():
+        # Draw node rectangle
+        rect = FancyBboxPatch(
+            (pos['x'], pos['y'] - pos['height']/2),
+            pos['width'],
+            pos['height'],
+            boxstyle="round,pad=0.05",
+            facecolor=pos['color'],
+            edgecolor='black',
+            linewidth=1.5
         )
-    )])
+        ax.add_patch(rect)
+        
+        # Draw count text (above)
+        ax.text(
+            pos['x'] + pos['width']/2,
+            pos['y'] + pos['height']/2 + 0.15,
+            str(pos['count']),
+            ha='center',
+            va='bottom',
+            fontsize=14,
+            fontweight='bold'
+        )
+        
+        # Draw name text (below)
+        ax.text(
+            pos['x'] + pos['width']/2,
+            pos['y'] - pos['height']/2 - 0.15,
+            pos['name'],
+            ha='center',
+            va='top',
+            fontsize=12
+        )
     
-    fig.update_layout(
-        title_text="Stage Flow (Sankey Diagram)",
-        font_size=12,
-        height=600,
-        width=1000,
+    # Draw links (curved paths)
+    for link in links:
+        source_idx = link["source"]
+        target_idx = link["target"]
+        value = link["value"]
+        
+        source_pos = node_positions[source_idx]
+        target_pos = node_positions[target_idx]
+        
+        # Calculate connection points
+        source_x = source_pos['x'] + source_pos['width']
+        source_y = source_pos['y']
+        target_x = target_pos['x']
+        target_y = target_pos['y']
+        
+        # Draw curved path using Bezier curve
+        verts = [
+            (source_x, source_y),
+            ((source_x + target_x) / 2, source_y),  # Control point 1
+            ((source_x + target_x) / 2, target_y),  # Control point 2
+            (target_x, target_y),
+        ]
+        codes = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4]
+        
+        path = Path(verts, codes)
+        patch = PathPatch(
+            path,
+            facecolor='none',
+            edgecolor=target_pos['color'],
+            linewidth=max(1, value * 2),  # Thicker lines for higher values
+            alpha=0.6
+        )
+        ax.add_patch(patch)
+    
+    # Add title
+    ax.text(
+        5,
+        len(nodes) * spacing + 0.5,
+        'Stage Flow (Sankey Diagram)',
+        ha='center',
+        va='bottom',
+        fontsize=16,
+        fontweight='bold'
     )
     
-    # Convert to image bytes
-    img_bytes = pio.to_image(fig, format="png", width=1000, height=600, engine="kaleido")
+    # Save to bytes
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor='white')
+    buf.seek(0)
+    plt.close(fig)
     
     # Create Discord file
-    file = discord.File(io.BytesIO(img_bytes), filename="sankey.png")
+    file = discord.File(buf, filename="sankey.png")
     
     return file
 
