@@ -84,15 +84,6 @@ async def on_ready():
         anon.setup_anon_command(bot)
         edit.setup_edit_command(bot)
         
-        # Try to import and setup edit command separately to catch any import errors
-        # try:
-        #     from commands import edit
-        #     edit.setup_edit_command(bot)
-        #     logger.info("Edit command loaded successfully")
-        # except Exception as edit_error:
-        #     logger.error(f"Failed to load edit command: {edit_error}", exc_info=True)
-            # Continue without edit command
-        
         logger.info("All commands loaded successfully")
     except Exception as e:
         logger.error(f"Failed to load commands: {e}", exc_info=True)
