@@ -47,6 +47,7 @@ export function MarkdownTextarea({ value, onChange, label, placeholder, rows = 4
       <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
         <div className="flex justify-end border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 p-2">
           <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={() => setIsPreview(!isPreview)}
