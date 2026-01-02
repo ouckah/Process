@@ -74,6 +74,9 @@ class UserResponse(BaseModel):
     username: str
     discord_id: Optional[str] = None
     google_id: Optional[str] = None
+    display_name: Optional[str] = None
+    is_anonymous: Optional[bool] = None
+    comments_enabled: Optional[bool] = None
 
     class Config:
         from_attributes = True

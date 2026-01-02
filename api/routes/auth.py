@@ -109,6 +109,9 @@ def get_me(current_user: User = Depends(get_current_user)):
         "username": current_user.username,
         "discord_id": current_user.discord_id,
         "google_id": current_user.google_id,
+        "display_name": current_user.display_name,
+        "is_anonymous": current_user.is_anonymous,
+        "comments_enabled": current_user.comments_enabled,
     }
 
 
@@ -171,6 +174,9 @@ def update_me(
         "username": current_user.username,
         "discord_id": current_user.discord_id,
         "google_id": current_user.google_id,
+        "display_name": current_user.display_name,
+        "is_anonymous": current_user.is_anonymous,
+        "comments_enabled": current_user.comments_enabled,
     }
 
 
