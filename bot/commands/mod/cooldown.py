@@ -22,7 +22,7 @@ async def handle_cooldown_set(guild_id: str, command_name: str, seconds: float) 
     
     config = await guild_config.get_config(guild_id)
     config["command_cooldowns"][command_name.lower()] = seconds
-        await guild_config.save_config(guild_id, config)
+    await guild_config.save_config(guild_id, config)
     
     return create_success_embed(
         "Cooldown Set",
@@ -42,7 +42,7 @@ async def handle_cooldown_remove(guild_id: str, command_name: str) -> discord.Em
         )
     
     del config["command_cooldowns"][command_key]
-        await guild_config.save_config(guild_id, config)
+    await guild_config.save_config(guild_id, config)
     
     return create_success_embed(
         "Cooldown Removed",
