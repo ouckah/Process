@@ -214,7 +214,7 @@ export async function GET(
             </div>
           </div>
 
-          {/* Sankey Diagram Container */}
+          {/* Sankey Diagram Container - using flex to satisfy OG image requirements */}
           <div
             style={{
               position: 'absolute',
@@ -223,16 +223,15 @@ export async function GET(
               width: '100%',
               height: chartAreaHeight,
               display: 'flex',
-              flexDirection: 'column',
             }}
           >
-            {/* Wrapper for all absolute positioned elements */}
+            {/* Single wrapper div for all absolute positioned elements */}
             <div
               style={{
                 position: 'relative',
                 width: '100%',
                 height: '100%',
-                display: 'block',
+                display: 'flex',
               }}
             >
               {/* Draw nodes */}
