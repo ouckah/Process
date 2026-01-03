@@ -7,15 +7,28 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { username: string } | Promise<{ username: string }> }
 ) {
+  const startTime = Date.now();
+  console.log(`[OG Image] Starting generation at ${new Date().toISOString()}`);
+  
+  // Check for cache bypass query parameter
+  const { searchParams } = new URL(request.url);
+  const bypassCache = searchParams.get('nocache') === '1' || searchParams.get('nocache') === 'true';
+  
   try {
     // Handle both Next.js 14 (sync) and 15 (async) params
     const resolvedParams = params instanceof Promise ? await params : params;
     const username = decodeURIComponent(resolvedParams.username);
     
+    console.log(`[OG Image] Generating for username: ${username} (bypassCache: ${bypassCache})`);
+    
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
     const pageUrl = `${appUrl}/sankey/${encodeURIComponent(username)}`;
     
+    console.log(`[OG Image] Page URL: ${pageUrl}`);
+    
     // Launch headless browser with Railway-optimized settings
+    console.log(`[OG Image] Launching Puppeteer browser...`);
+    const browserLaunchStart = Date.now();
     const browser = await puppeteer.launch({
       headless: true,
       args: [
@@ -103,22 +116,40 @@ export async function GET(
       console.log('Viewport:', viewport);
       
       // Crop screenshot to only the chart element using its exact coordinates
+      console.log(`[OG Image] Taking screenshot...`);
+      const screenshotStart = Date.now();
       const screenshot = await page.screenshot({
         type: 'png',
         clip,
       });
+      const screenshotDuration = Date.now() - screenshotStart;
+      
+      const duration = Date.now() - startTime;
+      console.log(`[OG Image] Screenshot taken in ${screenshotDuration}ms`);
+      console.log(`[OG Image] Total generation time: ${duration}ms`);
+      console.log(`[OG Image] Screenshot size: ${screenshot.length} bytes`);
+      
+      // Set cache headers based on bypass flag
+      const cacheControl = bypassCache 
+        ? 'no-cache, no-store, must-revalidate'
+        : 'public, max-age=3600, s-maxage=3600';
       
       return new Response(screenshot as unknown as BodyInit, {
         headers: {
           'Content-Type': 'image/png',
-          'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+          'Cache-Control': cacheControl,
+          'X-Generation-Time': `${duration}ms`,
+          'X-Screenshot-Time': `${screenshotDuration}ms`,
+          'X-Cache-Bypassed': bypassCache ? 'true' : 'false',
         },
       });
     } finally {
       await browser.close();
     }
   } catch (e: any) {
-    console.error('Error generating OG image with Puppeteer:', e);
+    const duration = Date.now() - startTime;
+    console.error(`[OG Image] Error after ${duration}ms:`, e);
+    console.error(`[OG Image] Error stack:`, e.stack);
     
     // Return a simple fallback image
     return new Response(
