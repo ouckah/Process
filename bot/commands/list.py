@@ -218,7 +218,10 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             
             # Get user info to check privacy mode
             user_info = await api_request("GET", "/auth/me", token)
-            privacy_mode = user_info.get("discord_privacy_mode", "private")
+            privacy_mode = user_info.get("discord_privacy_mode")
+            # Default to "private" if not set (None or empty string)
+            if not privacy_mode or privacy_mode not in ["private", "public"]:
+                privacy_mode = "private"
             
             # Get all processes
             processes = await api_request("GET", "/api/processes/", token)
@@ -307,14 +310,14 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             if total_pages > 1:
                 footer_parts.append(f"Page {page + 1} of {total_pages}")
             
-            # Add privacy mode info (only for own processes)
+            # Add privacy mode info and tips (only for own processes)
             if not target_username and not target_discord_id:
                 privacy_display = "🔒 Private" if user_privacy_mode == "private" else "🌐 Public"
                 footer_parts.append(f"Privacy: {privacy_display} • Change: {PREFIX}privacy <private|public>")
-            
-            # Add tip for prefix commands viewing own processes (same size as timestamp)
-            if is_prefix_command and is_viewing_own and page == 0:
-                footer_parts.append("💡 Tip: Use /list to see private processes")
+                
+                # Add tip for prefix commands viewing own processes (same size as timestamp)
+                if is_prefix_command and is_viewing_own and page == 0:
+                    footer_parts.append("💡 Use /list to see private processes")
             
             if footer_parts:
                 embed.set_footer(text=" • ".join(footer_parts))

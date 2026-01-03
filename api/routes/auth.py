@@ -112,6 +112,7 @@ def get_me(current_user: User = Depends(get_current_user)):
         "display_name": current_user.display_name,
         "is_anonymous": current_user.is_anonymous,
         "comments_enabled": current_user.comments_enabled,
+        "discord_privacy_mode": current_user.discord_privacy_mode,
     }
 
 
@@ -177,6 +178,7 @@ def update_me(
         "display_name": current_user.display_name,
         "is_anonymous": current_user.is_anonymous,
         "comments_enabled": current_user.comments_enabled,
+        "discord_privacy_mode": current_user.discord_privacy_mode,
     }
 
 
