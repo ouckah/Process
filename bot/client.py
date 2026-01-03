@@ -74,7 +74,7 @@ async def on_ready():
         from commands import privacy, anon
         from commands import edit
         from commands import sankey
-        from commands import mod
+        from commands.mod import setup_mod_command
         
         # Setup all commands (add new commands here following the pattern above)
         add.setup_add_command(bot, stage_name_autocomplete)
@@ -86,7 +86,7 @@ async def on_ready():
         anon.setup_anon_command(bot)
         edit.setup_edit_command(bot)
         sankey.setup_sankey_command(bot)
-        mod.setup_mod_command(bot)
+        setup_mod_command(bot)
         
         logger.info("All commands loaded successfully")
     except (ImportError, ModuleNotFoundError, AttributeError) as e:
