@@ -39,17 +39,43 @@ async def check_command_restrictions(
         )
         return False, error_embed
     
-    # Check channel restrictions
-    allowed_channels = config.get("allowed_channels", [])
-    denied_channels = config.get("denied_channels", [])
-    
-    if channel_id in denied_channels:
-        # Silently ignore (don't send error to avoid spam)
-        return False, None
-    
-    if allowed_channels and channel_id not in allowed_channels:
-        # Silently ignore (don't send error to avoid spam)
-        return False, None
+    # Moderator commands bypass channel restrictions (so mods can fix misconfigurations)
+    is_mod_command = command_name.lower() == "mod" or command_name.lower().startswith("mod ")
+    if is_mod_command:
+        # Check if user has manage_guild permission
+        has_mod_permission = False
+        if ctx and ctx.author:
+            has_mod_permission = ctx.author.guild_permissions.manage_guild
+        elif interaction and interaction.user:
+            member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
+            if member:
+                has_mod_permission = member.guild_permissions.manage_guild
+        
+        if has_mod_permission:
+            # Skip channel restrictions for moderator commands - mods need to be able to fix misconfigurations
+            pass  # Continue to cooldown check below
+        else:
+            # Not a mod, apply normal channel restrictions
+            allowed_channels = config.get("allowed_channels", [])
+            denied_channels = config.get("denied_channels", [])
+            
+            if channel_id in denied_channels:
+                return False, None
+            
+            if allowed_channels and channel_id not in allowed_channels:
+                return False, None
+    else:
+        # Check channel restrictions for non-mod commands
+        allowed_channels = config.get("allowed_channels", [])
+        denied_channels = config.get("denied_channels", [])
+        
+        if channel_id in denied_channels:
+            # Silently ignore (don't send error to avoid spam)
+            return False, None
+        
+        if allowed_channels and channel_id not in allowed_channels:
+            # Silently ignore (don't send error to avoid spam)
+            return False, None
     
     # Check cooldown
     cooldowns = config.get("command_cooldowns", {})

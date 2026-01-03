@@ -107,9 +107,14 @@ async def on_ready():
         print(f'Failed to sync commands: {e}')
 
 
-def check_channel_restrictions(guild_id: str, channel_id: int) -> bool:
+def check_channel_restrictions(guild_id: str, channel_id: int, message: discord.Message = None) -> bool:
     """
     Check if a channel is allowed for bot commands.
+    
+    Args:
+        guild_id: The guild ID
+        channel_id: The channel ID
+        message: Optional message object to check if it's a moderator command
     
     Returns:
         True if channel is allowed, False if denied/restricted
@@ -119,6 +124,16 @@ def check_channel_restrictions(guild_id: str, channel_id: int) -> bool:
     if not guild_id:
         # DMs are always allowed
         return True
+    
+    # Check if this is a moderator command - moderators can always use mod commands
+    # even in denied channels (to fix misconfigurations)
+    if message and message.guild:
+        # Check if message starts with mod command
+        bot_prefix = os.getenv("PREFIX", "p!")
+        if message.content.startswith(bot_prefix + "mod") or message.content.startswith("/mod"):
+            # Check if user has manage_guild permission
+            if message.author.guild_permissions.manage_guild:
+                return True
     
     config = guild_config.get_config(guild_id)
     allowed = config.get("allowed_channels", [])
@@ -148,7 +163,7 @@ async def on_message(message):
         guild_id = str(message.guild.id)
         channel_id = message.channel.id
         
-        if not check_channel_restrictions(guild_id, channel_id):
+        if not check_channel_restrictions(guild_id, channel_id, message):
             # Silently ignore commands in restricted channels
             return
     
