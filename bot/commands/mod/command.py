@@ -24,7 +24,7 @@ async def handle_command_disable(guild_id: str, command_name: str) -> discord.Em
         )
     
     config["disabled_commands"].append(command_key)
-        await guild_config.save_config(guild_id, config)
+    await guild_config.save_config(guild_id, config)
     
     return create_success_embed(
         "Command Disabled",
@@ -44,7 +44,7 @@ async def handle_command_enable(guild_id: str, command_name: str) -> discord.Emb
         )
     
     config["disabled_commands"].remove(command_key)
-        await guild_config.save_config(guild_id, config)
+    await guild_config.save_config(guild_id, config)
     
     return create_success_embed(
         "Command Enabled",
