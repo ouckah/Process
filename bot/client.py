@@ -73,7 +73,7 @@ async def on_ready():
         from commands import help as help_command
         from commands import privacy, anon
         from commands import edit
-        # from commands import sankey
+        from commands import sankey
         
         # Setup all commands (add new commands here following the pattern above)
         add.setup_add_command(bot, stage_name_autocomplete)
@@ -84,7 +84,7 @@ async def on_ready():
         privacy.setup_privacy_command(bot)
         anon.setup_anon_command(bot)
         edit.setup_edit_command(bot)
-        #sankey.setup_sankey_command(bot)
+        sankey.setup_sankey_command(bot)
         
         logger.info("All commands loaded successfully")
     except Exception as e:
