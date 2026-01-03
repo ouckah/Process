@@ -59,7 +59,7 @@ export function ProcessCard({
 
   return (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 hover:shadow-lg transition-all group ${
+      className={`bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 px-6 pt-4 pb-6 hover:shadow-lg transition-all group ${
         selectionMode ? 'cursor-default' : 'cursor-pointer'
       } ${isSelected ? 'ring-2 ring-primary-500 dark:ring-primary-400' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
@@ -83,12 +83,12 @@ export function ProcessCard({
           </button>
         )}
         <div className="flex-1 min-w-0 flex flex-col">
-          <div className="flex items-center space-x-3 mb-2">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate">
-              {process.company_name}
-            </h3>
+          <div className="mb-2">
             <StatusBadge status={process.status} />
           </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate mb-2">
+            {process.company_name}
+          </h3>
           {/* Position - always reserve space to keep alignment consistent */}
           <div className="mb-3 min-h-[1.5rem]">
             {process.position && (
