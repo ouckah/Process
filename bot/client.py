@@ -87,6 +87,13 @@ async def on_ready():
         sankey.setup_sankey_command(bot)
         
         logger.info("All commands loaded successfully")
+    except (ImportError, ModuleNotFoundError, AttributeError) as e:
+        logger.error(f"CRITICAL: Failed to import/load commands due to import error: {e}", exc_info=True)
+        logger.error("This is likely caused by:")
+        logger.error("1. Importing API_URL from utils.auth in a command file")
+        logger.error("2. Calling load_dotenv() in a command file or utils/auth.py")
+        logger.error("3. Accessing environment variables at module level in command files")
+        raise  # Re-raise to prevent bot from starting with broken commands
     except Exception as e:
         logger.error(f"Failed to load commands: {e}", exc_info=True)
     
