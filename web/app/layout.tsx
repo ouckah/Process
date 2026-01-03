@@ -6,7 +6,15 @@ import { ReactQueryProvider } from './providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
+// Get the base URL for metadata
+const metadataBase = new URL(
+  process.env.NEXT_PUBLIC_APP_URL || 
+  process.env.NEXT_PUBLIC_FRONTEND_URL || 
+  'http://localhost:3000'
+);
+
 export const metadata: Metadata = {
+  metadataBase,
   title: 'Process',
   description: 'Track your job application processes and stages',
 };
