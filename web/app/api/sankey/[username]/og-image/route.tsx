@@ -52,6 +52,17 @@ export async function GET(
       // Wait a bit more for any animations to complete
       await new Promise(resolve => setTimeout(resolve, 2000));
       
+      // Scroll to the chart element to ensure it's in view
+      await page.evaluate(() => {
+        const element = document.querySelector('[data-sankey-chart]');
+        if (element) {
+          element.scrollIntoView({ behavior: 'instant', block: 'start' });
+        }
+      });
+      
+      // Wait a moment for scroll to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Get the bounding box of the Sankey chart container
       const chartElement = await page.$('[data-sankey-chart]');
       if (!chartElement) {
@@ -63,15 +74,38 @@ export async function GET(
         throw new Error('Could not get bounding box of chart');
       }
       
+      // Log bounding box for debugging
+      console.log('Chart bounding box:', {
+        x: boundingBox.x,
+        y: boundingBox.y,
+        width: boundingBox.width,
+        height: boundingBox.height,
+      });
+      
+      // Get viewport size to ensure clip is within bounds
+      const viewport = page.viewport();
+      const viewportWidth = viewport?.width || 1920;
+      const viewportHeight = viewport?.height || 1080;
+      
+      const clipX = Math.max(0, Math.floor(boundingBox.x));
+      const clipY = Math.max(0, Math.floor(boundingBox.y));
+      const clipWidth = Math.min(Math.floor(boundingBox.width), viewportWidth - clipX);
+      const clipHeight = Math.min(Math.floor(boundingBox.height), viewportHeight - clipY);
+      
+      const clip = {
+        x: clipX,
+        y: clipY,
+        width: clipWidth,
+        height: clipHeight,
+      };
+      
+      console.log('Screenshot clip:', clip);
+      console.log('Viewport:', viewport);
+      
       // Crop screenshot to only the chart element using its exact coordinates
       const screenshot = await page.screenshot({
         type: 'png',
-        clip: {
-          x: Math.floor(boundingBox.x),
-          y: Math.floor(boundingBox.y),
-          width: Math.floor(boundingBox.width),
-          height: Math.floor(boundingBox.height),
-        },
+        clip,
       });
       
       return new Response(screenshot as unknown as BodyInit, {
