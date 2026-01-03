@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server';
 import puppeteer from 'puppeteer';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic'; // Disable static generation and caching
+export const revalidate = 0; // Disable revalidation caching
 
 export async function GET(
   request: NextRequest,
@@ -129,10 +131,9 @@ export async function GET(
       console.log(`[OG Image] Total generation time: ${duration}ms`);
       console.log(`[OG Image] Screenshot size: ${screenshot.length} bytes`);
       
-      // Set cache headers based on bypass flag
-      const cacheControl = bypassCache 
-        ? 'no-cache, no-store, must-revalidate'
-        : 'public, max-age=3600, s-maxage=3600';
+      // Always disable caching for OG images since they're dynamically generated
+      // Users can still use ?nocache=1 for testing, but default is no-cache
+      const cacheControl = 'no-cache, no-store, must-revalidate, max-age=0';
       
       return new Response(screenshot as unknown as BodyInit, {
         headers: {

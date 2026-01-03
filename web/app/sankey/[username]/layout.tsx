@@ -31,7 +31,53 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   
   // Open Graph image - must be absolute URL
-  const imageUrl = new URL(`/api/sankey/${encodeURIComponent(username)}/og-image`, appUrl).toString();
+  // Add cache-busting based on actual data changes (process count + last updated timestamp)
+  // This ensures the OG image URL changes when processes are added/updated/deleted
+  // External platforms (Discord, Twitter) cache OG images, so we need unique URLs per data state
+  let cacheBuster = '';
+  try {
+    const analyticsResponse = await fetch(`${apiUrl}/api/analytics/${encodeURIComponent(username)}/public`, {
+      cache: 'no-store',
+    });
+    
+    if (analyticsResponse.ok) {
+      const analytics = await analyticsResponse.json();
+      if (analytics?.processes && analytics.processes.length > 0) {
+        // Get the most recent updated_at timestamp from all processes
+        const mostRecentUpdate = analytics.processes.reduce((latest: string | null, process: any) => {
+          const updatedAt = process.updated_at;
+          if (!latest || (updatedAt && updatedAt > latest)) {
+            return updatedAt;
+          }
+          return latest;
+        }, null);
+        
+        // Create cache buster from process count + most recent update timestamp
+        // This changes whenever:
+        // - A process is added (count changes)
+        // - A process is deleted (count changes)
+        // - A process is updated (mostRecentUpdate changes)
+        const processCount = analytics.processes.length;
+        const updateHash = mostRecentUpdate 
+          ? new Date(mostRecentUpdate).getTime() 
+          : Date.now();
+        
+        // Use a short hash to keep URL manageable
+        cacheBuster = `?v=${processCount}-${updateHash}`;
+      } else {
+        // No processes, use timestamp
+        cacheBuster = `?v=0-${Date.now()}`;
+      }
+    } else {
+      // API call failed, use timestamp as fallback
+      cacheBuster = `?v=${Date.now()}`;
+    }
+  } catch (error) {
+    // Fallback to timestamp if we can't fetch analytics
+    cacheBuster = `?v=${Date.now()}`;
+  }
+  
+  const imageUrl = new URL(`/api/sankey/${encodeURIComponent(username)}/og-image${cacheBuster}`, appUrl).toString();
   const pageUrl = new URL(`/sankey/${encodeURIComponent(username)}`, appUrl).toString();
   
   return {
