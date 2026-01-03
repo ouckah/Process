@@ -227,15 +227,15 @@ export function SankeyChart({ processes, processDetails = [] }: SankeyChartProps
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 w-full">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Stage Flow (Sankey Diagram)</h3>
-      <div className="w-full h-[600px] bg-gray-50 dark:bg-gray-900/50 rounded-lg p-8">
+      <div className="w-full h-[500px] bg-gray-50 dark:bg-gray-900/50 rounded-lg p-8">
         <ResponsiveContainer width="100%" height="100%">
           <Sankey
             data={sankeyData}
             node={<CustomNode />}
             nodePadding={50}
-            margin={{ top: 20, right: 200, bottom: 20, left: 200 }}
+            margin={{ top: 20, right: 300, bottom: 20, left: 300 }}
             link={<CustomLink />}
             nodeWidth={20}
           >

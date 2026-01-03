@@ -284,7 +284,8 @@ export const analyticsApi = {
   },
 
   getSankeyImageUrl: (username: string): string => {
-    return `${API_BASE_URL}/api/analytics/${encodeURIComponent(username)}/sankey-image`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+    return `${appUrl}/api/analytics/${encodeURIComponent(username)}/sankey-image`;
   },
 };
 

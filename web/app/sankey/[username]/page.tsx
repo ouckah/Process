@@ -9,7 +9,7 @@ import { analyticsApi, type PublicAnalyticsResponse } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function PublicAnalyticsPage() {
+export default function PublicSankeyPage() {
   const params = useParams();
   const router = useRouter();
   const username = params.username as string;
@@ -19,13 +19,13 @@ export default function PublicAnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
+    const fetchSankey = async () => {
       try {
         setLoading(true);
         const data = await analyticsApi.getPublicAnalytics(username);
         setAnalytics(data);
       } catch (err: any) {
-        const errorMessage = err.response?.data?.detail || 'Failed to load analytics';
+        const errorMessage = err.response?.data?.detail || 'Failed to load Sankey diagram';
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -33,7 +33,7 @@ export default function PublicAnalyticsPage() {
     };
 
     if (username) {
-      fetchAnalytics();
+      fetchSankey();
     }
   }, [username]);
 
@@ -59,7 +59,7 @@ export default function PublicAnalyticsPage() {
         <Header />
         <main className="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
-            {error || 'Analytics not found'}
+            {error || 'Sankey diagram not found'}
           </div>
           {isOwnPage && (
             <div className="mt-4">

@@ -19,19 +19,36 @@ export function PublicSankeyView({ analytics, isOwnPage }: PublicSankeyViewProps
 
   const handleSaveImage = async () => {
     try {
-      const imageUrl = analyticsApi.getSankeyImageUrl(username);
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
+      // Use html2canvas to capture the Sankey chart
+      const html2canvas = (await import('html2canvas')).default;
+      const chartElement = document.querySelector('[data-sankey-chart]');
       
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `sankey-${username}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      if (!chartElement) {
+        alert('Chart not found. Please try again.');
+        return;
+      }
+      
+      const canvas = await html2canvas(chartElement as HTMLElement, {
+        backgroundColor: null,
+        scale: 2,
+      });
+      
+      // Convert to blob and download
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          alert('Failed to generate image.');
+          return;
+        }
+        
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sankey-${username}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      });
     } catch (error) {
       console.error('Failed to save image:', error);
       alert('Failed to save image. Please try again.');
@@ -61,7 +78,7 @@ export function PublicSankeyView({ analytics, isOwnPage }: PublicSankeyViewProps
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Analytics - {displayName}
+            Sankey Diagram - {displayName}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Stage flow visualization for {analytics.stats.total_public_processes} public process{analytics.stats.total_public_processes !== 1 ? 'es' : ''}
@@ -89,7 +106,7 @@ export function PublicSankeyView({ analytics, isOwnPage }: PublicSankeyViewProps
 
       {/* Sankey Chart */}
       {analytics.processes.length > 0 && processDetails.length > 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
+        <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6" data-sankey-chart>
           <SankeyChart 
             processes={analytics.processes} 
             processDetails={processDetails} 

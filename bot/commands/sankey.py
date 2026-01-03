@@ -65,15 +65,15 @@ async def handle_sankey_command(discord_id: str, username: str) -> discord.Embed
                 
                 # Build URLs
                 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-                analytics_url = f"{frontend_url}/analytics/{quote(user_username)}"
-                image_url = f"{frontend_url}/api/analytics/{quote(user_username)}/sankey-image"
+                sankey_url = f"{frontend_url}/sankey/{quote(user_username)}"
+                image_url = f"{frontend_url}/api/sankey/{quote(user_username)}/og-image"
                 
                 # Create embed with link and OG image
                 embed = discord.Embed(
                     title="📊 Sankey Diagram",
-                    description=f"Stage flow visualization for {len(analytics_data['processes'])} public process{'es' if len(analytics_data['processes']) != 1 else ''}\n\n[View Full Analytics]({analytics_url})",
+                    description=f"Stage flow visualization for {len(analytics_data['processes'])} public process{'es' if len(analytics_data['processes']) != 1 else ''}\n\n[View Sankey Diagram]({sankey_url})",
                     color=0x5865F2,
-                    url=analytics_url
+                    url=sankey_url
                 )
                 embed.set_image(url=image_url)
                 embed.timestamp = discord.utils.utcnow()
