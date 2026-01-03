@@ -125,15 +125,10 @@ async def check_channel_restrictions(guild_id: str, channel_id: int, message: di
         # DMs are always allowed
         return True
     
-    # Check if this is a moderator command - moderators can always use mod commands
-    # even in denied channels (to fix misconfigurations)
-    if message and message.guild:
-        # Check if message starts with mod command
-        bot_prefix = os.getenv("PREFIX", "p!")
-        if message.content.startswith(bot_prefix + "mod") or message.content.startswith("/mod"):
-            # Check if user has manage_guild permission
-            if message.author.guild_permissions.manage_guild:
-                return True
+    # Check if user has manage_guild permission - mods bypass all channel restrictions
+    if message and message.guild and message.author:
+        if message.author.guild_permissions.manage_guild:
+            return True
     
     config = await guild_config.get_config(guild_id)
     allowed = config.get("allowed_channels", [])
