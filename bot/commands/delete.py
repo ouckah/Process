@@ -110,25 +110,34 @@ def setup_delete_command(bot: commands.Bot):
             await ctx.send(embed=embed)
             return
         
-        # Parse arguments using shlex to handle quoted strings properly
-        try:
-            parts = shlex.split(args)
-        except ValueError:
-            embed = create_error_embed(
-                "Invalid Quotes",
-                f"Invalid quotes in command. Use quotes for multi-word positions:\nExample: `{PREFIX}delete Google \"Software Engineer\"`"
-            )
-            await ctx.send(embed=embed)
-            return
+        # Parse arguments: if no quotes, everything is company_name (no position)
+        # If quotes exist, parse with shlex to handle quoted position
+        has_quotes = '"' in args or "'" in args
         
-        if len(parts) < 1:
-            embed = create_usage_embed(f"Usage: `{PREFIX}delete <company_name> [position]`")
-            await ctx.send(embed=embed)
-            return
-        
-        company_name = parts[0]
-        position = ' '.join(parts[1:]) if len(parts) > 1 else None
-        position = position if position else None  # Convert empty string to None
+        if has_quotes:
+            # Has quotes - parse with shlex to handle quoted strings
+            try:
+                parts = shlex.split(args)
+            except ValueError:
+                embed = create_error_embed(
+                    "Invalid Quotes",
+                    f"Invalid quotes in command. Use quotes for multi-word positions:\nExample: `{PREFIX}delete Google \"Software Engineer\"`"
+                )
+                await ctx.send(embed=embed)
+                return
+            
+            if len(parts) < 1:
+                embed = create_usage_embed(f"Usage: `{PREFIX}delete <company_name> [position]`")
+                await ctx.send(embed=embed)
+                return
+            
+            company_name = parts[0]
+            position = ' '.join(parts[1:]) if len(parts) > 1 else None
+            position = position if position else None  # Convert empty string to None
+        else:
+            # No quotes - everything is company_name, no position
+            company_name = args.strip()
+            position = None
         
         discord_id = str(ctx.author.id)
         username = ctx.author.name
