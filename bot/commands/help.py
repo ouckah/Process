@@ -2,6 +2,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+from discord.ui import View, Button
 import os
 
 from utils.logging import log_command
@@ -122,6 +123,372 @@ COMMAND_INFO = {
     }
 }
 
+# Mod subcommand information
+MOD_SUBCOMMANDS = {
+    "channel": {
+        "description": "Manage channel restrictions for bot commands",
+        "subcommands": {
+            "allow": {
+                "usage": f"{PREFIX}mod channel allow <#channel>",
+                "slash": "/mod channel allow",
+                "description": "Allow bot to work in a specific channel",
+                "examples": [f"{PREFIX}mod channel allow #general"]
+            },
+            "deny": {
+                "usage": f"{PREFIX}mod channel deny <#channel>",
+                "slash": "/mod channel deny",
+                "description": "Deny bot from working in a specific channel",
+                "examples": [f"{PREFIX}mod channel deny #spam"]
+            },
+            "remove": {
+                "usage": f"{PREFIX}mod channel remove <#channel>",
+                "slash": "/mod channel remove",
+                "description": "Remove channel from allow/deny lists",
+                "examples": [f"{PREFIX}mod channel remove #general"]
+            },
+            "list": {
+                "usage": f"{PREFIX}mod channel list",
+                "slash": "/mod channel list",
+                "description": "List all channel restrictions",
+                "examples": [f"{PREFIX}mod channel list"]
+            }
+        }
+    },
+    "cooldown": {
+        "description": "Manage command cooldowns",
+        "subcommands": {
+            "set": {
+                "usage": f"{PREFIX}mod cooldown set <command> <seconds>",
+                "slash": "/mod cooldown set",
+                "description": "Set cooldown for a specific command",
+                "examples": [f"{PREFIX}mod cooldown set add 5", f"{PREFIX}mod cooldown set list 10"]
+            },
+            "remove": {
+                "usage": f"{PREFIX}mod cooldown remove <command>",
+                "slash": "/mod cooldown remove",
+                "description": "Remove cooldown for a command",
+                "examples": [f"{PREFIX}mod cooldown remove add"]
+            },
+            "list": {
+                "usage": f"{PREFIX}mod cooldown list",
+                "slash": "/mod cooldown list",
+                "description": "List all command cooldowns",
+                "examples": [f"{PREFIX}mod cooldown list"]
+            }
+        }
+    },
+    "autodelete": {
+        "description": "Manage auto-delete settings for bot responses",
+        "subcommands": {
+            "set": {
+                "usage": f"{PREFIX}mod autodelete set <seconds>",
+                "slash": "/mod autodelete set",
+                "description": "Set auto-delete delay for bot responses (0 to disable)",
+                "examples": [f"{PREFIX}mod autodelete set 30", f"{PREFIX}mod autodelete set 60"]
+            },
+            "disable": {
+                "usage": f"{PREFIX}mod autodelete disable",
+                "slash": "/mod autodelete disable",
+                "description": "Disable auto-delete for bot responses",
+                "examples": [f"{PREFIX}mod autodelete disable"]
+            }
+        }
+    },
+    "prefix": {
+        "description": "Manage custom command prefix for this server",
+        "subcommands": {
+            "set": {
+                "usage": f"{PREFIX}mod prefix set <prefix>",
+                "slash": "/mod prefix set",
+                "description": "Set custom prefix for this server",
+                "examples": [f"{PREFIX}mod prefix set !", f"{PREFIX}mod prefix set bot!"]
+            },
+            "reset": {
+                "usage": f"{PREFIX}mod prefix reset",
+                "slash": "/mod prefix reset",
+                "description": "Reset prefix to default",
+                "examples": [f"{PREFIX}mod prefix reset"]
+            }
+        }
+    },
+    "command": {
+        "description": "Enable or disable commands in this server",
+        "subcommands": {
+            "disable": {
+                "usage": f"{PREFIX}mod command disable <command>",
+                "slash": "/mod command disable",
+                "description": "Disable a command in this server",
+                "examples": [f"{PREFIX}mod command disable add", f"{PREFIX}mod command disable delete"]
+            },
+            "enable": {
+                "usage": f"{PREFIX}mod command enable <command>",
+                "slash": "/mod command enable",
+                "description": "Re-enable a disabled command",
+                "examples": [f"{PREFIX}mod command enable add"]
+            },
+            "list": {
+                "usage": f"{PREFIX}mod command list",
+                "slash": "/mod command list",
+                "description": "List all disabled commands",
+                "examples": [f"{PREFIX}mod command list"]
+            }
+        }
+    },
+    "settings": {
+        "description": "View all current bot settings for this server",
+        "usage": f"{PREFIX}mod settings",
+        "slash": "/mod settings",
+        "examples": [f"{PREFIX}mod settings"]
+    },
+    "reset": {
+        "description": "Reset all bot settings to defaults",
+        "usage": f"{PREFIX}mod reset",
+        "slash": "/mod reset",
+        "examples": [f"{PREFIX}mod reset"]
+    }
+}
+
+
+class ModHelpView(View):
+    """View for paginating through mod subcommand help."""
+    def __init__(self, embeds: list[discord.Embed], total_pages: int):
+        super().__init__(timeout=300)  # 5 minute timeout
+        self.embeds = embeds
+        self.total_pages = total_pages
+        self.current_page = 0
+        
+        # Update button states
+        self.update_buttons()
+    
+    def update_buttons(self):
+        """Update button states based on current page."""
+        # Clear existing buttons
+        self.clear_items()
+        
+        # Previous button
+        prev_button = Button(
+            label="◀ Previous",
+            style=discord.ButtonStyle.primary,
+            disabled=self.current_page == 0
+        )
+        prev_button.callback = self.previous_page
+        self.add_item(prev_button)
+        
+        # Page indicator
+        page_button = Button(
+            label=f"Page {self.current_page + 1}/{self.total_pages}",
+            style=discord.ButtonStyle.secondary,
+            disabled=True
+        )
+        self.add_item(page_button)
+        
+        # Next button
+        next_button = Button(
+            label="Next ▶",
+            style=discord.ButtonStyle.primary,
+            disabled=self.current_page >= self.total_pages - 1
+        )
+        next_button.callback = self.next_page
+        self.add_item(next_button)
+    
+    async def previous_page(self, interaction: discord.Interaction):
+        """Go to previous page."""
+        if self.current_page > 0:
+            self.current_page -= 1
+            self.update_buttons()
+            await interaction.response.edit_message(embed=self.embeds[self.current_page], view=self)
+        else:
+            await interaction.response.defer()
+    
+    async def next_page(self, interaction: discord.Interaction):
+        """Go to next page."""
+        if self.current_page < self.total_pages - 1:
+            self.current_page += 1
+            self.update_buttons()
+            await interaction.response.edit_message(embed=self.embeds[self.current_page], view=self)
+        else:
+            await interaction.response.defer()
+
+
+async def handle_mod_help(subcommand: str = None, user: discord.Member = None, guild: discord.Guild = None) -> tuple[list[discord.Embed], int]:
+    """
+    Handle mod command help. Returns list of embeds and total page count.
+    
+    If subcommand is provided, shows detailed help for that subcommand.
+    Otherwise, shows paginated overview of all subcommands.
+    """
+    prefix = PREFIX
+    
+    # Check permission
+    if not user or not guild:
+        embed = discord.Embed(
+            title="❌ Permission Denied",
+            description="This command can only be used in a server.",
+            color=0xFF0000
+        )
+        return [embed], 1
+    
+    from utils.permissions import has_mod_permission
+    if not has_mod_permission(user, guild):
+        embed = discord.Embed(
+            title="❌ Permission Denied",
+            description="You need the **Manage Server** permission to view moderator commands.",
+            color=0xFF0000
+        )
+        return [embed], 1
+    
+    # If specific subcommand requested
+    if subcommand:
+        subcommand = subcommand.lower().strip()
+        
+        # Handle nested subcommands (e.g., "channel allow")
+        parts = subcommand.split()
+        main_sub = parts[0]
+        nested_sub = parts[1] if len(parts) > 1 else None
+        
+        if main_sub in MOD_SUBCOMMANDS:
+            main_info = MOD_SUBCOMMANDS[main_sub]
+            
+            # If nested subcommand (e.g., "channel allow")
+            if nested_sub and "subcommands" in main_info:
+                if nested_sub in main_info["subcommands"]:
+                    nested_info = main_info["subcommands"][nested_sub]
+                    embed = discord.Embed(
+                        title=f"⚙️ Mod: {main_sub.title()} {nested_sub.title()}",
+                        description=nested_info["description"],
+                        color=0x5865F2
+                    )
+                    
+                    usage_text = f"```\n{nested_info['usage']}\n{nested_info.get('slash', '')}\n```"
+                    embed.add_field(name="Usage", value=usage_text, inline=False)
+                    
+                    if nested_info.get("examples"):
+                        examples_text = "\n".join(nested_info["examples"])
+                        embed.add_field(name="Examples", value=f"```\n{examples_text}\n```", inline=False)
+                    
+                    embed.set_footer(text=f"Use {prefix}help mod for all subcommands")
+                    embed.timestamp = discord.utils.utcnow()
+                    return [embed], 1
+                else:
+                    # Nested subcommand not found
+                    embed = discord.Embed(
+                        title="❌ Subcommand Not Found",
+                        description=f"Subcommand `{nested_sub}` not found for `{main_sub}`.\n\n"
+                                   f"Use `{prefix}help mod {main_sub}` to see available subcommands.",
+                        color=0xFF0000
+                    )
+                    return [embed], 1
+            
+            # Main subcommand overview (e.g., "channel")
+            if "subcommands" in main_info:
+                embed = discord.Embed(
+                    title=f"⚙️ Mod: {main_sub.title()}",
+                    description=main_info["description"],
+                    color=0x5865F2
+                )
+                
+                # List all subcommands
+                subcommands_list = []
+                for sub_name, sub_info in main_info["subcommands"].items():
+                    subcommands_list.append(f"**{sub_name}** - {sub_info['description']}")
+                
+                embed.add_field(
+                    name="Subcommands",
+                    value="\n".join(subcommands_list),
+                    inline=False
+                )
+                
+                # Show usage examples
+                examples = []
+                for sub_name, sub_info in list(main_info["subcommands"].items())[:3]:
+                    if sub_info.get("examples"):
+                        examples.extend(sub_info["examples"][:1])
+                
+                if examples:
+                    embed.add_field(
+                        name="Examples",
+                        value="\n".join([f"`{ex}`" for ex in examples]),
+                        inline=False
+                    )
+                
+                embed.add_field(
+                    name="View Details",
+                    value=f"Use `{prefix}help mod {main_sub} <subcommand>` to see detailed help for a specific subcommand.",
+                    inline=False
+                )
+                
+                embed.set_footer(text=f"Use {prefix}help mod for all subcommands")
+                embed.timestamp = discord.utils.utcnow()
+                return [embed], 1
+            else:
+                # Main subcommand without nested subcommands (e.g., "settings", "reset")
+                embed = discord.Embed(
+                    title=f"⚙️ Mod: {main_sub.title()}",
+                    description=main_info["description"],
+                    color=0x5865F2
+                )
+                
+                usage_text = f"```\n{main_info['usage']}\n{main_info.get('slash', '')}\n```"
+                embed.add_field(name="Usage", value=usage_text, inline=False)
+                
+                if main_info.get("examples"):
+                    examples_text = "\n".join(main_info["examples"])
+                    embed.add_field(name="Examples", value=f"```\n{examples_text}\n```", inline=False)
+                
+                embed.set_footer(text=f"Use {prefix}help mod for all subcommands")
+                embed.timestamp = discord.utils.utcnow()
+                return [embed], 1
+        else:
+            # Subcommand not found
+            embed = discord.Embed(
+                title="❌ Subcommand Not Found",
+                description=f"Mod subcommand `{subcommand}` not found.\n\n"
+                           f"Use `{prefix}help mod` to see all available subcommands.",
+                color=0xFF0000
+            )
+            return [embed], 1
+    
+    # Show paginated overview of all subcommands
+    embeds = []
+    subcommands_list = list(MOD_SUBCOMMANDS.items())
+    items_per_page = 3  # Show 3 subcommands per page
+    
+    total_pages = (len(subcommands_list) + items_per_page - 1) // items_per_page
+    
+    for page in range(total_pages):
+        start_idx = page * items_per_page
+        end_idx = min(start_idx + items_per_page, len(subcommands_list))
+        page_subcommands = subcommands_list[start_idx:end_idx]
+        
+        embed = discord.Embed(
+            title="⚙️ Moderator Commands",
+            description=f"Bot configuration commands (requires Manage Server permission)\n\n"
+                       f"Use `{prefix}help mod <subcommand>` for detailed help on a specific subcommand.",
+            color=0x5865F2
+        )
+        
+        for sub_name, sub_info in page_subcommands:
+            field_value = sub_info["description"]
+            
+            # Add subcommand list if it has nested subcommands
+            if "subcommands" in sub_info:
+                nested = ", ".join([f"`{n}`" for n in sub_info["subcommands"].keys()])
+                field_value += f"\n**Subcommands:** {nested}"
+            elif "usage" in sub_info:
+                field_value += f"\n**Usage:** `{sub_info['usage']}`"
+            
+            embed.add_field(
+                name=f"`{sub_name}`",
+                value=field_value,
+                inline=False
+            )
+        
+        embed.set_footer(text=f"Page {page + 1} of {total_pages} • Use {prefix}help mod <subcommand> for details")
+        embed.timestamp = discord.utils.utcnow()
+        embeds.append(embed)
+    
+    return embeds, total_pages
+
 
 async def handle_help_command(command_name: str = None, user: discord.Member = None, guild: discord.Guild = None) -> discord.Embed:
     """Handle help command. Returns embed with command information."""
@@ -130,6 +497,26 @@ async def handle_help_command(command_name: str = None, user: discord.Member = N
     # If specific command requested, show detailed help
     if command_name:
         command_name = command_name.lower().strip()
+        
+        # Handle mod command with subcommands (e.g., "mod channel" or "mod channel allow")
+        if command_name.startswith("mod"):
+            # This will be handled separately with pagination
+            # Return a placeholder that will be replaced
+            parts = command_name.split(maxsplit=1)
+            if len(parts) > 1:
+                subcommand = parts[1]
+            else:
+                subcommand = None
+            
+            # This will be handled in the command handler with pagination
+            # For now, return a simple embed that will be replaced
+            embed = discord.Embed(
+                title="⚙️ Moderator Commands",
+                description="Loading mod command help...",
+                color=0x5865F2
+            )
+            return embed
+        
         if command_name in COMMAND_INFO:
             info = COMMAND_INFO[command_name]
             
@@ -298,8 +685,21 @@ def setup_help_command(bot: commands.Bot):
         
         user = interaction.user
         guild = interaction.guild
-        embed = await handle_help_command(command, user, guild)
-        await interaction.response.send_message(embed=embed)
+        
+        # Handle mod command help with pagination
+        if command and command.lower().startswith("mod"):
+            parts = command.lower().split(maxsplit=1)
+            subcommand = parts[1] if len(parts) > 1 else None
+            embeds, total_pages = await handle_mod_help(subcommand, user, guild)
+            
+            if total_pages > 1:
+                view = ModHelpView(embeds, total_pages)
+                await interaction.response.send_message(embed=embeds[0], view=view)
+            else:
+                await interaction.response.send_message(embed=embeds[0])
+        else:
+            embed = await handle_help_command(command, user, guild)
+            await interaction.response.send_message(embed=embed)
     
     # Prefix command
     @bot.command(name="help", aliases=["h"])
@@ -319,6 +719,19 @@ def setup_help_command(bot: commands.Bot):
         
         user = ctx.author
         guild = ctx.guild
-        embed = await handle_help_command(command_name, user, guild)
-        await ctx.send(embed=embed)
+        
+        # Handle mod command help with pagination
+        if command_name and command_name.lower().startswith("mod"):
+            parts = command_name.lower().split(maxsplit=1)
+            subcommand = parts[1] if len(parts) > 1 else None
+            embeds, total_pages = await handle_mod_help(subcommand, user, guild)
+            
+            if total_pages > 1:
+                view = ModHelpView(embeds, total_pages)
+                await ctx.send(embed=embeds[0], view=view)
+            else:
+                await ctx.send(embed=embeds[0])
+        else:
+            embed = await handle_help_command(command_name, user, guild)
+            await ctx.send(embed=embed)
 
