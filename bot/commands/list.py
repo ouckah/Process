@@ -114,7 +114,7 @@ async def get_public_profile(username: str):
             raise Exception(f"Failed to fetch profile: {str(e)}")
 
 
-async def handle_list_processes(discord_id: str, username: str, target_username: str = None, target_discord_id: str = None) -> tuple[list[discord.Embed], int]:
+async def handle_list_processes(discord_id: str, username: str, target_username: str = None, target_discord_id: str = None, is_prefix_command: bool = False) -> tuple[list[discord.Embed], int]:
     """Handle listing processes. Returns list of embeds and total page count.
     
     Args:
@@ -124,6 +124,9 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
         target_discord_id: Optional Discord ID if target is a mention
     """
     try:
+        # Initialize is_viewing_own flag
+        is_viewing_own = False
+        
         # If viewing another user's profile
         if target_username or target_discord_id:
             # If we have a Discord ID (from mention), check if they exist and get their username
@@ -193,6 +196,9 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             
             display_name = profile.get("display_name") or target_username
             title_prefix = f"📋 {display_name}'s Public Processes"
+            
+            # Check if viewing own processes (for adding note about /list command)
+            is_viewing_own = target_discord_id == discord_id if target_discord_id else False
         else:
             # Viewing own processes
             token = await get_user_token(discord_id, username)
@@ -218,6 +224,9 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                     process_details_with_stages.append(p)
             
             title_prefix = "📋 Your Processes"
+            # When viewing own processes directly (no target), it's not "viewing own via prefix"
+            # Only when target_discord_id == discord_id (tagging themselves) is it "viewing own"
+            is_viewing_own = False
         
         # Create embeds with pagination (max 25 fields per embed, Discord limit)
         embeds = []
@@ -272,6 +281,14 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             if total_pages > 1:
                 embed.set_footer(text=f"Page {page + 1} of {total_pages}")
             
+            # Add note for prefix commands viewing own processes
+            if is_prefix_command and is_viewing_own and page == 0:
+                embed.add_field(
+                    name="💡 Tip",
+                    value="To see your **private processes** too, use `/list` (slash command) instead!",
+                    inline=False
+                )
+            
             embed.timestamp = discord.utils.utcnow()
             embeds.append(embed)
         
@@ -320,7 +337,8 @@ def setup_list_command(bot: commands.Bot):
             discord_id, 
             user_username, 
             target_username=target_username,
-            target_discord_id=target_discord_id
+            target_discord_id=target_discord_id,
+            is_prefix_command=False
         )
         
         if total_pages > 1:
@@ -359,6 +377,9 @@ def setup_list_command(bot: commands.Bot):
                 else:
                     # Treat as username
                     target_username = args
+        else:
+            # No argument - treat as if they tagged themselves (show their public processes)
+            target_discord_id = discord_id
         
         # Log the command
         log_command(
@@ -377,7 +398,8 @@ def setup_list_command(bot: commands.Bot):
             discord_id, 
             username, 
             target_username=target_username,
-            target_discord_id=target_discord_id
+            target_discord_id=target_discord_id,
+            is_prefix_command=True
         )
         
         # Check if listing own processes (private) or someone else's (public)
@@ -385,29 +407,11 @@ def setup_list_command(bot: commands.Bot):
         # Public if: has argument (viewing someone's public processes, even if it's themselves)
         is_own_processes = not (target_username or target_discord_id)
         
-        if is_own_processes:
-            # Send as DM for private processes
-            try:
-                if total_pages > 1:
-                    view = ProcessListView(embeds, total_pages)
-                    await ctx.author.send(embed=embeds[0], view=view)
-                else:
-                    await ctx.author.send(embed=embeds[0])
-                # Confirm in channel that DM was sent
-                await ctx.send("✅ Check your DMs for your process list!")
-            except discord.Forbidden:
-                # If DMs are disabled, send in channel with a warning
-                await ctx.send("⚠️ I couldn't send you a DM. Please enable DMs from server members to keep your private processes secure.")
-                if total_pages > 1:
-                    view = ProcessListView(embeds, total_pages)
-                    await ctx.send(embed=embeds[0], view=view)
-                else:
-                    await ctx.send(embed=embeds[0])
+        # For prefix commands, we can't use ephemeral messages, so we send in channel
+        # The ephemeral behavior is only available for slash commands
+        if total_pages > 1:
+            view = ProcessListView(embeds, total_pages)
+            await ctx.send(embed=embeds[0], view=view)
         else:
-            # Public processes can be shown in channel
-            if total_pages > 1:
-                view = ProcessListView(embeds, total_pages)
-                await ctx.send(embed=embeds[0], view=view)
-            else:
-                await ctx.send(embed=embeds[0])
+            await ctx.send(embed=embeds[0])
 
