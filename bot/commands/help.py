@@ -438,15 +438,47 @@ async def handle_mod_help(subcommand: str = None, user: discord.Member = None, g
                 embed.set_footer(text=f"Use {prefix}help mod for all subcommands")
                 embed.timestamp = discord.utils.utcnow()
                 return [embed], 1
-        else:
-            # Subcommand not found
-            embed = discord.Embed(
-                title="❌ Subcommand Not Found",
-                description=f"Mod subcommand `{subcommand}` not found.\n\n"
-                           f"Use `{prefix}help mod` to see all available subcommands.",
-                color=0xFF0000
-            )
-            return [embed], 1
+        
+        # Check if it's a nested subcommand (e.g., "allow" might be under "channel")
+        # Search through all main subcommands to find if this is a nested one
+        for main_name, main_info in MOD_SUBCOMMANDS.items():
+            if "subcommands" in main_info and main_sub in main_info["subcommands"]:
+                # Found it! It's a nested subcommand
+                nested_info = main_info["subcommands"][main_sub]
+                embed = discord.Embed(
+                    title=f"⚙️ Mod: {main_name.title()} {main_sub.title()}",
+                    description=nested_info["description"],
+                    color=0x5865F2
+                )
+                
+                usage_text = f"```\n{nested_info['usage']}\n{nested_info.get('slash', '')}\n```"
+                embed.add_field(name="Usage", value=usage_text, inline=False)
+                
+                if nested_info.get("examples"):
+                    examples_text = "\n".join(nested_info["examples"])
+                    embed.add_field(name="Examples", value=f"```\n{examples_text}\n```", inline=False)
+                
+                embed.add_field(
+                    name="Note",
+                    value=f"Use `{prefix}help mod {main_name}` to see all {main_name} subcommands.",
+                    inline=False
+                )
+                
+                embed.set_footer(text=f"Use {prefix}help mod for all subcommands")
+                embed.timestamp = discord.utils.utcnow()
+                return [embed], 1
+        
+        # Subcommand not found - provide helpful error
+        embed = discord.Embed(
+            title="❌ Subcommand Not Found",
+            description=f"Mod subcommand `{subcommand}` not found.\n\n"
+                       f"**Available main subcommands:**\n" +
+                       ", ".join([f"`{name}`" for name in MOD_SUBCOMMANDS.keys()]) +
+                       f"\n\nUse `{prefix}help mod` to see all subcommands with pagination.\n"
+                       f"Use `{prefix}help mod <subcommand>` for detailed help.",
+            color=0xFF0000
+        )
+        return [embed], 1
     
     # Show paginated overview of all subcommands
     embeds = []
@@ -499,8 +531,8 @@ async def handle_help_command(command_name: str = None, user: discord.Member = N
         command_name = command_name.lower().strip()
         
         # Handle mod command with subcommands (e.g., "mod channel" or "mod channel allow")
-        if command_name.startswith("mod"):
-            # This will be handled separately with pagination
+        if command_name == "mod" or command_name.startswith("mod "):
+            # This will be handled in the command handler with pagination
             # Return a placeholder that will be replaced
             parts = command_name.split(maxsplit=1)
             if len(parts) > 1:
@@ -721,7 +753,7 @@ def setup_help_command(bot: commands.Bot):
         guild = ctx.guild
         
         # Handle mod command help with pagination
-        if command_name and command_name.lower().startswith("mod"):
+        if command_name and (command_name.lower() == "mod" or command_name.lower().startswith("mod ")):
             parts = command_name.lower().split(maxsplit=1)
             subcommand = parts[1] if len(parts) > 1 else None
             embeds, total_pages = await handle_mod_help(subcommand, user, guild)
