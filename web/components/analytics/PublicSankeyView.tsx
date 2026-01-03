@@ -109,7 +109,8 @@ export function PublicSankeyView({ analytics, isOwnPage }: PublicSankeyViewProps
         <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6" data-sankey-chart>
           <SankeyChart 
             processes={analytics.processes} 
-            processDetails={processDetails} 
+            processDetails={processDetails}
+            largeText={true}
           />
         </div>
       ) : (

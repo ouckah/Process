@@ -7,6 +7,7 @@ import type { Process, ProcessDetail } from '@/types';
 interface SankeyChartProps {
   processes: Process[];
   processDetails?: ProcessDetail[];
+  largeText?: boolean; // For OG images/thumbnails - makes text larger for readability
 }
 
 interface SankeyNode {
@@ -139,10 +140,18 @@ function transformProcessesToSankey(
 }
 
 const CustomNode = (props: any) => {
-  const { x, y, width, height, index, payload, containerWidth } = props;
+  const { x, y, width, height, index, payload, containerWidth, largeText } = props;
   const isOut = x + width + 6 > containerWidth;
   const nodeName = payload.name;
   const nodeCount = payload.count || 0;
+
+  // Use larger text sizes for thumbnails/OG images
+  const countFontSize = largeText ? "28" : "16";
+  const countFontWeight = largeText ? "700" : "600";
+  const nameFontSize = largeText ? "24" : "18";
+  const nameFontWeight = largeText ? "600" : "400";
+  const textOffsetX = largeText ? 20 : 16;
+  const textOffsetY = largeText ? 16 : 12;
 
   return (
     <g>
@@ -155,25 +164,25 @@ const CustomNode = (props: any) => {
         fillOpacity="1" 
       />
       <text
-        x={x + width + 16}
-        y={y + height / 2 - 12}
+        x={x + width + textOffsetX}
+        y={y + height / 2 - textOffsetY}
         textAnchor="start"
         fill="currentColor"
         className="text-gray-900 dark:text-gray-100"
-        fontSize="16"
-        fontWeight="600"
+        fontSize={countFontSize}
+        fontWeight={countFontWeight}
         dominantBaseline="middle"
       >
         {nodeCount}
       </text>
       <text
-        x={x + width + 16}
-        y={y + height / 2 + 12}
+        x={x + width + textOffsetX}
+        y={y + height / 2 + textOffsetY}
         textAnchor="start"
         fill="currentColor"
         className="text-gray-900 dark:text-gray-100"
-        fontSize="18"
-        fontWeight="400"
+        fontSize={nameFontSize}
+        fontWeight={nameFontWeight}
         dominantBaseline="middle"
       >
         {nodeName}
@@ -206,7 +215,7 @@ const CustomLink = (props: any) => {
   );
 };
 
-export function SankeyChart({ processes, processDetails = [] }: SankeyChartProps) {
+export function SankeyChart({ processes, processDetails = [], largeText = false }: SankeyChartProps) {
   const sankeyData = useMemo(() => {
     if (!processes || processes.length === 0) {
       return {
@@ -233,11 +242,11 @@ export function SankeyChart({ processes, processDetails = [] }: SankeyChartProps
         <ResponsiveContainer width="100%" height="100%">
           <Sankey
             data={sankeyData}
-            node={<CustomNode />}
+            node={<CustomNode largeText={largeText} />}
             nodePadding={50}
-            margin={{ top: 20, right: 300, bottom: 20, left: 300 }}
+            margin={{ top: 20, right: largeText ? 400 : 300, bottom: 20, left: largeText ? 400 : 300 }}
             link={<CustomLink />}
-            nodeWidth={20}
+            nodeWidth={largeText ? 24 : 20}
           >
             <Tooltip 
               contentStyle={{
