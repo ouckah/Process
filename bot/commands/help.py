@@ -98,13 +98,15 @@ COMMAND_INFO = {
     },
     "sankey": {
         "category": "analytics",
-        "description": "Generate a Sankey diagram visualization of your public processes",
-        "usage": f"{PREFIX}sankey",
+        "description": "Generate a Sankey diagram visualization of your public processes or another user's",
+        "usage": f"{PREFIX}sankey [@mention or username]",
         "examples": [
-            f"{PREFIX}sankey"
+            f"{PREFIX}sankey",
+            f"{PREFIX}sankey @user",
+            f"{PREFIX}sankey johndoe"
         ],
         "slash": "/sankey",
-        "notes": "Shows the flow of stages across all your public processes. Requires at least one public process."
+        "notes": "Without argument: Shows your Sankey diagram. With @mention or username: Shows that user's Sankey diagram (if they have public processes and are not anonymous)."
     }
 }
 
@@ -200,7 +202,7 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
         categories[category].append(cmd_name)
     
     # Display categories in a specific order
-    category_order = ["processes", "account", "settings", "misc"]
+    category_order = ["processes", "account", "settings", "analytics", "misc"]
     for category in category_order:
         if category in categories:
             commands = categories[category]
