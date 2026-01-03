@@ -164,15 +164,12 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
                     inline=False
                 )
             
-            # Notes if available
+            # Build footer with category and note if available
+            footer_parts = [f"Category: {info['category']}", f"Use {prefix}help for all commands"]
             if info.get("notes"):
-                embed.add_field(
-                    name="💡 Note",
-                    value=f"```diff\n+ {info['notes']}\n```",
-                    inline=False
-                )
+                footer_parts.append(f"💡 {info['notes']}")
             
-            embed.set_footer(text=f"Category: {info['category']} | Use {prefix}help for all commands")
+            embed.set_footer(text=" • ".join(footer_parts))
             embed.timestamp = discord.utils.utcnow()
             return embed
         else:

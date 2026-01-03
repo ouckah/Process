@@ -99,11 +99,7 @@ async def handle_edit_process(
             return create_error_embed(
                 "Multiple Processes Found",
                 f"Multiple processes found for **{company_name}**.",
-                fields=[{
-                    "name": "💡 Solution",
-                    "value": f"```diff\n+ Please specify position: {PREFIX}edit <company_name> <position> [options]\n```",
-                    "inline": False
-                }]
+                footer=f"💡 Solution: Please specify position: {PREFIX}edit <company_name> <position> [options]"
             )
         
         process = matching[0]

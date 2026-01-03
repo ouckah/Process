@@ -52,11 +52,7 @@ async def handle_delete_process(discord_id: str, username: str, company_name: st
             return create_error_embed(
                 "Multiple Processes Found",
                 f"Multiple processes found for **{company_name}**.",
-                fields=[{
-                    "name": "💡 Solution",
-                    "value": f"```diff\n+ Please specify position: {PREFIX}delete <company_name> <position> or /delete <company_name> <position>\n```",
-                    "inline": False
-                }]
+                footer=f"💡 Solution: Please specify position: {PREFIX}delete <company_name> <position> or /delete <company_name> <position>"
             )
         
         process = matching[0]

@@ -14,7 +14,7 @@ def create_success_embed(title: str, description: str) -> discord.Embed:
     return embed
 
 
-def create_error_embed(title: str, description: str, fields: Optional[list[dict]] = None) -> discord.Embed:
+def create_error_embed(title: str, description: str, fields: Optional[list[dict]] = None, footer: Optional[str] = None) -> discord.Embed:
     """Create an error embed (red)."""
     embed = discord.Embed(
         title=f"❌ {title}",
@@ -24,6 +24,8 @@ def create_error_embed(title: str, description: str, fields: Optional[list[dict]
     if fields:
         for field in fields:
             embed.add_field(**field)
+    if footer:
+        embed.set_footer(text=footer)
     return embed
 
 

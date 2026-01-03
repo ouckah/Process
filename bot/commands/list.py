@@ -300,25 +300,24 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                     inline=False
                 )
             
-            # Add footer with privacy mode info (only for own processes)
-            if not target_username and not target_discord_id:
-                # Viewing own processes - show privacy mode
-                privacy_display = "🔒 Private" if user_privacy_mode == "private" else "🌐 Public"
-                if total_pages > 1:
-                    footer_text = f"Page {page + 1} of {total_pages} • Privacy: {privacy_display} • Change: {PREFIX}privacy <private|public>"
-                else:
-                    footer_text = f"Privacy Mode: {privacy_display} • Change with {PREFIX}privacy <private|public>"
-                embed.set_footer(text=footer_text)
-            elif total_pages > 1:
-                embed.set_footer(text=f"Page {page + 1} of {total_pages}")
+            # Build footer text
+            footer_parts = []
             
-            # Add note for prefix commands viewing own processes
+            # Add page number if multiple pages
+            if total_pages > 1:
+                footer_parts.append(f"Page {page + 1} of {total_pages}")
+            
+            # Add privacy mode info (only for own processes)
+            if not target_username and not target_discord_id:
+                privacy_display = "🔒 Private" if user_privacy_mode == "private" else "🌐 Public"
+                footer_parts.append(f"Privacy: {privacy_display} • Change: {PREFIX}privacy <private|public>")
+            
+            # Add tip for prefix commands viewing own processes (same size as timestamp)
             if is_prefix_command and is_viewing_own and page == 0:
-                embed.add_field(
-                    name="💡 Tip",
-                    value="```diff\n+ To see your private processes too, use /list (slash command) instead!\n```",
-                    inline=False
-                )
+                footer_parts.append("💡 Tip: Use /list to see private processes")
+            
+            if footer_parts:
+                embed.set_footer(text=" • ".join(footer_parts))
             
             embed.timestamp = discord.utils.utcnow()
             embeds.append(embed)
