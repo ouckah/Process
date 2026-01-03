@@ -74,6 +74,7 @@ async def on_ready():
         from commands import privacy, anon
         from commands import edit
         from commands import sankey
+        from commands import mod
         
         # Setup all commands (add new commands here following the pattern above)
         add.setup_add_command(bot, stage_name_autocomplete)
@@ -85,6 +86,7 @@ async def on_ready():
         anon.setup_anon_command(bot)
         edit.setup_edit_command(bot)
         sankey.setup_sankey_command(bot)
+        mod.setup_mod_command(bot)
         
         logger.info("All commands loaded successfully")
     except (ImportError, ModuleNotFoundError, AttributeError) as e:
@@ -105,9 +107,51 @@ async def on_ready():
         print(f'Failed to sync commands: {e}')
 
 
+def check_channel_restrictions(guild_id: str, channel_id: int) -> bool:
+    """
+    Check if a channel is allowed for bot commands.
+    
+    Returns:
+        True if channel is allowed, False if denied/restricted
+    """
+    from utils.config import guild_config
+    
+    if not guild_id:
+        # DMs are always allowed
+        return True
+    
+    config = guild_config.get_config(guild_id)
+    allowed = config.get("allowed_channels", [])
+    denied = config.get("denied_channels", [])
+    
+    # If channel is explicitly denied, block it
+    if channel_id in denied:
+        return False
+    
+    # If allowed list exists and is not empty, only allow those channels
+    if allowed:
+        return channel_id in allowed
+    
+    # If no restrictions set, allow all channels
+    return True
+
+
 @bot.event
 async def on_message(message):
-    """Handle legacy !process command specifically."""
+    """Handle legacy !process command specifically and check channel restrictions."""
+    # Ignore bot messages
+    if message.author.bot:
+        return
+    
+    # Check channel restrictions (skip for DMs)
+    if message.guild:
+        guild_id = str(message.guild.id)
+        channel_id = message.channel.id
+        
+        if not check_channel_restrictions(guild_id, channel_id):
+            # Silently ignore commands in restricted channels
+            return
+    
     # Only handle !process, not other ! commands
     if message.content.startswith("!process"):
         # Create context and call the legacy process handler

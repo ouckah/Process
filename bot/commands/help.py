@@ -107,11 +107,23 @@ COMMAND_INFO = {
         ],
         "slash": "/sankey",
         "notes": "Without argument: Shows your Sankey diagram. With @mention or username: Shows that user's Sankey diagram (if they have public processes and are not anonymous)."
+    },
+    "mod": {
+        "category": "moderator",
+        "description": "Moderator commands for bot configuration (requires Manage Server permission)",
+        "usage": f"{PREFIX}mod <subcommand> [args]",
+        "examples": [
+            f"{PREFIX}mod channel allow #general",
+            f"{PREFIX}mod cooldown set add 5",
+            f"{PREFIX}mod settings"
+        ],
+        "slash": "/mod",
+        "notes": "Moderator-only commands. Subcommands: channel, cooldown, autodelete, prefix, command, settings, reset"
     }
 }
 
 
-async def handle_help_command(command_name: str = None) -> discord.Embed:
+async def handle_help_command(command_name: str = None, user: discord.Member = None, guild: discord.Guild = None) -> discord.Embed:
     """Handle help command. Returns embed with command information."""
     prefix = PREFIX
     
@@ -120,6 +132,24 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
         command_name = command_name.lower().strip()
         if command_name in COMMAND_INFO:
             info = COMMAND_INFO[command_name]
+            
+            # Check if it's a moderator command and user doesn't have permission
+            if info.get("category") == "moderator":
+                if not user or not guild:
+                    embed = discord.Embed(
+                        title="❌ Command Not Found",
+                        description=f"Command `{command_name}` not found.",
+                        color=0xFF0000
+                    )
+                    return embed
+                from utils.permissions import has_mod_permission
+                if not has_mod_permission(user, guild):
+                    embed = discord.Embed(
+                        title="❌ Permission Denied",
+                        description=f"You need the **Manage Server** permission to view moderator commands.",
+                        color=0xFF0000
+                    )
+                    return embed
             
             # Map command names to emojis and display names
             command_display = {
@@ -131,7 +161,8 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
                 "help": ("❓", "Help"),
                 "privacy": ("🔒", "Privacy Settings"),
                 "anon": ("👤", "Anonymous Mode"),
-                "sankey": ("📊", "Sankey Diagram")
+                "sankey": ("📊", "Sankey Diagram"),
+                "mod": ("⚙️", "Moderator Commands")
             }
             
             emoji, display_name = command_display.get(command_name, ("📚", command_name.title()))
@@ -197,12 +228,21 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
     categories = {}
     for cmd_name, cmd_info in COMMAND_INFO.items():
         category = cmd_info.get("category", "misc")
+        
+        # Only show moderator commands to users with Manage Server permission
+        if category == "moderator":
+            if not user or not guild:
+                continue
+            from utils.permissions import has_mod_permission
+            if not has_mod_permission(user, guild):
+                continue
+        
         if category not in categories:
             categories[category] = []
         categories[category].append(cmd_name)
     
     # Display categories in a specific order
-    category_order = ["processes", "account", "settings", "analytics", "misc"]
+    category_order = ["processes", "account", "settings", "analytics", "moderator", "misc"]
     for category in category_order:
         if category in categories:
             commands = categories[category]
@@ -256,7 +296,9 @@ def setup_help_command(bot: commands.Bot):
             raw_args=command if command else None
         )
         
-        embed = await handle_help_command(command)
+        user = interaction.user
+        guild = interaction.guild
+        embed = await handle_help_command(command, user, guild)
         await interaction.response.send_message(embed=embed)
     
     # Prefix command
@@ -275,6 +317,8 @@ def setup_help_command(bot: commands.Bot):
             raw_args=command_name if command_name else None
         )
         
-        embed = await handle_help_command(command_name)
+        user = ctx.author
+        guild = ctx.guild
+        embed = await handle_help_command(command_name, user, guild)
         await ctx.send(embed=embed)
 

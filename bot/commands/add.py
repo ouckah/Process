@@ -219,9 +219,42 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
             }
         )
         
+        # Check command restrictions
+        from utils.restrictions import check_command_restrictions, record_command_use
+        guild_id = str(interaction.guild.id) if interaction.guild else None
+        channel_id = interaction.channel.id if interaction.channel else 0
+        
+        is_allowed, error_embed = await check_command_restrictions(
+            guild_id, discord_id, channel_id, "add", interaction=interaction
+        )
+        
+        if not is_allowed:
+            if error_embed:
+                await interaction.response.send_message(embed=error_embed, ephemeral=True)
+            else:
+                await interaction.response.send_message("Command not available in this channel.", ephemeral=True)
+            return
+        
         await interaction.response.defer()
         embed = await handle_add_process(discord_id, username, company_name, stage_name, position)
-        await interaction.followup.send(embed=embed)
+        message = await interaction.followup.send(embed=embed)
+        
+        # Record command use for cooldown
+        record_command_use(guild_id, discord_id, "add")
+        
+        # Auto-delete if configured
+        if guild_id:
+            from utils.config import guild_config
+            config = guild_config.get_config(guild_id)
+            auto_delete = config.get("auto_delete_seconds")
+            if auto_delete and auto_delete > 0:
+                async def delete_after_delay():
+                    try:
+                        await asyncio.sleep(auto_delete)
+                        await message.delete()
+                    except:
+                        pass
+                asyncio.create_task(delete_after_delay())
     
     # Prefix command
     @bot.command(name="add")
@@ -311,6 +344,21 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
         discord_id = str(ctx.author.id)
         username = ctx.author.name
         
+        # Check command restrictions
+        from utils.restrictions import check_command_restrictions, record_command_use
+        guild_id = str(ctx.guild.id) if ctx.guild else None
+        channel_id = ctx.channel.id if ctx.channel else 0
+        
+        is_allowed, error_embed = await check_command_restrictions(
+            guild_id, discord_id, channel_id, "add", ctx=ctx
+        )
+        
+        if not is_allowed:
+            if error_embed:
+                await ctx.send(embed=error_embed)
+            # If no error embed, silently ignore (channel restriction)
+            return
+        
         # Log the command
         log_command(
             command_type="prefix",
@@ -326,5 +374,23 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
         )
         
         embed = await handle_add_process(discord_id, username, company_name, stage_name, position)
-        await ctx.send(embed=embed)
+        message = await ctx.send(embed=embed)
+        
+        # Record command use for cooldown
+        record_command_use(guild_id, discord_id, "add")
+        
+        # Auto-delete if configured
+        if guild_id:
+            from utils.config import guild_config
+            import asyncio
+            config = guild_config.get_config(guild_id)
+            auto_delete = config.get("auto_delete_seconds")
+            if auto_delete and auto_delete > 0:
+                async def delete_after_delay():
+                    try:
+                        await asyncio.sleep(auto_delete)
+                        await message.delete()
+                    except:
+                        pass
+                asyncio.create_task(delete_after_delay())
 
