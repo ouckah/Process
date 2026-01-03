@@ -129,16 +129,16 @@ MOD_SUBCOMMANDS = {
         "description": "Manage channel restrictions for bot commands",
         "subcommands": {
             "allow": {
-                "usage": f"{PREFIX}mod channel allow <#channel>",
+                "usage": f"{PREFIX}mod channel allow <#channel|all>",
                 "slash": "/mod channel allow",
-                "description": "Allow bot to work in a specific channel",
-                "examples": [f"{PREFIX}mod channel allow #general"]
+                "description": "Allow bot to work in a specific channel or all channels",
+                "examples": [f"{PREFIX}mod channel allow #general", f"{PREFIX}mod channel allow all"]
             },
             "deny": {
-                "usage": f"{PREFIX}mod channel deny <#channel>",
+                "usage": f"{PREFIX}mod channel deny <#channel|all>",
                 "slash": "/mod channel deny",
-                "description": "Deny bot from working in a specific channel",
-                "examples": [f"{PREFIX}mod channel deny #spam"]
+                "description": "Deny bot from working in a specific channel or all channels",
+                "examples": [f"{PREFIX}mod channel deny #spam", f"{PREFIX}mod channel deny all"]
             },
             "remove": {
                 "usage": f"{PREFIX}mod channel remove <#channel>",

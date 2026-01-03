@@ -15,10 +15,40 @@ from utils.logging import log_command
 PREFIX = os.getenv("PREFIX", "p!")
 
 
-async def handle_channel_allow(guild_id: str, channel_id: int) -> discord.Embed:
-    """Add a channel to the allowed list."""
+async def handle_channel_allow(guild_id: str, channel_id: int = None, all_channels: list = None) -> discord.Embed:
+    """Add a channel (or all channels) to the allowed list."""
     config = guild_config.get_config(guild_id)
     
+    if all_channels:
+        # Handle "all" case
+        added_count = 0
+        already_count = 0
+        
+        for channel in all_channels:
+            if channel.id not in config["allowed_channels"]:
+                # Remove from denied list if present
+                if channel.id in config["denied_channels"]:
+                    config["denied_channels"].remove(channel.id)
+                config["allowed_channels"].append(channel.id)
+                added_count += 1
+            else:
+                already_count += 1
+        
+        guild_config.save_config(guild_id, config)
+        
+        if added_count == 0:
+            return create_error_embed(
+                "Channels Already Allowed",
+                "All text channels are already in the allowed list."
+            )
+        
+        message = f"Added {added_count} channel{'s' if added_count != 1 else ''} to the allowed list."
+        if already_count > 0:
+            message += f" {already_count} channel{'s were' if already_count != 1 else 'was'} already allowed."
+        
+        return create_success_embed("Channels Allowed", message)
+    
+    # Single channel case
     if channel_id in config["allowed_channels"]:
         return create_error_embed(
             "Channel Already Allowed",
@@ -38,10 +68,40 @@ async def handle_channel_allow(guild_id: str, channel_id: int) -> discord.Embed:
     )
 
 
-async def handle_channel_deny(guild_id: str, channel_id: int) -> discord.Embed:
-    """Add a channel to the denied list."""
+async def handle_channel_deny(guild_id: str, channel_id: int = None, all_channels: list = None) -> discord.Embed:
+    """Add a channel (or all channels) to the denied list."""
     config = guild_config.get_config(guild_id)
     
+    if all_channels:
+        # Handle "all" case
+        added_count = 0
+        already_count = 0
+        
+        for channel in all_channels:
+            if channel.id not in config["denied_channels"]:
+                # Remove from allowed list if present
+                if channel.id in config["allowed_channels"]:
+                    config["allowed_channels"].remove(channel.id)
+                config["denied_channels"].append(channel.id)
+                added_count += 1
+            else:
+                already_count += 1
+        
+        guild_config.save_config(guild_id, config)
+        
+        if added_count == 0:
+            return create_error_embed(
+                "Channels Already Denied",
+                "All text channels are already in the denied list."
+            )
+        
+        message = f"Added {added_count} channel{'s' if added_count != 1 else ''} to the denied list."
+        if already_count > 0:
+            message += f" {already_count} channel{'s were' if already_count != 1 else 'was'} already denied."
+        
+        return create_success_embed("Channels Denied", message)
+    
+    # Single channel case
     if channel_id in config["denied_channels"]:
         return create_error_embed(
             "Channel Already Denied",
@@ -346,9 +406,9 @@ def setup_mod_command(bot: commands.Bot):
     # Channel subcommands
     channel_group = app_commands.Group(name="channel", description="Manage channel restrictions", parent=mod_group)
     
-    @channel_group.command(name="allow", description="Allow bot to work in a channel")
-    @app_commands.describe(channel="The channel to allow")
-    async def channel_allow_slash(interaction: discord.Interaction, channel: discord.TextChannel):
+    @channel_group.command(name="allow", description="Allow bot to work in a channel (or all channels)")
+    @app_commands.describe(target="The channel to allow, or 'all' for all channels")
+    async def channel_allow_slash(interaction: discord.Interaction, target: str):
         if not interaction.guild:
             await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
             return
@@ -361,12 +421,41 @@ def setup_mod_command(bot: commands.Bot):
         log_command("slash", "mod channel allow", str(interaction.user.id), interaction.user.name)
         
         await interaction.response.defer()
-        embed = await handle_channel_allow(str(interaction.guild.id), channel.id)
+        
+        if target.lower() == "all":
+            # Get all text channels
+            all_channels = [ch for ch in interaction.guild.channels if isinstance(ch, discord.TextChannel)]
+            embed = await handle_channel_allow(str(interaction.guild.id), all_channels=all_channels)
+        else:
+            # Try to parse as channel mention or ID
+            channel_id = None
+            if target.startswith("<#") and target.endswith(">"):
+                try:
+                    channel_id = int(target[2:-1])
+                except ValueError:
+                    pass
+            else:
+                try:
+                    channel_id = int(target)
+                except ValueError:
+                    # Try to find by name
+                    channel = discord.utils.get(interaction.guild.channels, name=target)
+                    if channel:
+                        channel_id = channel.id
+            
+            if channel_id is None:
+                embed = create_error_embed(
+                    "Invalid Channel",
+                    f"Could not find channel: {target}. Use a channel mention, channel ID, channel name, or 'all'."
+                )
+            else:
+                embed = await handle_channel_allow(str(interaction.guild.id), channel_id)
+        
         await interaction.followup.send(embed=embed)
     
-    @channel_group.command(name="deny", description="Deny bot from working in a channel")
-    @app_commands.describe(channel="The channel to deny")
-    async def channel_deny_slash(interaction: discord.Interaction, channel: discord.TextChannel):
+    @channel_group.command(name="deny", description="Deny bot from working in a channel (or all channels)")
+    @app_commands.describe(target="The channel to deny, or 'all' for all channels")
+    async def channel_deny_slash(interaction: discord.Interaction, target: str):
         if not interaction.guild:
             await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
             return
@@ -379,7 +468,36 @@ def setup_mod_command(bot: commands.Bot):
         log_command("slash", "mod channel deny", str(interaction.user.id), interaction.user.name)
         
         await interaction.response.defer()
-        embed = await handle_channel_deny(str(interaction.guild.id), channel.id)
+        
+        if target.lower() == "all":
+            # Get all text channels
+            all_channels = [ch for ch in interaction.guild.channels if isinstance(ch, discord.TextChannel)]
+            embed = await handle_channel_deny(str(interaction.guild.id), all_channels=all_channels)
+        else:
+            # Try to parse as channel mention or ID
+            channel_id = None
+            if target.startswith("<#") and target.endswith(">"):
+                try:
+                    channel_id = int(target[2:-1])
+                except ValueError:
+                    pass
+            else:
+                try:
+                    channel_id = int(target)
+                except ValueError:
+                    # Try to find by name
+                    channel = discord.utils.get(interaction.guild.channels, name=target)
+                    if channel:
+                        channel_id = channel.id
+            
+            if channel_id is None:
+                embed = create_error_embed(
+                    "Invalid Channel",
+                    f"Could not find channel: {target}. Use a channel mention, channel ID, channel name, or 'all'."
+                )
+            else:
+                embed = await handle_channel_deny(str(interaction.guild.id), channel_id)
+        
         await interaction.followup.send(embed=embed)
     
     @channel_group.command(name="remove", description="Remove channel from allow/deny lists")
@@ -698,8 +816,30 @@ def setup_mod_command(bot: commands.Bot):
                 elif action in ["allow", "deny", "remove"]:
                     if len(args) < 3:
                         embed = create_usage_embed(
-                            f"Usage: `{PREFIX}mod channel {action} <#channel>`"
+                            f"Usage: `{PREFIX}mod channel {action} <#channel|all>`"
                         )
+                        await ctx.send(embed=embed)
+                        return
+                    
+                    # Check if "all" was specified
+                    channel_arg = args[2].lower()
+                    if channel_arg == "all":
+                        if action == "remove":
+                            embed = create_error_embed(
+                                "Invalid Usage",
+                                "Cannot remove 'all' channels. Please specify a specific channel."
+                            )
+                            await ctx.send(embed=embed)
+                            return
+                        
+                        # Get all text channels
+                        all_channels = [ch for ch in ctx.guild.channels if isinstance(ch, discord.TextChannel)]
+                        
+                        if action == "allow":
+                            embed = await handle_channel_allow(guild_id, all_channels=all_channels)
+                        else:  # deny
+                            embed = await handle_channel_deny(guild_id, all_channels=all_channels)
+                        
                         await ctx.send(embed=embed)
                         return
                     
