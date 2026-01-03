@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 type Props = {
   params: { username: string };
 };
@@ -43,10 +46,39 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (analyticsResponse.ok) {
       const analytics = await analyticsResponse.json();
       if (analytics?.processes && analytics.processes.length > 0) {
-        // Get the most recent updated_at timestamp from all processes AND stages
-        let mostRecentUpdate: string | null = null;
+        // Create a hash from the actual data that changes when stages are added/updated
+        // This ensures the cache buster changes even if timestamps don't update correctly
+        let dataHash = 0;
         
-        // Check process updated_at
+        // Hash process count
+        dataHash += analytics.processes.length;
+        
+        // Hash all stage data (count, names, dates) to catch any changes
+        if (analytics.process_details) {
+          analytics.process_details.forEach((detail: any) => {
+            if (detail.stages) {
+              // Add stage count to hash
+              dataHash += detail.stages.length;
+              
+              // Add hash of stage names and dates
+              detail.stages.forEach((stage: any) => {
+                if (stage.stage_name) {
+                  dataHash += stage.stage_name.length;
+                }
+                if (stage.stage_date) {
+                  dataHash += new Date(stage.stage_date).getTime() % 1000000;
+                }
+                // Also use updated_at if available
+                if (stage.updated_at) {
+                  dataHash += new Date(stage.updated_at).getTime() % 1000000;
+                }
+              });
+            }
+          });
+        }
+        
+        // Also check the most recent updated_at as a fallback
+        let mostRecentUpdate: string | null = null;
         analytics.processes.forEach((process: any) => {
           const updatedAt = process.updated_at;
           if (!mostRecentUpdate || (updatedAt && updatedAt > mostRecentUpdate)) {
@@ -54,7 +86,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           }
         });
         
-        // Also check stage updated_at from process_details
         if (analytics.process_details) {
           analytics.process_details.forEach((detail: any) => {
             if (detail.stages) {
@@ -68,19 +99,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           });
         }
         
-        // Create cache buster from process count + most recent update timestamp
-        // This changes whenever:
-        // - A process is added (count changes)
-        // - A process is deleted (count changes)
-        // - A process is updated (mostRecentUpdate changes)
-        // - A stage is added/updated (mostRecentUpdate changes)
+        // Combine data hash with timestamp for more reliable cache busting
         const processCount = analytics.processes.length;
         const updateHash = mostRecentUpdate 
           ? new Date(mostRecentUpdate).getTime() 
           : Date.now();
         
-        // Use a short hash to keep URL manageable
-        cacheBuster = `?v=${processCount}-${updateHash}`;
+        // Use data hash + timestamp to ensure changes are detected
+        cacheBuster = `?v=${processCount}-${dataHash}-${updateHash}`;
       } else {
         // No processes, use timestamp
         cacheBuster = `?v=0-${Date.now()}`;
