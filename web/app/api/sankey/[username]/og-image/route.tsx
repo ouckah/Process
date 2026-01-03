@@ -50,7 +50,7 @@ export async function GET(
       await page.waitForSelector('[data-sankey-chart]', { timeout: 10000 });
       
       // Wait a bit more for any animations to complete
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Get the bounding box of the Sankey chart container
       const chartElement = await page.$('[data-sankey-chart]');
@@ -63,38 +63,14 @@ export async function GET(
         throw new Error('Could not get bounding box of chart');
       }
       
-      // Calculate centered capture area (1200x630 for OG image)
-      const targetWidth = 1200;
-      const targetHeight = 630;
-      
-      // Get page dimensions
-      const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-      const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
-      
-      // Center horizontally on the chart
-      // We want the chart to be roughly centered in the OG image
-      const chartCenterX = boundingBox.x + boundingBox.width / 2;
-      const clipX = Math.max(0, Math.floor(chartCenterX - targetWidth / 2));
-      
-      // Position vertically to include title and chart
-      // Include some space above the chart for the title
-      const titleSpace = 180; // Space for title above chart
-      const clipY = Math.max(0, Math.floor(boundingBox.y - titleSpace));
-      
-      // Ensure we don't go beyond page bounds
-      const finalX = Math.min(clipX, pageWidth - targetWidth);
-      const finalY = Math.min(clipY, pageHeight - targetHeight);
-      const finalWidth = Math.min(targetWidth, pageWidth - finalX);
-      const finalHeight = Math.min(targetHeight, pageHeight - finalY);
-      
-      // Take screenshot of the centered chart area
+      // Crop screenshot to only the chart element using its exact coordinates
       const screenshot = await page.screenshot({
         type: 'png',
         clip: {
-          x: finalX,
-          y: finalY,
-          width: finalWidth,
-          height: finalHeight,
+          x: Math.floor(boundingBox.x),
+          y: Math.floor(boundingBox.y),
+          width: Math.floor(boundingBox.width),
+          height: Math.floor(boundingBox.height),
         },
       });
       
