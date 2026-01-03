@@ -123,8 +123,9 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
         target_discord_id: Optional Discord ID if target is a mention
     """
     try:
-        # Initialize is_viewing_own flag
+        # Initialize is_viewing_own flag and privacy mode
         is_viewing_own = False
+        user_privacy_mode = None  # Will be set when viewing own processes
         
         # If viewing another user's profile
         if target_username or target_discord_id:
@@ -205,6 +206,10 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             # Viewing own processes
             token = await get_user_token(discord_id, username)
             
+            # Get user info to check privacy mode
+            user_info = await api_request("GET", "/auth/me", token)
+            privacy_mode = user_info.get("discord_privacy_mode", "private")
+            
             # Get all processes
             processes = await api_request("GET", "/api/processes/", token)
             
@@ -213,6 +218,9 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                     "📋 Your Processes",
                     f"You don't have any processes yet. Use `{PREFIX}add <company> <stage>` or `/add <company> <stage>` to create one!"
                 )
+                # Add privacy mode footer even for empty list
+                privacy_display = "🔒 Private" if privacy_mode == "private" else "🌐 Public"
+                embed.set_footer(text=f"Privacy Mode: {privacy_display} • Change with {PREFIX}privacy <private|public>")
                 return [embed], 1
             
             # Get details for all processes
@@ -229,6 +237,8 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             # When viewing own processes directly (no target), it's not "viewing own via prefix"
             # Only when target_discord_id == discord_id (tagging themselves) is it "viewing own"
             is_viewing_own = False
+            # Store privacy mode for footer (only set when viewing own processes)
+            user_privacy_mode = privacy_mode
         
         # Create embeds with pagination (max 25 fields per embed, Discord limit)
         embeds = []
@@ -280,7 +290,16 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                     inline=False
                 )
             
-            if total_pages > 1:
+            # Add footer with privacy mode info (only for own processes)
+            if not target_username and not target_discord_id:
+                # Viewing own processes - show privacy mode
+                privacy_display = "🔒 Private" if user_privacy_mode == "private" else "🌐 Public"
+                if total_pages > 1:
+                    footer_text = f"Page {page + 1} of {total_pages} • Privacy: {privacy_display} • Change: {PREFIX}privacy <private|public>"
+                else:
+                    footer_text = f"Privacy Mode: {privacy_display} • Change with {PREFIX}privacy <private|public>"
+                embed.set_footer(text=footer_text)
+            elif total_pages > 1:
                 embed.set_footer(text=f"Page {page + 1} of {total_pages}")
             
             # Add note for prefix commands viewing own processes
