@@ -49,9 +49,10 @@ export function ProcessAnalytics() {
 
   return (
     <div className="space-y-6">
+      <MetricsCards processes={processes} processDetails={processDetails} />
+      
       <div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Analytics Overview</h2>
-        <MetricsCards processes={processes} processDetails={processDetails} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

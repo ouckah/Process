@@ -8,7 +8,6 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProcessList } from '@/components/processes/ProcessList';
 import { ProcessAnalytics } from '@/components/analytics/ProcessAnalytics';
-import { ActivityFeed } from '@/components/activity/ActivityFeed';
 import { ExportButton } from '@/components/processes/ExportButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
@@ -81,7 +80,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
       <Header />
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
@@ -140,14 +139,7 @@ export default function DashboardPage() {
         ) : viewMode === 'analytics' ? (
           <ProcessAnalytics />
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <ProcessList />
-            </div>
-            <div className="lg:col-span-1">
-              <ActivityFeed processes={processes || []} />
-            </div>
-          </div>
+          <ProcessList />
         )}
       </main>
       <Footer />
