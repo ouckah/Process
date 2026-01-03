@@ -6,13 +6,12 @@ import os
 import httpx
 from urllib.parse import quote
 
-from utils.auth import get_user_token, api_request, API_URL
+from utils.auth import get_user_token, api_request
 from utils.embeds import create_info_embed, create_error_embed
 from utils.errors import handle_command_error
 from utils.logging import log_command
 
 PREFIX = os.getenv("PREFIX", "p!")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 
 async def handle_sankey_command(discord_id: str, username: str) -> discord.Embed:
@@ -33,9 +32,10 @@ async def handle_sankey_command(discord_id: str, username: str) -> discord.Embed
         # Check if user has public processes by calling the public analytics endpoint
         try:
             # Use unauthenticated request to check public analytics
+            api_url = os.getenv("API_URL", "http://localhost:8000")
             async with httpx.AsyncClient(timeout=10.0) as client:
                 analytics_response = await client.get(
-                    f"{API_URL}/api/analytics/{quote(user_username)}/public"
+                    f"{api_url}/api/analytics/{quote(user_username)}/public"
                 )
                 
                 if analytics_response.status_code == 404:
@@ -64,8 +64,9 @@ async def handle_sankey_command(discord_id: str, username: str) -> discord.Embed
                     )
                 
                 # Build URLs
-                analytics_url = f"{FRONTEND_URL}/analytics/{quote(user_username)}"
-                image_url = f"{FRONTEND_URL}/api/analytics/{quote(user_username)}/sankey-image"
+                frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+                analytics_url = f"{frontend_url}/analytics/{quote(user_username)}"
+                image_url = f"{frontend_url}/api/analytics/{quote(user_username)}/sankey-image"
                 
                 # Create embed with link and OG image
                 embed = discord.Embed(
