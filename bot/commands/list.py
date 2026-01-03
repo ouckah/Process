@@ -89,8 +89,13 @@ async def get_username_from_discord_id(target_discord_id: str) -> str:
                 # User doesn't exist
                 raise Exception("USER_NOT_REGISTERED")
             raise
+        except (httpx.ConnectTimeout, httpx.ReadTimeout) as e:
+            # Connection timeout - use the error handler utility
+            raise Exception("CONNECTION_TIMEOUT")
         except httpx.RequestError as e:
-            raise Exception(f"Failed to check user: {str(e)}")
+            # Other connection errors
+            error_msg = str(e) if str(e) else "Connection error"
+            raise Exception(f"CONNECTION_ERROR: {error_msg}")
 
 
 async def get_public_profile(username: str):
@@ -134,7 +139,8 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 try:
                     target_username = await get_username_from_discord_id(target_discord_id)
                 except Exception as e:
-                    if str(e) == "USER_NOT_REGISTERED":
+                    error_str = str(e)
+                    if error_str == "USER_NOT_REGISTERED":
                         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
                         register_url = f"{frontend_url}/register"
                         embed = create_error_embed(
@@ -142,6 +148,10 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                             f"This user has not registered yet. They need to use a bot command (like `p!add`) OR [register on the website]({register_url}) to create an account and submit a process first."
                         )
                         return [embed], 1
+                    elif error_str.startswith("CONNECTION_TIMEOUT") or error_str.startswith("CONNECTION_ERROR"):
+                        # Let the error handler utility handle connection errors
+                        error_embed = handle_command_error(e, "checking user")
+                        return [error_embed], 1
                     raise
             
             # Get public profile (no authentication required)
