@@ -346,6 +346,7 @@ async def handle_mod_help(subcommand: str = None, user: discord.Member = None, g
         main_sub = parts[0]
         nested_sub = parts[1] if len(parts) > 1 else None
         
+        # Check if it's a main subcommand (e.g., "channel")
         if main_sub in MOD_SUBCOMMANDS:
             main_info = MOD_SUBCOMMANDS[main_sub]
             
@@ -719,7 +720,7 @@ def setup_help_command(bot: commands.Bot):
         guild = interaction.guild
         
         # Handle mod command help with pagination
-        if command and command.lower().startswith("mod"):
+        if command and (command.lower() == "mod" or command.lower().startswith("mod ")):
             parts = command.lower().split(maxsplit=1)
             subcommand = parts[1] if len(parts) > 1 else None
             embeds, total_pages = await handle_mod_help(subcommand, user, guild)
