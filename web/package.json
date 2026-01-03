@@ -17,6 +17,7 @@
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.300.0",
     "next": "^14.0.0",
+    "puppeteer": "^24.34.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-hook-form": "^7.49.0",
