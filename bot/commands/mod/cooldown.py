@@ -20,9 +20,9 @@ async def handle_cooldown_set(guild_id: str, command_name: str, seconds: float) 
             "Cooldown must be 0 or greater."
         )
     
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     config["command_cooldowns"][command_name.lower()] = seconds
-    guild_config.save_config(guild_id, config)
+        await guild_config.save_config(guild_id, config)
     
     return create_success_embed(
         "Cooldown Set",
@@ -32,7 +32,7 @@ async def handle_cooldown_set(guild_id: str, command_name: str, seconds: float) 
 
 async def handle_cooldown_remove(guild_id: str, command_name: str) -> discord.Embed:
     """Remove cooldown for a command."""
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     command_key = command_name.lower()
     
     if command_key not in config["command_cooldowns"]:
@@ -42,7 +42,7 @@ async def handle_cooldown_remove(guild_id: str, command_name: str) -> discord.Em
         )
     
     del config["command_cooldowns"][command_key]
-    guild_config.save_config(guild_id, config)
+        await guild_config.save_config(guild_id, config)
     
     return create_success_embed(
         "Cooldown Removed",
@@ -52,7 +52,7 @@ async def handle_cooldown_remove(guild_id: str, command_name: str) -> discord.Em
 
 async def handle_cooldown_list(guild_id: str) -> discord.Embed:
     """List all command cooldowns."""
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     cooldowns = config.get("command_cooldowns", {})
     
     if not cooldowns:

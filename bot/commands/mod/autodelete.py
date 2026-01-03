@@ -21,9 +21,9 @@ async def handle_autodelete_set(guild_id: str, seconds: Optional[float]) -> disc
             "Auto-delete delay must be 0 or greater."
         )
     
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     config["auto_delete_seconds"] = seconds
-    guild_config.save_config(guild_id, config)
+    await guild_config.save_config(guild_id, config)
     
     if seconds is None:
         return create_success_embed(

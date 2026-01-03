@@ -15,7 +15,7 @@ PREFIX = os.getenv("PREFIX", "p!")
 
 async def handle_channel_allow(guild_id: str, channel_id: int = None, all_channels: list = None) -> discord.Embed:
     """Add a channel (or all channels) to the allowed list."""
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     
     if all_channels is not None:
         # Handle "all" case
@@ -38,7 +38,7 @@ async def handle_channel_allow(guild_id: str, channel_id: int = None, all_channe
             else:
                 already_count += 1
         
-        guild_config.save_config(guild_id, config)
+        await guild_config.save_config(guild_id, config)
         
         if added_count == 0:
             return create_error_embed(
@@ -80,7 +80,7 @@ async def handle_channel_allow(guild_id: str, channel_id: int = None, all_channe
 
 async def handle_channel_deny(guild_id: str, channel_id: int = None, all_channels: list = None) -> discord.Embed:
     """Add a channel (or all channels) to the denied list."""
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     
     if all_channels is not None:
         # Handle "all" case
@@ -103,7 +103,7 @@ async def handle_channel_deny(guild_id: str, channel_id: int = None, all_channel
             else:
                 already_count += 1
         
-        guild_config.save_config(guild_id, config)
+        await guild_config.save_config(guild_id, config)
         
         if added_count == 0:
             return create_error_embed(
@@ -145,7 +145,7 @@ async def handle_channel_deny(guild_id: str, channel_id: int = None, all_channel
 
 async def handle_channel_remove(guild_id: str, channel_id: int) -> discord.Embed:
     """Remove a channel from allow/deny lists."""
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     removed_from = []
     
     if channel_id in config["allowed_channels"]:
@@ -172,7 +172,7 @@ async def handle_channel_remove(guild_id: str, channel_id: int) -> discord.Embed
 
 async def handle_channel_list(guild_id: str) -> discord.Embed:
     """List current channel restrictions."""
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     
     allowed = config.get("allowed_channels", [])
     denied = config.get("denied_channels", [])

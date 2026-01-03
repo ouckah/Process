@@ -310,3 +310,18 @@ class PublicProfileResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class GuildConfigResponse(BaseModel):
+    """Schema for guild configuration response."""
+    guild_id: str
+    config: dict
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class GuildConfigUpdate(BaseModel):
+    """Schema for updating guild configuration."""
+    config: dict

@@ -21,9 +21,9 @@ async def handle_prefix_set(guild_id: str, prefix: Optional[str]) -> discord.Emb
             "Prefix must be 10 characters or less."
         )
     
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     config["command_prefix"] = prefix
-    guild_config.save_config(guild_id, config)
+    await guild_config.save_config(guild_id, config)
     
     if prefix is None:
         return create_success_embed(

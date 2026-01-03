@@ -28,7 +28,7 @@ async def check_command_restrictions(
     if not guild_id:
         return True, None
     
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     
     # Check if command is disabled
     disabled_commands = config.get("disabled_commands", [])

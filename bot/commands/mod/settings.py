@@ -14,7 +14,7 @@ PREFIX = os.getenv("PREFIX", "p!")
 
 async def handle_settings(guild_id: str) -> discord.Embed:
     """View all current bot settings."""
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     
     # Format channel lists
     allowed = config.get("allowed_channels", [])
@@ -54,7 +54,7 @@ async def handle_settings(guild_id: str) -> discord.Embed:
 
 async def handle_reset(guild_id: str) -> discord.Embed:
     """Reset all settings to defaults."""
-    guild_config.reset_config(guild_id)
+    await guild_config.reset_config(guild_id)
     
     return create_success_embed(
         "Settings Reset",

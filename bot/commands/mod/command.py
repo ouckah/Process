@@ -14,7 +14,7 @@ PREFIX = os.getenv("PREFIX", "p!")
 
 async def handle_command_disable(guild_id: str, command_name: str) -> discord.Embed:
     """Disable a command in this server."""
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     command_key = command_name.lower()
     
     if command_key in config["disabled_commands"]:
@@ -24,7 +24,7 @@ async def handle_command_disable(guild_id: str, command_name: str) -> discord.Em
         )
     
     config["disabled_commands"].append(command_key)
-    guild_config.save_config(guild_id, config)
+        await guild_config.save_config(guild_id, config)
     
     return create_success_embed(
         "Command Disabled",
@@ -34,7 +34,7 @@ async def handle_command_disable(guild_id: str, command_name: str) -> discord.Em
 
 async def handle_command_enable(guild_id: str, command_name: str) -> discord.Embed:
     """Re-enable a disabled command."""
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     command_key = command_name.lower()
     
     if command_key not in config["disabled_commands"]:
@@ -44,7 +44,7 @@ async def handle_command_enable(guild_id: str, command_name: str) -> discord.Emb
         )
     
     config["disabled_commands"].remove(command_key)
-    guild_config.save_config(guild_id, config)
+        await guild_config.save_config(guild_id, config)
     
     return create_success_embed(
         "Command Enabled",
@@ -54,7 +54,7 @@ async def handle_command_enable(guild_id: str, command_name: str) -> discord.Emb
 
 async def handle_command_list(guild_id: str) -> discord.Embed:
     """List disabled commands."""
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     disabled = config.get("disabled_commands", [])
     
     if not disabled:

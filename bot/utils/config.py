@@ -1,8 +1,10 @@
 """Guild configuration manager for per-server bot settings."""
-import json
 import os
-from pathlib import Path
+import httpx
+import logging
 from typing import Dict, Any, Optional
+
+from utils.auth import get_api_url
 
 # Default configuration structure
 DEFAULT_CONFIG = {
@@ -14,78 +16,90 @@ DEFAULT_CONFIG = {
     "disabled_commands": []
 }
 
-# Config directory path
-CONFIG_DIR = Path(__file__).parent.parent / "configs"
+TIMEOUT = 10.0
+logger = logging.getLogger(__name__)
+
+# Bot API token for authenticating guild config requests
+BOT_API_TOKEN = os.getenv("BOT_API_TOKEN", "")
 
 
 class GuildConfig:
-    """Manages per-server bot configuration stored in JSON files."""
+    """Manages per-server bot configuration stored in database via API."""
     
     def __init__(self):
-        """Initialize config manager and ensure config directory exists."""
-        CONFIG_DIR.mkdir(exist_ok=True)
+        """Initialize config manager."""
+        pass
     
-    def _get_config_path(self, guild_id: str) -> Path:
-        """Get the file path for a guild's config."""
-        return CONFIG_DIR / f"{guild_id}.json"
+    async def _api_request(self, method: str, guild_id: str, data: Optional[Dict] = None) -> Dict[str, Any]:
+        """Make API request for guild config."""
+        api_url = get_api_url()
+        url = f"{api_url}/api/guild-configs/{guild_id}"
+        
+        params = {}
+        if BOT_API_TOKEN:
+            params["token"] = BOT_API_TOKEN
+        
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            try:
+                if method == "GET":
+                    response = await client.get(url, params=params)
+                elif method == "PUT":
+                    response = await client.put(url, params=params, json=data)
+                elif method == "DELETE":
+                    response = await client.delete(url, params=params)
+                else:
+                    raise ValueError(f"Unsupported method: {method}")
+                
+                response.raise_for_status()
+                return response.json()
+            except httpx.RequestError as e:
+                logger.error(f"Failed to {method} guild config for {guild_id}: {type(e).__name__}")
+                # Fallback to default config on error
+                if method == "GET":
+                    return {"guild_id": guild_id, "config": DEFAULT_CONFIG.copy(), "updated_at": None}
+                raise
     
-    def load_config(self, guild_id: str) -> Dict[str, Any]:
-        """Load configuration for a guild, returning defaults if not found."""
-        config_path = self._get_config_path(guild_id)
-        
-        if not config_path.exists():
-            return DEFAULT_CONFIG.copy()
-        
+    async def load_config(self, guild_id: str) -> Dict[str, Any]:
+        """Load configuration for a guild from API, returning defaults if not found."""
         try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-                # Merge with defaults to ensure all keys exist
-                merged = DEFAULT_CONFIG.copy()
-                merged.update(config)
-                return merged
-        except (json.JSONDecodeError, IOError) as e:
-            # If config is corrupted, return defaults
-            print(f"Error loading config for guild {guild_id}: {e}")
+            result = await self._api_request("GET", guild_id)
+            config = result.get("config", DEFAULT_CONFIG.copy())
+            # Merge with defaults to ensure all keys exist
+            merged = DEFAULT_CONFIG.copy()
+            merged.update(config)
+            return merged
+        except Exception as e:
+            logger.error(f"Error loading config for guild {guild_id}: {e}")
             return DEFAULT_CONFIG.copy()
     
-    def save_config(self, guild_id: str, config: Dict[str, Any]) -> bool:
-        """Save configuration for a guild."""
-        config_path = self._get_config_path(guild_id)
-        
+    async def save_config(self, guild_id: str, config: Dict[str, Any]) -> bool:
+        """Save configuration for a guild via API."""
         try:
-            # Ensure directory exists
-            config_path.parent.mkdir(exist_ok=True)
-            
-            with open(config_path, 'w', encoding='utf-8') as f:
-                json.dump(config, f, indent=2, ensure_ascii=False)
+            await self._api_request("PUT", guild_id, {"config": config})
             return True
-        except IOError as e:
-            print(f"Error saving config for guild {guild_id}: {e}")
+        except Exception as e:
+            logger.error(f"Error saving config for guild {guild_id}: {e}")
             return False
     
-    def get_config(self, guild_id: str) -> Dict[str, Any]:
-        """Get configuration for a guild (alias for load_config)."""
-        return self.load_config(guild_id)
+    async def get_config(self, guild_id: str) -> Dict[str, Any]:
+        """Get configuration for a guild (async alias for load_config)."""
+        return await self.load_config(guild_id)
     
-    def reset_config(self, guild_id: str) -> bool:
+    async def reset_config(self, guild_id: str) -> bool:
         """Reset configuration to defaults for a guild."""
-        config_path = self._get_config_path(guild_id)
-        
         try:
-            if config_path.exists():
-                config_path.unlink()
+            await self._api_request("DELETE", guild_id)
             return True
-        except IOError as e:
-            print(f"Error resetting config for guild {guild_id}: {e}")
+        except Exception as e:
+            logger.error(f"Error resetting config for guild {guild_id}: {e}")
             return False
     
-    def update_config(self, guild_id: str, updates: Dict[str, Any]) -> bool:
+    async def update_config(self, guild_id: str, updates: Dict[str, Any]) -> bool:
         """Update specific keys in a guild's configuration."""
-        config = self.load_config(guild_id)
+        config = await self.load_config(guild_id)
         config.update(updates)
-        return self.save_config(guild_id, config)
+        return await self.save_config(guild_id, config)
 
 
 # Global instance
 guild_config = GuildConfig()
-

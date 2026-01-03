@@ -107,7 +107,7 @@ async def on_ready():
         print(f'Failed to sync commands: {e}')
 
 
-def check_channel_restrictions(guild_id: str, channel_id: int, message: discord.Message = None) -> bool:
+async def check_channel_restrictions(guild_id: str, channel_id: int, message: discord.Message = None) -> bool:
     """
     Check if a channel is allowed for bot commands.
     
@@ -135,7 +135,7 @@ def check_channel_restrictions(guild_id: str, channel_id: int, message: discord.
             if message.author.guild_permissions.manage_guild:
                 return True
     
-    config = guild_config.get_config(guild_id)
+    config = await guild_config.get_config(guild_id)
     allowed = config.get("allowed_channels", [])
     denied = config.get("denied_channels", [])
     
@@ -163,7 +163,7 @@ async def on_message(message):
         guild_id = str(message.guild.id)
         channel_id = message.channel.id
         
-        if not check_channel_restrictions(guild_id, channel_id, message):
+        if not await check_channel_restrictions(guild_id, channel_id, message):
             # Silently ignore commands in restricted channels
             return
     

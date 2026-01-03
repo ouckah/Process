@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, JSON, JSON
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
 import enum
@@ -136,3 +136,16 @@ class CommentUpvote(Base):
 
     def __repr__(self):
         return f"CommentUpvote(id={self.id}, comment_id={self.comment_id}, user_id={self.user_id})"
+
+
+class GuildConfig(Base):
+    __tablename__ = 'guild_configs'
+    
+    id = Column(Integer, primary_key=True)
+    guild_id = Column(String, unique=True, nullable=False)  # Discord guild ID
+    config = Column(JSON, nullable=False)  # JSON config data
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"GuildConfig(id={self.id}, guild_id={self.guild_id})"
