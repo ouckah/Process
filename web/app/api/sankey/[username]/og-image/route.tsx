@@ -93,19 +93,27 @@ function transformProcessesToSankey(processes: any[], processDetails: any[]) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { username: string } }
+  { params }: { params: { username: string } | Promise<{ username: string }> }
 ) {
   try {
-    const username = decodeURIComponent(params.username);
+    // Handle both Next.js 14 (sync) and 15 (async) params
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const username = decodeURIComponent(resolvedParams.username);
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     
     // Fetch analytics data
     const response = await fetch(
       `${apiUrl}/api/analytics/${encodeURIComponent(username)}/public`,
-      { cache: 'no-store' }
+      { 
+        cache: 'no-store',
+        headers: {
+          'Accept': 'application/json',
+        },
+      }
     );
     
     if (!response.ok) {
+      console.error(`Failed to fetch analytics: ${response.status} ${response.statusText}`);
       return new Response('Not Found', { status: 404 });
     }
     
@@ -308,6 +316,29 @@ export async function GET(
     );
   } catch (e: any) {
     console.error('Error generating OG image:', e);
-    return new Response('Failed to generate image', { status: 500 });
+    // Return a fallback image on error
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            height: '100%',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#F9FAFB',
+          }}
+        >
+          <div style={{ fontSize: 60, fontWeight: 700, marginBottom: 20 }}>
+            📊 Sankey Diagram
+          </div>
+          <div style={{ fontSize: 30, color: '#9CA3AF' }}>
+            Error loading diagram
+          </div>
+        </div>
+      ),
+      { width: 1200, height: 630 }
+    );
   }
 }
