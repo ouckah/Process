@@ -222,91 +222,102 @@ export async function GET(
               left: 0,
               width: '100%',
               height: chartAreaHeight,
-              display: 'block',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            {/* Draw nodes */}
-            {nodePositions.map((node, i) => (
-              <div
-                key={`node-${i}`}
-                style={{
-                  position: 'absolute',
-                  left: node.x,
-                  top: node.y,
-                  width: node.width,
-                  height: node.height,
-                  backgroundColor: node.color,
-                  borderRadius: '3px',
-                }}
-              />
-            ))}
-
-            {/* Draw labels */}
-            {nodePositions.map((node, i) => (
-              <div
-                key={`label-${i}`}
-                style={{
-                  position: 'absolute',
-                  left: node.x + node.width + 12,
-                  top: node.y - 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
+            {/* Wrapper for all absolute positioned elements */}
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                display: 'block',
+              }}
+            >
+              {/* Draw nodes */}
+              {nodePositions.map((node, i) => (
                 <div
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    color: '#111827',
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {node.count}
-                </div>
-                <div
-                  style={{
-                    fontSize: 16,
-                    color: '#111827',
-                    lineHeight: 1.2,
-                    marginTop: 2,
-                  }}
-                >
-                  {node.name.length > 20 ? node.name.substring(0, 20) + '...' : node.name}
-                </div>
-              </div>
-            ))}
-
-            {/* Draw links as simple lines (simplified for OG image) */}
-            {sankeyData.links.slice(0, 15).map((link, i) => {
-              const sourceNode = nodePositions[link.source];
-              const targetNode = nodePositions[link.target];
-              
-              if (!sourceNode || !targetNode) return null;
-
-              const sourceX = sourceNode.x + sourceNode.width;
-              const sourceY = sourceNode.y + sourceNode.height / 2;
-              const targetX = sourceX + 250;
-              const targetY = targetNode.y + targetNode.height / 2;
-              const linkWidth = Math.max(1, Math.min(link.value * 2, 8));
-
-              // Draw link as a simple div (curved effect approximated)
-              return (
-                <div
-                  key={`link-${i}`}
+                  key={`node-${i}`}
                   style={{
                     position: 'absolute',
-                    left: sourceX,
-                    top: Math.min(sourceY, targetY),
-                    width: targetX - sourceX,
-                    height: linkWidth,
-                    backgroundColor: sourceNode.color,
-                    opacity: 0.4,
-                    transform: `rotate(${Math.atan2(targetY - sourceY, targetX - sourceX) * 180 / Math.PI}deg)`,
-                    transformOrigin: 'left center',
+                    left: node.x,
+                    top: node.y,
+                    width: node.width,
+                    height: node.height,
+                    backgroundColor: node.color,
+                    borderRadius: '3px',
                   }}
                 />
-              );
-            })}
+              ))}
+
+              {/* Draw labels */}
+              {nodePositions.map((node, i) => (
+                <div
+                  key={`label-${i}`}
+                  style={{
+                    position: 'absolute',
+                    left: node.x + node.width + 12,
+                    top: node.y - 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: '#111827',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {node.count}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 16,
+                      color: '#111827',
+                      lineHeight: 1.2,
+                      marginTop: 2,
+                    }}
+                  >
+                    {node.name.length > 20 ? node.name.substring(0, 20) + '...' : node.name}
+                  </div>
+                </div>
+              ))}
+
+              {/* Draw links as simple lines (simplified for OG image) */}
+              {sankeyData.links.slice(0, 15).map((link, i) => {
+                const sourceNode = nodePositions[link.source];
+                const targetNode = nodePositions[link.target];
+                
+                if (!sourceNode || !targetNode) return null;
+
+                const sourceX = sourceNode.x + sourceNode.width;
+                const sourceY = sourceNode.y + sourceNode.height / 2;
+                const targetX = sourceX + 250;
+                const targetY = targetNode.y + targetNode.height / 2;
+                const linkWidth = Math.max(1, Math.min(link.value * 2, 8));
+
+                // Draw link as a simple div (curved effect approximated)
+                return (
+                  <div
+                    key={`link-${i}`}
+                    style={{
+                      position: 'absolute',
+                      left: sourceX,
+                      top: Math.min(sourceY, targetY),
+                      width: targetX - sourceX,
+                      height: linkWidth,
+                      backgroundColor: sourceNode.color,
+                      opacity: 0.4,
+                      transform: `rotate(${Math.atan2(targetY - sourceY, targetX - sourceX) * 180 / Math.PI}deg)`,
+                      transformOrigin: 'left center',
+                    }}
+                  />
+                );
+              })}
+            </div>
           </div>
         </div>
       ),
