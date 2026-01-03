@@ -218,9 +218,9 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             
             # Get user info to check privacy mode
             user_info = await api_request("GET", "/auth/me", token)
-            privacy_mode = user_info.get("discord_privacy_mode")
-            # Default to "private" if not set (None or empty string)
-            if not privacy_mode or privacy_mode not in ["private", "public"]:
+            privacy_mode = user_info.get("discord_privacy_mode", "private")
+            # Ensure it's a valid value
+            if privacy_mode not in ["private", "public"]:
                 privacy_mode = "private"
             
             # Get all processes
