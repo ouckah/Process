@@ -19,7 +19,13 @@ async def handle_channel_allow(guild_id: str, channel_id: int = None, all_channe
     """Add a channel (or all channels) to the allowed list."""
     config = guild_config.get_config(guild_id)
     
-    if all_channels:
+    if all_channels is not None:
+        # Handle "all" case
+        if not all_channels:
+            return create_error_embed(
+                "Invalid Arguments",
+                "No channels provided in all_channels list."
+            )
         # Handle "all" case
         added_count = 0
         already_count = 0
@@ -48,7 +54,13 @@ async def handle_channel_allow(guild_id: str, channel_id: int = None, all_channe
         
         return create_success_embed("Channels Allowed", message)
     
-    # Single channel case
+    # Single channel case - validate channel_id is provided
+    if channel_id is None:
+        return create_error_embed(
+            "Invalid Arguments",
+            "Either channel_id or all_channels must be provided."
+        )
+    
     if channel_id in config["allowed_channels"]:
         return create_error_embed(
             "Channel Already Allowed",
@@ -72,7 +84,13 @@ async def handle_channel_deny(guild_id: str, channel_id: int = None, all_channel
     """Add a channel (or all channels) to the denied list."""
     config = guild_config.get_config(guild_id)
     
-    if all_channels:
+    if all_channels is not None:
+        # Handle "all" case
+        if not all_channels:
+            return create_error_embed(
+                "Invalid Arguments",
+                "No channels provided in all_channels list."
+            )
         # Handle "all" case
         added_count = 0
         already_count = 0
@@ -102,6 +120,12 @@ async def handle_channel_deny(guild_id: str, channel_id: int = None, all_channel
         return create_success_embed("Channels Denied", message)
     
     # Single channel case
+    if channel_id is None:
+        return create_error_embed(
+            "Invalid Arguments",
+            "Either channel_id or all_channels must be provided."
+        )
+    
     if channel_id in config["denied_channels"]:
         return create_error_embed(
             "Channel Already Denied",
@@ -835,12 +859,24 @@ def setup_mod_command(bot: commands.Bot):
                         # Get all text channels
                         all_channels = [ch for ch in ctx.guild.channels if isinstance(ch, discord.TextChannel)]
                         
-                        if action == "allow":
-                            embed = await handle_channel_allow(guild_id, all_channels=all_channels)
-                        else:  # deny
-                            embed = await handle_channel_deny(guild_id, all_channels=all_channels)
+                        if not all_channels:
+                            embed = create_error_embed(
+                                "No Channels Found",
+                                "No text channels found in this server."
+                            )
+                            await ctx.send(embed=embed)
+                            return
                         
-                        await ctx.send(embed=embed)
+                        try:
+                            if action == "allow":
+                                embed = await handle_channel_allow(guild_id, channel_id=None, all_channels=all_channels)
+                            else:  # deny
+                                embed = await handle_channel_deny(guild_id, channel_id=None, all_channels=all_channels)
+                            
+                            await ctx.send(embed=embed)
+                        except Exception as e:
+                            embed = handle_command_error(e, f"mod channel {action}")
+                            await ctx.send(embed=embed)
                         return
                     
                     # Parse channel mention
