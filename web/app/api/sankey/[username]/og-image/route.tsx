@@ -222,6 +222,7 @@ export async function GET(
               left: 0,
               width: '100%',
               height: chartAreaHeight,
+              display: 'block',
             }}
           >
             {/* Draw nodes */}
