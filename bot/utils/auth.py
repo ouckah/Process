@@ -2,14 +2,22 @@
 import os
 import httpx
 import logging
-from dotenv import load_dotenv
 
-load_dotenv()
-
+# WARNING: Do NOT import API_URL from this module in command files!
+# It causes import-time issues. Use get_api_url() function instead, or os.getenv("API_URL") directly.
+# Note: load_dotenv() is called ONCE in client.py. Do NOT call it here or in any command files.
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 TIMEOUT = 10.0  # 10 second timeout for API requests
 
 logger = logging.getLogger(__name__)
+
+
+def get_api_url() -> str:
+    """
+    Get API URL from environment variable.
+    Use this function instead of importing API_URL constant to avoid import-time issues.
+    """
+    return os.getenv("API_URL", "http://localhost:8000")
 
 
 async def get_user_token(discord_id: str, username: str) -> str:

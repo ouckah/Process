@@ -5,16 +5,13 @@ from discord.ext import commands
 from discord.ui import View, Button
 import httpx
 
-from utils.auth import get_user_token, api_request, API_URL
+from utils.auth import get_user_token, api_request
 from utils.embeds import create_info_embed, create_error_embed
 from utils.errors import handle_command_error
 from utils.logging import log_command
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
 PREFIX = os.getenv("PREFIX", "p!")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 
 class ProcessListView(View):
@@ -80,9 +77,10 @@ class ProcessListView(View):
 
 async def get_username_from_discord_id(target_discord_id: str) -> str:
     """Get username from Discord ID by checking if user exists (doesn't create account)."""
+    api_url = os.getenv("API_URL", "http://localhost:8000")
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
-            response = await client.get(f"{API_URL}/api/profiles/discord/{target_discord_id}/username")
+            response = await client.get(f"{api_url}/api/profiles/discord/{target_discord_id}/username")
             response.raise_for_status()
             data = response.json()
             return data.get("username")
@@ -97,12 +95,13 @@ async def get_username_from_discord_id(target_discord_id: str) -> str:
 
 async def get_public_profile(username: str):
     """Get public profile for a user (unauthenticated request)."""
+    api_url = os.getenv("API_URL", "http://localhost:8000")
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
             # URL encode the username in case it has special characters
             import urllib.parse
             encoded_username = urllib.parse.quote(username, safe='')
-            response = await client.get(f"{API_URL}/api/profiles/{encoded_username}")
+            response = await client.get(f"{api_url}/api/profiles/{encoded_username}")
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as e:
@@ -135,7 +134,8 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                     target_username = await get_username_from_discord_id(target_discord_id)
                 except Exception as e:
                     if str(e) == "USER_NOT_REGISTERED":
-                        register_url = f"{FRONTEND_URL}/register"
+                        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+                        register_url = f"{frontend_url}/register"
                         embed = create_error_embed(
                             "User Not Registered",
                             f"This user has not registered yet. They need to use a bot command (like `p!add`) OR [register on the website]({register_url}) to create an account and submit a process first."
@@ -148,7 +148,8 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 profile = await get_public_profile(target_username)
             except Exception as e:
                 if str(e) == "USER_NOT_FOUND":
-                    register_url = f"{FRONTEND_URL}/register"
+                    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+                    register_url = f"{frontend_url}/register"
                     embed = create_error_embed(
                         "User Not Found",
                         f"This user either has not registered or has not submitted any processes yet. They need to use a bot command (like `p!add`) OR [register on the website]({register_url}) to create an account and add processes."
@@ -181,8 +182,9 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 try:
                     # Use unauthenticated request to get process detail via share_id
                     if p.get("share_id"):
+                        api_url = os.getenv("API_URL", "http://localhost:8000")
                         async with httpx.AsyncClient(timeout=10.0) as client:
-                            detail_response = await client.get(f"{API_URL}/api/processes/share/{p['share_id']}")
+                            detail_response = await client.get(f"{api_url}/api/processes/share/{p['share_id']}")
                             if detail_response.status_code == 200:
                                 process_details_with_stages.append(detail_response.json())
                             else:

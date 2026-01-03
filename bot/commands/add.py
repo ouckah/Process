@@ -4,7 +4,6 @@ from discord import app_commands
 from discord.ext import commands
 import httpx
 import os
-from dotenv import load_dotenv
 
 from utils.auth import get_user_token, api_request
 from utils.embeds import create_success_embed, create_error_embed
@@ -12,7 +11,6 @@ from utils.constants import VALID_STAGE_NAMES
 from utils.errors import handle_command_error
 from utils.logging import log_command
 
-load_dotenv()
 PREFIX = os.getenv("PREFIX", "p!")
 
 

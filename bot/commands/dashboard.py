@@ -3,16 +3,13 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import os
-from dotenv import load_dotenv
 
 from utils.auth import get_user_token, api_request
 from utils.embeds import create_info_embed, create_error_embed
 from utils.errors import handle_command_error
 from utils.logging import log_command
 
-load_dotenv()
 PREFIX = os.getenv("PREFIX", "p!")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 
 async def handle_dashboard_command(discord_id: str, username: str) -> discord.Embed:
@@ -26,9 +23,11 @@ async def handle_dashboard_command(discord_id: str, username: str) -> discord.Em
         
         has_web_account = user_info.get("email") is not None
         
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        
         if has_web_account:
             # User has web account - send dashboard link
-            dashboard_url = f"{FRONTEND_URL}/dashboard"
+            dashboard_url = f"{frontend_url}/dashboard"
             return create_info_embed(
                 "📊 Dashboard",
                 f"Access your dashboard at: [**Open Dashboard**]({dashboard_url})",
@@ -40,8 +39,8 @@ async def handle_dashboard_command(discord_id: str, username: str) -> discord.Em
             )
         else:
             # User doesn't have web account - send signup link and instructions
-            signup_url = f"{FRONTEND_URL}/register"
-            profile_url = f"{FRONTEND_URL}/profile"
+            signup_url = f"{frontend_url}/register"
+            profile_url = f"{frontend_url}/profile"
             return create_info_embed(
                 "🔗 Connect Your Account",
                 f"To access the dashboard, you need to create a web account and link your Discord.",
