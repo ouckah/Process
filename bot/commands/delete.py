@@ -53,8 +53,8 @@ async def handle_delete_process(discord_id: str, username: str, company_name: st
                 "Multiple Processes Found",
                 f"Multiple processes found for **{company_name}**.",
                 fields=[{
-                    "name": "Solution",
-                    "value": f"Please specify position: `{PREFIX}delete <company_name> <position>` or `/delete <company_name> <position>`",
+                    "name": "💡 Solution",
+                    "value": f"```diff\n+ Please specify position: {PREFIX}delete <company_name> <position> or /delete <company_name> <position>\n```",
                     "inline": False
                 }]
             )

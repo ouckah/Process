@@ -167,8 +167,8 @@ async def handle_help_command(command_name: str = None) -> discord.Embed:
             # Notes if available
             if info.get("notes"):
                 embed.add_field(
-                    name="Note",
-                    value=info["notes"],
+                    name="💡 Note",
+                    value=f"```diff\n+ {info['notes']}\n```",
                     inline=False
                 )
             

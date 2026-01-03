@@ -306,7 +306,7 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             if is_prefix_command and is_viewing_own and page == 0:
                 embed.add_field(
                     name="💡 Tip",
-                    value="To see your **private processes** too, use `/list` (slash command) instead!",
+                    value="```diff\n+ To see your private processes too, use /list (slash command) instead!\n```",
                     inline=False
                 )
             

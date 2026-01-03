@@ -100,8 +100,8 @@ async def handle_edit_process(
                 "Multiple Processes Found",
                 f"Multiple processes found for **{company_name}**.",
                 fields=[{
-                    "name": "Solution",
-                    "value": f"Please specify position: `{PREFIX}edit <company_name> <position> [options]`",
+                    "name": "💡 Solution",
+                    "value": f"```diff\n+ Please specify position: {PREFIX}edit <company_name> <position> [options]\n```",
                     "inline": False
                 }]
             )
