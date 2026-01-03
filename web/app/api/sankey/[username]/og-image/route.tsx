@@ -33,10 +33,10 @@ export async function GET(
     try {
       const page = await browser.newPage();
       
-      // Set viewport for OG image size
+      // Set a larger viewport to capture the full page
       await page.setViewport({
-        width: 1200,
-        height: 630,
+        width: 1920,
+        height: 1080,
         deviceScaleFactor: 2,
       });
       
@@ -50,16 +50,51 @@ export async function GET(
       await page.waitForSelector('[data-sankey-chart]', { timeout: 10000 });
       
       // Wait a bit more for any animations to complete
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Take screenshot of the entire viewport (which is OG image size)
+      // Get the bounding box of the Sankey chart container
+      const chartElement = await page.$('[data-sankey-chart]');
+      if (!chartElement) {
+        throw new Error('Sankey chart element not found');
+      }
+      
+      const boundingBox = await chartElement.boundingBox();
+      if (!boundingBox) {
+        throw new Error('Could not get bounding box of chart');
+      }
+      
+      // Calculate centered capture area (1200x630 for OG image)
+      const targetWidth = 1200;
+      const targetHeight = 630;
+      
+      // Get page dimensions
+      const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+      const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+      
+      // Center horizontally on the chart
+      // We want the chart to be roughly centered in the OG image
+      const chartCenterX = boundingBox.x + boundingBox.width / 2;
+      const clipX = Math.max(0, Math.floor(chartCenterX - targetWidth / 2));
+      
+      // Position vertically to include title and chart
+      // Include some space above the chart for the title
+      const titleSpace = 180; // Space for title above chart
+      const clipY = Math.max(0, Math.floor(boundingBox.y - titleSpace));
+      
+      // Ensure we don't go beyond page bounds
+      const finalX = Math.min(clipX, pageWidth - targetWidth);
+      const finalY = Math.min(clipY, pageHeight - targetHeight);
+      const finalWidth = Math.min(targetWidth, pageWidth - finalX);
+      const finalHeight = Math.min(targetHeight, pageHeight - finalY);
+      
+      // Take screenshot of the centered chart area
       const screenshot = await page.screenshot({
         type: 'png',
         clip: {
-          x: 0,
-          y: 0,
-          width: 1200,
-          height: 630,
+          x: finalX,
+          y: finalY,
+          width: finalWidth,
+          height: finalHeight,
         },
       });
       
