@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { useProcesses } from '@/hooks/useProcesses';
 import { authApi } from '@/lib/api';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -14,7 +13,6 @@ import Link from 'next/link';
 
 export default function ProfilePage() {
   const { user, loading: authLoading, isAuthenticated, updateProfile } = useAuth();
-  const { data: processes } = useProcesses();
   const router = useRouter();
   const [disconnecting, setDisconnecting] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
@@ -78,11 +76,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Calculate stats
-  const totalProcesses = processes?.length || 0;
-  const publicProcesses = processes?.filter(p => p.is_public).length || 0;
-  const offersCount = processes?.filter(p => p.status === 'completed').length || 0;
-  const activeCount = processes?.filter(p => p.status === 'active').length || 0;
 
   if (authLoading) {
     return (
@@ -164,7 +157,17 @@ export default function ProfilePage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 space-y-6">
           {/* User Information */}
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Account Information</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Account Information</h2>
+              {user && (
+                <Link href={`/profile/${user.username}`}>
+                  <Button variant="outline" size="sm">
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    View Public Profile
+                  </Button>
+                </Link>
+              )}
+            </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 flex-1">
@@ -223,39 +226,6 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Profile Stats */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Your Stats</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalProcesses}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Total Processes</div>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{publicProcesses}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Public</div>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{offersCount}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Offers</div>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{activeCount}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Active</div>
-              </div>
-            </div>
-            {user && (
-              <div className="mt-4">
-                <Link href={`/profile/${user.username}`}>
-                  <Button variant="outline" size="sm">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    View Public Profile
-                  </Button>
-                </Link>
-              </div>
-            )}
           </div>
 
           {/* Privacy & Anonymization */}
