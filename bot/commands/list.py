@@ -310,7 +310,12 @@ def setup_list_command(bot: commands.Bot):
             } if (target_username or target_discord_id) else None
         )
         
-        await interaction.response.defer()
+        # Check if listing own processes (private) or someone else's (public)
+        # Private if: no argument (viewing own processes)
+        # Public if: has argument (viewing someone's public processes, even if it's themselves)
+        is_own_processes = not (target_username or target_discord_id)
+        
+        await interaction.response.defer(ephemeral=is_own_processes)
         embeds, total_pages = await handle_list_processes(
             discord_id, 
             user_username, 
@@ -321,9 +326,9 @@ def setup_list_command(bot: commands.Bot):
         if total_pages > 1:
             # Send first page and add pagination buttons
             view = ProcessListView(embeds, total_pages)
-            await interaction.followup.send(embed=embeds[0], view=view)
+            await interaction.followup.send(embed=embeds[0], view=view, ephemeral=is_own_processes)
         else:
-            await interaction.followup.send(embed=embeds[0])
+            await interaction.followup.send(embed=embeds[0], ephemeral=is_own_processes)
     
     # Prefix command
     @bot.command(name="list")
@@ -375,10 +380,34 @@ def setup_list_command(bot: commands.Bot):
             target_discord_id=target_discord_id
         )
         
-        if total_pages > 1:
-            # Send first page and add pagination buttons
-            view = ProcessListView(embeds, total_pages)
-            await ctx.send(embed=embeds[0], view=view)
+        # Check if listing own processes (private) or someone else's (public)
+        # Private if: no argument (viewing own processes)
+        # Public if: has argument (viewing someone's public processes, even if it's themselves)
+        is_own_processes = not (target_username or target_discord_id)
+        
+        if is_own_processes:
+            # Send as DM for private processes
+            try:
+                if total_pages > 1:
+                    view = ProcessListView(embeds, total_pages)
+                    await ctx.author.send(embed=embeds[0], view=view)
+                else:
+                    await ctx.author.send(embed=embeds[0])
+                # Confirm in channel that DM was sent
+                await ctx.send("✅ Check your DMs for your process list!")
+            except discord.Forbidden:
+                # If DMs are disabled, send in channel with a warning
+                await ctx.send("⚠️ I couldn't send you a DM. Please enable DMs from server members to keep your private processes secure.")
+                if total_pages > 1:
+                    view = ProcessListView(embeds, total_pages)
+                    await ctx.send(embed=embeds[0], view=view)
+                else:
+                    await ctx.send(embed=embeds[0])
         else:
-            await ctx.send(embed=embeds[0])
+            # Public processes can be shown in channel
+            if total_pages > 1:
+                view = ProcessListView(embeds, total_pages)
+                await ctx.send(embed=embeds[0], view=view)
+            else:
+                await ctx.send(embed=embeds[0])
 
