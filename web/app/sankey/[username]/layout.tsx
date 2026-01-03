@@ -43,20 +43,37 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (analyticsResponse.ok) {
       const analytics = await analyticsResponse.json();
       if (analytics?.processes && analytics.processes.length > 0) {
-        // Get the most recent updated_at timestamp from all processes
-        const mostRecentUpdate = analytics.processes.reduce((latest: string | null, process: any) => {
+        // Get the most recent updated_at timestamp from all processes AND stages
+        let mostRecentUpdate: string | null = null;
+        
+        // Check process updated_at
+        analytics.processes.forEach((process: any) => {
           const updatedAt = process.updated_at;
-          if (!latest || (updatedAt && updatedAt > latest)) {
-            return updatedAt;
+          if (!mostRecentUpdate || (updatedAt && updatedAt > mostRecentUpdate)) {
+            mostRecentUpdate = updatedAt;
           }
-          return latest;
-        }, null);
+        });
+        
+        // Also check stage updated_at from process_details
+        if (analytics.process_details) {
+          analytics.process_details.forEach((detail: any) => {
+            if (detail.stages) {
+              detail.stages.forEach((stage: any) => {
+                const stageUpdatedAt = stage.updated_at;
+                if (!mostRecentUpdate || (stageUpdatedAt && stageUpdatedAt > mostRecentUpdate)) {
+                  mostRecentUpdate = stageUpdatedAt;
+                }
+              });
+            }
+          });
+        }
         
         // Create cache buster from process count + most recent update timestamp
         // This changes whenever:
         // - A process is added (count changes)
         // - A process is deleted (count changes)
         // - A process is updated (mostRecentUpdate changes)
+        // - A stage is added/updated (mostRecentUpdate changes)
         const processCount = analytics.processes.length;
         const updateHash = mostRecentUpdate 
           ? new Date(mostRecentUpdate).getTime() 
