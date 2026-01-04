@@ -15,16 +15,16 @@ export function PublicProcessCard({ process }: PublicProcessCardProps) {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 hover:shadow-lg transition-all">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
-            {process.company_name}
-          </h3>
-          {process.position && (
-            <p className="text-gray-600 dark:text-gray-400 mt-1 truncate">{process.position}</p>
-          )}
-        </div>
+      <div className="mb-2">
         <StatusBadge status={process.status} />
+      </div>
+      <div className="mb-3">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 truncate mb-2">
+          {process.company_name}
+        </h3>
+        {process.position && (
+          <p className="text-gray-600 dark:text-gray-400 truncate">{process.position}</p>
+        )}
       </div>
 
       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
