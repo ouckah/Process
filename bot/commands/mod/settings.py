@@ -16,7 +16,7 @@ MAX_FIELD_VALUE_LENGTH = 1024
 
 
 def truncate_field_value(text: str, max_length: int = MAX_FIELD_VALUE_LENGTH, item_count: int = None) -> str:
-    """Truncate text to fit Discord embed field value limit."""
+    """Truncate text to fit Discord embed field value limit, ensuring we don't cut off mid-mention."""
     if len(text) <= max_length:
         return text
     # Calculate suffix length
@@ -25,8 +25,28 @@ def truncate_field_value(text: str, max_length: int = MAX_FIELD_VALUE_LENGTH, it
     else:
         suffix = "..."
     suffix_len = len(suffix)
-    # Truncate to leave exact room for suffix
-    truncated = text[:max_length - suffix_len] + suffix
+    
+    # Find the truncation point
+    truncate_at = max_length - suffix_len
+    
+    # If we're in the middle of a channel mention (<#...>), find the last complete mention
+    # Look backwards from truncate_at to find the last comma or start of string
+    if truncate_at < len(text) and text[truncate_at] != ',':
+        # Check if we're inside a mention
+        last_comma = text.rfind(',', 0, truncate_at)
+        if last_comma != -1:
+            # Truncate after the last complete item (after the comma)
+            truncate_at = last_comma + 1
+        else:
+            # No comma found, check if we're in a mention at the start
+            if truncate_at > 0 and text[truncate_at - 1] == '>':
+                # We're at the end of a mention, that's fine
+                pass
+            else:
+                # We're in the middle of the first/only item, truncate at start
+                truncate_at = 0
+    
+    truncated = text[:truncate_at].rstrip(', ') + suffix
     return truncated
 
 

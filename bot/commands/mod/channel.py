@@ -17,7 +17,7 @@ MAX_FIELD_VALUE_LENGTH = 1024
 
 
 def truncate_field_value(text: str, max_length: int = MAX_FIELD_VALUE_LENGTH, item_count: int = None) -> str:
-    """Truncate text to fit Discord embed field value limit."""
+    """Truncate text to fit Discord embed field value limit, ensuring we don't cut off mid-mention."""
     if len(text) <= max_length:
         return text
     # Calculate suffix length
@@ -26,8 +26,28 @@ def truncate_field_value(text: str, max_length: int = MAX_FIELD_VALUE_LENGTH, it
     else:
         suffix = "..."
     suffix_len = len(suffix)
-    # Truncate to leave exact room for suffix
-    truncated = text[:max_length - suffix_len] + suffix
+    
+    # Find the truncation point
+    truncate_at = max_length - suffix_len
+    
+    # If we're in the middle of a channel mention (<#...>), find the last complete mention
+    # Look backwards from truncate_at to find the last comma or start of string
+    if truncate_at < len(text) and text[truncate_at] != ',':
+        # Check if we're inside a mention
+        last_comma = text.rfind(',', 0, truncate_at)
+        if last_comma != -1:
+            # Truncate after the last complete item (after the comma)
+            truncate_at = last_comma + 1
+        else:
+            # No comma found, check if we're in a mention at the start
+            if truncate_at > 0 and text[truncate_at - 1] == '>':
+                # We're at the end of a mention, that's fine
+                pass
+            else:
+                # We're in the middle of the first/only item, truncate at start
+                truncate_at = 0
+    
+    truncated = text[:truncate_at].rstrip(', ') + suffix
     return truncated
 
 
@@ -188,36 +208,6 @@ async def handle_channel_remove(guild_id: str, channel_id: int) -> discord.Embed
     )
 
 
-def _split_channels_into_fields(channels: list, field_name_prefix: str, max_per_field: int = 20) -> list:
-    """Split a list of channels into multiple embed fields."""
-    if not channels:
-        return [{"name": field_name_prefix, "value": "None", "inline": False}]
-    
-    fields = []
-    channel_mentions = [f"<#{ch}>" for ch in channels]
-    
-    # Split into chunks
-    for i in range(0, len(channel_mentions), max_per_field):
-        chunk = channel_mentions[i:i + max_per_field]
-        chunk_text = "\n".join(chunk)
-        
-        # Determine field name
-        if len(channels) <= max_per_field:
-            field_name = field_name_prefix
-        else:
-            start = i + 1
-            end = min(i + max_per_field, len(channels))
-            field_name = f"{field_name_prefix} ({start}-{end})"
-        
-        fields.append({
-            "name": field_name,
-            "value": chunk_text,
-            "inline": False
-        })
-    
-    return fields
-
-
 async def handle_channel_list(guild_id: str) -> discord.Embed:
     """List current channel restrictions."""
     config = await guild_config.get_config(guild_id)
@@ -225,20 +215,25 @@ async def handle_channel_list(guild_id: str) -> discord.Embed:
     allowed = config.get("allowed_channels", [])
     denied = config.get("denied_channels", [])
     
+    # Format as comma-separated (like settings command)
+    allowed_text = ", ".join([f"<#{ch}>" for ch in allowed]) if allowed else "None"
+    denied_text = ", ".join([f"<#{ch}>" for ch in denied]) if denied else "None"
+    
     embed = create_info_embed(
         "Channel Restrictions",
-        f"Current channel restrictions for this server:\n**Allowed:** {len(allowed)} | **Denied:** {len(denied)}"
+        "Current channel restrictions for this server:"
     )
     
-    # Split allowed channels into multiple fields if needed
-    allowed_fields = _split_channels_into_fields(allowed, "Allowed Channels", max_per_field=20)
-    for field in allowed_fields:
-        embed.add_field(**field)
-    
-    # Split denied channels into multiple fields if needed
-    denied_fields = _split_channels_into_fields(denied, "Denied Channels", max_per_field=20)
-    for field in denied_fields:
-        embed.add_field(**field)
+    embed.add_field(
+        name="Allowed Channels", 
+        value=truncate_field_value(allowed_text, item_count=len(allowed) if allowed else 0), 
+        inline=False
+    )
+    embed.add_field(
+        name="Denied Channels", 
+        value=truncate_field_value(denied_text, item_count=len(denied) if denied else 0), 
+        inline=False
+    )
     
     if not allowed and not denied:
         embed.add_field(
