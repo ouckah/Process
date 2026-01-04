@@ -288,10 +288,20 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             else:
                 color = 0x808080  # Gray
             
-            embed = discord.Embed(
-                title=f"{title_prefix} ({len(process_details_with_stages)})",
-                color=color
-            )
+            # Create embed with clickable title if profile URL is available
+            embed_title = f"{title_prefix} ({len(process_details_with_stages)})"
+            embed_kwargs = {
+                "title": embed_title,
+                "color": color
+            }
+            
+            # Make title clickable if we have a profile username
+            if profile_username:
+                frontend_url = get_frontend_url()
+                profile_url = f"{frontend_url}/profile/{profile_username}"
+                embed_kwargs["url"] = profile_url
+            
+            embed = discord.Embed(**embed_kwargs)
             
             for p in page_processes:
                 # Get latest stage
@@ -311,16 +321,6 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 embed.add_field(
                     name=f"{status_emoji} {company_text}",
                     value=f"{stage_text} • {status.title()}",
-                    inline=False
-                )
-            
-            # Add profile link as a field if username is available (for both own and other users' profiles)
-            if profile_username:
-                frontend_url = get_frontend_url()
-                profile_url = f"{frontend_url}/profile/{profile_username}"
-                embed.add_field(
-                    name="\u200b",  # Zero-width space for minimal appearance
-                    value=f"[View Profile]({profile_url})",
                     inline=False
                 )
             
