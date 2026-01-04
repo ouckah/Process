@@ -33,40 +33,13 @@ def register(
 ):
     """
     Register a new user with email/password.
-    Password is hashed before storage.
+    DEPRECATED: New registrations are only available via OAuth (Google/Discord).
+    This endpoint is kept for backward compatibility but returns an error.
     """
-    # Check if user already exists
-    if get_user_by_email(db, user_data.email):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
-    
-    # Validate password (basic check - at least 6 characters)
-    if len(user_data.password) < 6:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password must be at least 6 characters long"
-        )
-    
-    # Hash password and create user
-    hashed_password = get_password_hash(user_data.password)
-    new_user = User(
-        email=user_data.email,
-        username=user_data.username,
-        hashed_password=hashed_password,
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail="Email/password registration is no longer available. Please use Google or Discord OAuth to sign up."
     )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    return {
-        "id": new_user.id,
-        "email": new_user.email,
-        "username": new_user.username,
-        "discord_id": new_user.discord_id,
-        "google_id": new_user.google_id,
-    }
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -530,46 +503,187 @@ def disconnect_discord_account(
     return {"message": "Discord account disconnected successfully"}
 
 
-@router.post("/google", response_model=TokenResponse)
-def google_oauth(
-    google_id: str,
-    username: str,
-    email: str,
+@router.get("/google/callback")
+def google_oauth_callback(
+    code: str,
+    state: str,
     db: Session = Depends(get_db)
 ):
     """
-    Google OAuth callback - creates or logs in user via Google.
-    TODO: Implement proper OAuth flow with Google API
+    Google OAuth callback - handles the OAuth redirect from Google.
+    Links Google account to existing user or creates new account.
     """
-    # Check if user exists with Google ID
-    user = get_user_by_google_id(db, google_id)
+    import os
+    import httpx
+    from dotenv import load_dotenv
+    load_dotenv()
     
-    if not user:
-        # Check if user exists with email (link accounts)
-        user = get_user_by_email(db, email)
-        if user:
-            # Link Google account
-            user.google_id = google_id
-            if not user.username:
-                user.username = username
-        else:
-            # Create new user
-            user = User(
-                google_id=google_id,
-                email=email,
-                username=username,
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    API_URL = os.getenv("API_URL", "http://localhost:8000")
+    
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Google OAuth not configured"
+        )
+    
+    # Exchange code for access token
+    backend_redirect_uri = f"{API_URL}/auth/google/callback"
+    frontend_redirect_uri = f"{FRONTEND_URL}/auth/google/callback"
+    token_url = "https://oauth2.googleapis.com/token"
+    
+    try:
+        with httpx.Client() as client:
+            token_response = client.post(
+                token_url,
+                data={
+                    "client_id": GOOGLE_CLIENT_ID,
+                    "client_secret": GOOGLE_CLIENT_SECRET,
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": backend_redirect_uri,
+                },
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
-            db.add(user)
-    
-    db.commit()
-    db.refresh(user)
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": str(user.id)}, expires_delta=access_token_expires
-    )
-    
-    return {"access_token": access_token, "token_type": "bearer"}
+            token_data = token_response.json()
+            
+            if "access_token" not in token_data:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Failed to get Google access token"
+                )
+            
+            # Get user info from Google
+            user_response = client.get(
+                "https://www.googleapis.com/oauth2/v2/userinfo",
+                headers={"Authorization": f"Bearer {token_data['access_token']}"},
+            )
+            google_user = user_response.json()
+            
+            google_id = str(google_user.get("id"))
+            email = google_user.get("email", "")
+            username = google_user.get("name", email.split("@")[0] if email else "user")
+            
+            # Parse state to get user_id if linking to existing account
+            import json
+            state_data = json.loads(state) if state else {}
+            user_id = state_data.get("userId")
+            
+            # Check for existing accounts
+            google_user_obj = get_user_by_google_id(db, google_id)
+            email_user = None
+            if email:
+                email_user = get_user_by_email(db, email)
+            
+            # Handle account linking/creation (similar to Discord flow)
+            if user_id:
+                # Explicit linking from profile page
+                user = db.query(User).filter(User.id == user_id).first()
+                if user:
+                    original_email = user.email
+                    
+                    # Check if Google ID is already linked to another account
+                    existing_google_user = get_user_by_google_id(db, google_id)
+                    if existing_google_user and existing_google_user.id != user.id:
+                        merge_user_accounts(db, existing_google_user, user)
+                        db.refresh(user)
+                    
+                    # Check if Google email is already used by a different account
+                    if email:
+                        existing_email_user = get_user_by_email(db, email)
+                        if existing_email_user and existing_email_user.id != user.id:
+                            raise HTTPException(
+                                status_code=status.HTTP_400_BAD_REQUEST,
+                                detail=f"Google email ({email}) is already associated with another account."
+                            )
+                    
+                    user.google_id = google_id
+                    if email and not user.email:
+                        user.email = email
+                    if original_email and user.email != original_email:
+                        user.email = original_email
+                    if not user.username:
+                        user.username = username
+                    db.commit()
+                    db.refresh(user)
+                else:
+                    # User not found, create new
+                    if not email:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Google account email not available"
+                        )
+                    user = User(
+                        google_id=google_id,
+                        email=email,
+                        username=username,
+                    )
+                    db.add(user)
+                    db.commit()
+                    db.refresh(user)
+            elif google_user_obj and email_user:
+                # Both exist - merge
+                if google_user_obj.id != email_user.id:
+                    merge_user_accounts(db, google_user_obj, email_user)
+                    email_user.google_id = google_id
+                    if not email_user.username:
+                        email_user.username = username
+                    db.commit()
+                    db.refresh(email_user)
+                    user = email_user
+                else:
+                    user = google_user_obj
+            elif google_user_obj and not email_user:
+                # Google account exists, no email account
+                user = google_user_obj
+                if email and not user.email:
+                    user.email = email
+                if not user.username:
+                    user.username = username
+                db.commit()
+                db.refresh(user)
+            elif not google_user_obj and email_user:
+                # Email account exists, no Google account
+                email_user.google_id = google_id
+                if not email_user.username:
+                    email_user.username = username
+                db.commit()
+                db.refresh(email_user)
+                user = email_user
+            else:
+                # Neither exists - create new
+                if not email:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Google account email not available"
+                    )
+                user = User(
+                    google_id=google_id,
+                    email=email,
+                    username=username,
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token = create_access_token(
+                data={"sub": str(user.id)}, expires_delta=access_token_expires
+            )
+            
+            # Redirect to frontend with token
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse(
+                url=f"{frontend_redirect_uri}?token={access_token}"
+            )
+            
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Google OAuth error: {str(e)}"
+        )
 
 
 @router.post("/discord/bot-token", response_model=TokenResponse)
