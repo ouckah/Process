@@ -52,6 +52,9 @@ class GuildConfig:
                 
                 response.raise_for_status()
                 return response.json()
+            except httpx.HTTPStatusError as e:
+                logger.error(f"Error {method}ing guild config for {guild_id}: {e.response.status_code} - {e.response.text}")
+                raise Exception(f"CONFIG_HTTP_ERROR: {e.response.status_code}")
             except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.TimeoutException) as e:
                 logger.error(f"Timeout {method}ing guild config for {guild_id}: {type(e).__name__}")
                 raise Exception("CONFIG_CONNECTION_TIMEOUT")

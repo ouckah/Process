@@ -44,27 +44,33 @@ def get_guild_config(
     Get guild configuration.
     Bot should pass token as query parameter: ?token=YOUR_BOT_TOKEN
     """
-    verify_bot_token(token)
-    
-    guild_config = db.query(GuildConfig).filter(GuildConfig.guild_id == guild_id).first()
-    
-    if not guild_config:
-        # Return default config if not found
+    try:
+        verify_bot_token(token)
+        
+        guild_config = db.query(GuildConfig).filter(GuildConfig.guild_id == guild_id).first()
+        
+        if not guild_config:
+            # Return default config if not found
+            return GuildConfigResponse(
+                guild_id=guild_id,
+                config=DEFAULT_CONFIG.copy(),
+                updated_at=None
+            )
+        
+        # Merge with defaults to ensure all keys exist
+        merged_config = DEFAULT_CONFIG.copy()
+        merged_config.update(guild_config.config)
+        
         return GuildConfigResponse(
-            guild_id=guild_id,
-            config=DEFAULT_CONFIG.copy(),
-            updated_at=None
+            guild_id=guild_config.guild_id,
+            config=merged_config,
+            updated_at=guild_config.updated_at
         )
-    
-    # Merge with defaults to ensure all keys exist
-    merged_config = DEFAULT_CONFIG.copy()
-    merged_config.update(guild_config.config)
-    
-    return GuildConfigResponse(
-        guild_id=guild_config.guild_id,
-        config=merged_config,
-        updated_at=guild_config.updated_at
-    )
+    except Exception as e:
+        import traceback
+        print(f"Error in get_guild_config for {guild_id}: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @router.put("/{guild_id}", response_model=GuildConfigResponse)

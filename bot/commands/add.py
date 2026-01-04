@@ -245,7 +245,7 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
         # Auto-delete if configured
         if guild_id:
             from utils.config import guild_config
-            config = guild_config.get_config(guild_id)
+            config = await guild_config.get_config(guild_id)
             auto_delete = config.get("auto_delete_seconds")
             if auto_delete and auto_delete > 0:
                 async def delete_after_delay():
@@ -383,7 +383,7 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
         if guild_id:
             from utils.config import guild_config
             import asyncio
-            config = guild_config.get_config(guild_id)
+            config = await guild_config.get_config(guild_id)
             auto_delete = config.get("auto_delete_seconds")
             if auto_delete and auto_delete > 0:
                 async def delete_after_delay():
