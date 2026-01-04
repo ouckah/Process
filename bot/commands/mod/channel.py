@@ -188,6 +188,36 @@ async def handle_channel_remove(guild_id: str, channel_id: int) -> discord.Embed
     )
 
 
+def _split_channels_into_fields(channels: list, field_name_prefix: str, max_per_field: int = 20) -> list:
+    """Split a list of channels into multiple embed fields."""
+    if not channels:
+        return [{"name": field_name_prefix, "value": "None", "inline": False}]
+    
+    fields = []
+    channel_mentions = [f"<#{ch}>" for ch in channels]
+    
+    # Split into chunks
+    for i in range(0, len(channel_mentions), max_per_field):
+        chunk = channel_mentions[i:i + max_per_field]
+        chunk_text = "\n".join(chunk)
+        
+        # Determine field name
+        if len(channels) <= max_per_field:
+            field_name = field_name_prefix
+        else:
+            start = i + 1
+            end = min(i + max_per_field, len(channels))
+            field_name = f"{field_name_prefix} ({start}-{end})"
+        
+        fields.append({
+            "name": field_name,
+            "value": chunk_text,
+            "inline": False
+        })
+    
+    return fields
+
+
 async def handle_channel_list(guild_id: str) -> discord.Embed:
     """List current channel restrictions."""
     config = await guild_config.get_config(guild_id)
@@ -195,15 +225,20 @@ async def handle_channel_list(guild_id: str) -> discord.Embed:
     allowed = config.get("allowed_channels", [])
     denied = config.get("denied_channels", [])
     
-    allowed_text = "\n".join([f"<#{ch}>" for ch in allowed]) if allowed else "None"
-    denied_text = "\n".join([f"<#{ch}>" for ch in denied]) if denied else "None"
-    
     embed = create_info_embed(
         "Channel Restrictions",
-        "Current channel restrictions for this server:"
+        f"Current channel restrictions for this server:\n**Allowed:** {len(allowed)} | **Denied:** {len(denied)}"
     )
-    embed.add_field(name="Allowed Channels", value=truncate_field_value(allowed_text, item_count=len(allowed) if allowed else 0), inline=False)
-    embed.add_field(name="Denied Channels", value=truncate_field_value(denied_text, item_count=len(denied) if denied else 0), inline=False)
+    
+    # Split allowed channels into multiple fields if needed
+    allowed_fields = _split_channels_into_fields(allowed, "Allowed Channels", max_per_field=20)
+    for field in allowed_fields:
+        embed.add_field(**field)
+    
+    # Split denied channels into multiple fields if needed
+    denied_fields = _split_channels_into_fields(denied, "Denied Channels", max_per_field=20)
+    for field in denied_fields:
+        embed.add_field(**field)
     
     if not allowed and not denied:
         embed.add_field(

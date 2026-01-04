@@ -30,23 +30,51 @@ def truncate_field_value(text: str, max_length: int = MAX_FIELD_VALUE_LENGTH, it
     return truncated
 
 
+def _split_list_into_fields(items: list, field_name_prefix: str, format_func, max_per_field: int = 15) -> list:
+    """Split a list of items into multiple embed fields."""
+    if not items:
+        return [{"name": field_name_prefix, "value": "None", "inline": False}]
+    
+    fields = []
+    formatted_items = [format_func(item) for item in items]
+    
+    # Split into chunks
+    for i in range(0, len(formatted_items), max_per_field):
+        chunk = formatted_items[i:i + max_per_field]
+        chunk_text = "\n".join(chunk)
+        
+        # Determine field name
+        if len(items) <= max_per_field:
+            field_name = field_name_prefix
+        else:
+            start = i + 1
+            end = min(i + max_per_field, len(items))
+            field_name = f"{field_name_prefix} ({start}-{end})"
+        
+        fields.append({
+            "name": field_name,
+            "value": chunk_text,
+            "inline": False
+        })
+    
+    return fields
+
+
 async def handle_settings(guild_id: str) -> discord.Embed:
     """View all current bot settings."""
     config = await guild_config.get_config(guild_id)
     
-    # Format channel lists
+    # Get channel lists
     allowed = config.get("allowed_channels", [])
     denied = config.get("denied_channels", [])
-    allowed_text = ", ".join([f"<#{ch}>" for ch in allowed]) if allowed else "None"
-    denied_text = ", ".join([f"<#{ch}>" for ch in denied]) if denied else "None"
     
     # Format cooldowns
     cooldowns = config.get("command_cooldowns", {})
-    cooldown_text = ", ".join([f"`{cmd}`: {s}s" for cmd, s in sorted(cooldowns.items())]) if cooldowns else "None"
+    cooldown_items = sorted(cooldowns.items()) if cooldowns else []
     
     # Format disabled commands
     disabled = config.get("disabled_commands", [])
-    disabled_text = ", ".join([f"`{cmd}`" for cmd in sorted(disabled)]) if disabled else "None"
+    disabled_items = sorted(disabled) if disabled else []
     
     # Auto-delete
     auto_delete = config.get("auto_delete_seconds")
@@ -58,12 +86,49 @@ async def handle_settings(guild_id: str) -> discord.Embed:
     
     embed = create_info_embed(
         "Bot Settings",
-        "Current bot configuration for this server:"
+        f"Current bot configuration for this server:\n**Allowed:** {len(allowed)} | **Denied:** {len(denied)} | **Cooldowns:** {len(cooldowns)} | **Disabled:** {len(disabled)}"
     )
-    embed.add_field(name="Allowed Channels", value=truncate_field_value(allowed_text, item_count=len(allowed) if allowed else 0), inline=False)
-    embed.add_field(name="Denied Channels", value=truncate_field_value(denied_text, item_count=len(denied) if denied else 0), inline=False)
-    embed.add_field(name="Command Cooldowns", value=truncate_field_value(cooldown_text, item_count=len(cooldowns) if cooldowns else 0), inline=False)
-    embed.add_field(name="Disabled Commands", value=truncate_field_value(disabled_text, item_count=len(disabled) if disabled else 0), inline=False)
+    
+    # Split allowed channels into multiple fields if needed
+    allowed_fields = _split_list_into_fields(
+        allowed, 
+        "Allowed Channels", 
+        lambda ch: f"<#{ch}>",
+        max_per_field=15
+    )
+    for field in allowed_fields:
+        embed.add_field(**field)
+    
+    # Split denied channels into multiple fields if needed
+    denied_fields = _split_list_into_fields(
+        denied,
+        "Denied Channels",
+        lambda ch: f"<#{ch}>",
+        max_per_field=15
+    )
+    for field in denied_fields:
+        embed.add_field(**field)
+    
+    # Split cooldowns into multiple fields if needed
+    cooldown_fields = _split_list_into_fields(
+        cooldown_items,
+        "Command Cooldowns",
+        lambda item: f"`{item[0]}`: {item[1]}s",
+        max_per_field=15
+    )
+    for field in cooldown_fields:
+        embed.add_field(**field)
+    
+    # Split disabled commands into multiple fields if needed
+    disabled_fields = _split_list_into_fields(
+        disabled_items,
+        "Disabled Commands",
+        lambda cmd: f"`{cmd}`",
+        max_per_field=20
+    )
+    for field in disabled_fields:
+        embed.add_field(**field)
+    
     embed.add_field(name="Auto-Delete Delay", value=auto_delete_text, inline=True)
     embed.add_field(name="Command Prefix", value=prefix_text, inline=True)
     
