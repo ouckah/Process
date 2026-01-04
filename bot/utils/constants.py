@@ -26,6 +26,7 @@ def match_stage_name(input_stage: str) -> str | None:
     """
     Match a stage name input to a valid stage name.
     Supports partial matching (e.g., "Phone" -> "Phone Screen", "Technical" -> "Technical Interview").
+    Also supports aliases (e.g., "apply" -> "Applied").
     
     Args:
         input_stage: The stage name input from the user (case-insensitive)
@@ -34,6 +35,15 @@ def match_stage_name(input_stage: str) -> str | None:
         The matched full stage name, or None if no match found
     """
     input_lower = input_stage.lower().strip()
+    
+    # Stage name aliases (common variations)
+    aliases = {
+        'apply': 'Applied',
+    }
+    
+    # Check aliases first
+    if input_lower in aliases:
+        return aliases[input_lower]
     
     # Create lookup dictionary for exact matches
     exact_lookup = {name.lower(): name for name in VALID_STAGE_NAMES}
