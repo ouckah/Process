@@ -2,6 +2,7 @@
 Authentication routes for OAuth.
 """
 from datetime import timedelta
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -455,7 +456,7 @@ def disconnect_discord_account(
 @router.get("/google/callback")
 def google_oauth_callback(
     code: str,
-    state: str,
+    state: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     """
