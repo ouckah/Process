@@ -225,11 +225,16 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
         )}
 
         {filteredComments.length === 0 ? (
-          <EmptyState
-            type="no-processes"
-            title={filter === 'all' ? 'No Comments Yet' : filter === 'comments' ? 'No Comments Yet' : 'No Questions Yet'}
-            description={filter === 'all' ? 'Be the first to ask a question or leave a comment!' : filter === 'comments' ? 'Be the first to leave a comment!' : 'Be the first to ask a question!'}
-          />
+          <div className="text-center py-8">
+            <p className="text-gray-500 dark:text-gray-400">
+              {filter === 'all' 
+                ? (user ? 'Be the first to ask a question or leave a comment!' : 'No comments or questions yet.')
+                : filter === 'comments'
+                ? (user ? 'Be the first to leave a comment!' : 'No comments yet.')
+                : (user ? 'Be the first to ask a question!' : 'No questions yet.')
+              }
+            </p>
+          </div>
         ) : (
           <div className="space-y-4">
             {filteredComments.map((comment) => (

@@ -4,7 +4,8 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { SankeyChart } from './SankeyChart';
 import { Button } from '@/components/ui/Button';
-import { Download, ArrowLeft } from 'lucide-react';
+import { Download, ArrowLeft, User } from 'lucide-react';
+import Link from 'next/link';
 import { analyticsApi, type PublicAnalyticsResponse } from '@/lib/api';
 import type { Process, ProcessDetail } from '@/types';
 
@@ -94,6 +95,14 @@ export function PublicSankeyView({ analytics, isOwnPage }: PublicSankeyViewProps
               Back to Dashboard
             </Button>
           )}
+          <Link href={`/profile/${username}`}>
+            <Button
+              variant="outline"
+            >
+              <User className="w-4 h-4 mr-2" />
+              View Profile
+            </Button>
+          </Link>
           <Button
             variant="primary"
             onClick={handleSaveImage}
