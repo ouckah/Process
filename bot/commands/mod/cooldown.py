@@ -11,6 +11,24 @@ from utils.logging import log_command
 
 PREFIX = os.getenv("PREFIX", "p!")
 
+# Discord embed field value limit
+MAX_FIELD_VALUE_LENGTH = 1024
+
+
+def truncate_field_value(text: str, max_length: int = MAX_FIELD_VALUE_LENGTH, item_count: int = None) -> str:
+    """Truncate text to fit Discord embed field value limit."""
+    if len(text) <= max_length:
+        return text
+    # Calculate suffix length
+    if item_count:
+        suffix = f"\n... ({item_count} total items)"
+    else:
+        suffix = "..."
+    suffix_len = len(suffix)
+    # Truncate to leave exact room for suffix
+    truncated = text[:max_length - suffix_len] + suffix
+    return truncated
+
 
 async def handle_cooldown_set(guild_id: str, command_name: str, seconds: float) -> discord.Embed:
     """Set cooldown for a command."""
@@ -69,7 +87,7 @@ async def handle_cooldown_list(guild_id: str) -> discord.Embed:
         "Command Cooldowns",
         "Current cooldowns for commands:"
     )
-    embed.add_field(name="Cooldowns", value=cooldown_text, inline=False)
+    embed.add_field(name="Cooldowns", value=truncate_field_value(cooldown_text, item_count=len(cooldowns) if cooldowns else 0), inline=False)
     
     return embed
 

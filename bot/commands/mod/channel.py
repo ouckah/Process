@@ -12,6 +12,24 @@ from utils.logging import log_command
 
 PREFIX = os.getenv("PREFIX", "p!")
 
+# Discord embed field value limit
+MAX_FIELD_VALUE_LENGTH = 1024
+
+
+def truncate_field_value(text: str, max_length: int = MAX_FIELD_VALUE_LENGTH, item_count: int = None) -> str:
+    """Truncate text to fit Discord embed field value limit."""
+    if len(text) <= max_length:
+        return text
+    # Calculate suffix length
+    if item_count:
+        suffix = f"\n... ({item_count} total items)"
+    else:
+        suffix = "..."
+    suffix_len = len(suffix)
+    # Truncate to leave exact room for suffix
+    truncated = text[:max_length - suffix_len] + suffix
+    return truncated
+
 
 async def handle_channel_allow(guild_id: str, channel_id: int = None, all_channels: list = None) -> discord.Embed:
     """Add a channel (or all channels) to the allowed list."""
@@ -70,7 +88,7 @@ async def handle_channel_allow(guild_id: str, channel_id: int = None, all_channe
         config["denied_channels"].remove(channel_id)
     
     config["allowed_channels"].append(channel_id)
-    guild_config.save_config(guild_id, config)
+    await guild_config.save_config(guild_id, config)
     
     return create_success_embed(
         "Channel Allowed",
@@ -135,7 +153,7 @@ async def handle_channel_deny(guild_id: str, channel_id: int = None, all_channel
         config["allowed_channels"].remove(channel_id)
     
     config["denied_channels"].append(channel_id)
-    guild_config.save_config(guild_id, config)
+    await guild_config.save_config(guild_id, config)
     
     return create_success_embed(
         "Channel Denied",
@@ -162,7 +180,7 @@ async def handle_channel_remove(guild_id: str, channel_id: int) -> discord.Embed
             f"Channel <#{channel_id}> is not in any restriction list."
         )
     
-    guild_config.save_config(guild_id, config)
+    await guild_config.save_config(guild_id, config)
     
     return create_success_embed(
         "Channel Removed",
@@ -184,8 +202,8 @@ async def handle_channel_list(guild_id: str) -> discord.Embed:
         "Channel Restrictions",
         "Current channel restrictions for this server:"
     )
-    embed.add_field(name="Allowed Channels", value=allowed_text, inline=False)
-    embed.add_field(name="Denied Channels", value=denied_text, inline=False)
+    embed.add_field(name="Allowed Channels", value=truncate_field_value(allowed_text, item_count=len(allowed) if allowed else 0), inline=False)
+    embed.add_field(name="Denied Channels", value=truncate_field_value(denied_text, item_count=len(denied) if denied else 0), inline=False)
     
     if not allowed and not denied:
         embed.add_field(

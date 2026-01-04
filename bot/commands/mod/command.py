@@ -11,6 +11,24 @@ from utils.logging import log_command
 
 PREFIX = os.getenv("PREFIX", "p!")
 
+# Discord embed field value limit
+MAX_FIELD_VALUE_LENGTH = 1024
+
+
+def truncate_field_value(text: str, max_length: int = MAX_FIELD_VALUE_LENGTH, item_count: int = None) -> str:
+    """Truncate text to fit Discord embed field value limit."""
+    if len(text) <= max_length:
+        return text
+    # Calculate suffix length
+    if item_count:
+        suffix = f"\n... ({item_count} total items)"
+    else:
+        suffix = "..."
+    suffix_len = len(suffix)
+    # Truncate to leave exact room for suffix
+    truncated = text[:max_length - suffix_len] + suffix
+    return truncated
+
 
 async def handle_command_disable(guild_id: str, command_name: str) -> discord.Embed:
     """Disable a command in this server."""
@@ -69,7 +87,7 @@ async def handle_command_list(guild_id: str) -> discord.Embed:
         "Disabled Commands",
         "Commands currently disabled in this server:"
     )
-    embed.add_field(name="Disabled", value=disabled_text, inline=False)
+    embed.add_field(name="Disabled", value=truncate_field_value(disabled_text, item_count=len(disabled) if disabled else 0), inline=False)
     
     return embed
 

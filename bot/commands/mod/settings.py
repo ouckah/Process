@@ -11,6 +11,24 @@ from utils.logging import log_command
 
 PREFIX = os.getenv("PREFIX", "p!")
 
+# Discord embed field value limit
+MAX_FIELD_VALUE_LENGTH = 1024
+
+
+def truncate_field_value(text: str, max_length: int = MAX_FIELD_VALUE_LENGTH, item_count: int = None) -> str:
+    """Truncate text to fit Discord embed field value limit."""
+    if len(text) <= max_length:
+        return text
+    # Calculate suffix length
+    if item_count:
+        suffix = f"\n... ({item_count} total items)"
+    else:
+        suffix = "..."
+    suffix_len = len(suffix)
+    # Truncate to leave exact room for suffix
+    truncated = text[:max_length - suffix_len] + suffix
+    return truncated
+
 
 async def handle_settings(guild_id: str) -> discord.Embed:
     """View all current bot settings."""
@@ -42,10 +60,10 @@ async def handle_settings(guild_id: str) -> discord.Embed:
         "Bot Settings",
         "Current bot configuration for this server:"
     )
-    embed.add_field(name="Allowed Channels", value=allowed_text, inline=False)
-    embed.add_field(name="Denied Channels", value=denied_text, inline=False)
-    embed.add_field(name="Command Cooldowns", value=cooldown_text, inline=False)
-    embed.add_field(name="Disabled Commands", value=disabled_text, inline=False)
+    embed.add_field(name="Allowed Channels", value=truncate_field_value(allowed_text, item_count=len(allowed) if allowed else 0), inline=False)
+    embed.add_field(name="Denied Channels", value=truncate_field_value(denied_text, item_count=len(denied) if denied else 0), inline=False)
+    embed.add_field(name="Command Cooldowns", value=truncate_field_value(cooldown_text, item_count=len(cooldowns) if cooldowns else 0), inline=False)
+    embed.add_field(name="Disabled Commands", value=truncate_field_value(disabled_text, item_count=len(disabled) if disabled else 0), inline=False)
     embed.add_field(name="Auto-Delete Delay", value=auto_delete_text, inline=True)
     embed.add_field(name="Command Prefix", value=prefix_text, inline=True)
     
