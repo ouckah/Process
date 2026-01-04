@@ -21,6 +21,14 @@ def get_api_url() -> str:
     return os.getenv("API_URL", "http://localhost:8000")
 
 
+def get_frontend_url() -> str:
+    """
+    Get frontend URL from environment variable.
+    Use this function instead of directly accessing os.getenv() to avoid import-time issues.
+    """
+    return os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+
 async def get_user_token(discord_id: str, username: str) -> str:
     """Get authentication token for Discord user via API."""
     api_url = get_api_url()  # Get URL at function call time, not import time

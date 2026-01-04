@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord.ui import View, Button
 import httpx
 
-from utils.auth import get_user_token, api_request
+from utils.auth import get_user_token, api_request, get_frontend_url
 from utils.embeds import create_info_embed, create_error_embed
 from utils.errors import handle_command_error
 from utils.logging import log_command
@@ -142,7 +142,7 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 except Exception as e:
                     error_str = str(e)
                     if error_str == "USER_NOT_REGISTERED":
-                        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+                        frontend_url = get_frontend_url()
                         register_url = f"{frontend_url}/register"
                         embed = create_error_embed(
                             "User Not Registered",
@@ -160,7 +160,7 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 profile = await get_public_profile(target_username)
             except Exception as e:
                 if str(e) == "USER_NOT_FOUND":
-                    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+                    frontend_url = get_frontend_url()
                     register_url = f"{frontend_url}/register"
                     embed = create_error_embed(
                         "User Not Found",
@@ -241,7 +241,7 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 footer_text = f"Privacy Mode: {privacy_display} • Change with {PREFIX}privacy <private|public>"
                 # Add profile link if username is available
                 if profile_username:
-                    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+                    frontend_url = get_frontend_url()
                     profile_url = f"{frontend_url}/profile/{profile_username}"
                     footer_text += f" • [View Profile]({profile_url})"
                 embed.set_footer(text=footer_text)
@@ -330,11 +330,11 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 if is_prefix_command and is_viewing_own and page == 0:
                     footer_parts.append("💡 Use /list to see private processes")
             
-            # Add profile link if username is available
-            if profile_username:
-                frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-                profile_url = f"{frontend_url}/profile/{profile_username}"
-                footer_parts.append(f"[View Profile]({profile_url})")
+                # Add profile link if username is available
+                if profile_username:
+                    frontend_url = get_frontend_url()
+                    profile_url = f"{frontend_url}/profile/{profile_username}"
+                    footer_parts.append(f"[View Profile]({profile_url})")
             
             if footer_parts:
                 embed.set_footer(text=" • ".join(footer_parts))
