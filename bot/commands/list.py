@@ -131,6 +131,7 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
         # Initialize is_viewing_own flag and privacy mode
         is_viewing_own = False
         user_privacy_mode = None  # Will be set when viewing own processes
+        profile_username = None  # Will be set when we have a username
         
         # If viewing another user's profile
         if target_username or target_discord_id:
@@ -209,6 +210,7 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             
             display_name = profile.get("display_name") or target_username
             title_prefix = f"📋 {display_name}'s Public Processes"
+            profile_username = target_username  # Store username for profile link
             
             # Check if viewing own processes (for adding note about /list command)
             is_viewing_own = target_discord_id == discord_id if target_discord_id else False
@@ -223,6 +225,9 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             if privacy_mode not in ["private", "public"]:
                 privacy_mode = "private"
             
+            # Get username for profile link
+            profile_username = user_info.get("username")
+            
             # Get all processes
             processes = await api_request("GET", "/api/processes/", token)
             
@@ -233,7 +238,13 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 )
                 # Add privacy mode footer even for empty list
                 privacy_display = "🔒 Private" if privacy_mode == "private" else "🌐 Public"
-                embed.set_footer(text=f"Privacy Mode: {privacy_display} • Change with {PREFIX}privacy <private|public>")
+                footer_text = f"Privacy Mode: {privacy_display} • Change with {PREFIX}privacy <private|public>"
+                # Add profile link if username is available
+                if profile_username:
+                    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+                    profile_url = f"{frontend_url}/profile/{profile_username}"
+                    footer_text += f" • [View Profile]({profile_url})"
+                embed.set_footer(text=footer_text)
                 return [embed], 1
             
             # Get details for all processes
@@ -318,6 +329,12 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 # Add tip for prefix commands viewing own processes (same size as timestamp)
                 if is_prefix_command and is_viewing_own and page == 0:
                     footer_parts.append("💡 Use /list to see private processes")
+            
+            # Add profile link if username is available
+            if profile_username:
+                frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+                profile_url = f"{frontend_url}/profile/{profile_username}"
+                footer_parts.append(f"[View Profile]({profile_url})")
             
             if footer_parts:
                 embed.set_footer(text=" • ".join(footer_parts))
