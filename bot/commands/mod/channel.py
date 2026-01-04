@@ -210,7 +210,25 @@ async def handle_channel_remove(guild_id: str, channel_id: int) -> discord.Embed
 
 async def handle_channel_list(guild_id: str) -> discord.Embed:
     """List current channel restrictions."""
-    config = await guild_config.get_config(guild_id)
+    try:
+        config = await guild_config.get_config(guild_id)
+    except Exception as e:
+        error_msg = str(e)
+        if "CONFIG_CONNECTION_TIMEOUT" in error_msg:
+            return create_error_embed(
+                "Connection Timeout",
+                "Unable to load server settings. The API server did not respond in time.\n\nYour settings are still saved, but cannot be displayed right now. Please try again later."
+            )
+        elif "CONFIG_CONNECTION_ERROR" in error_msg:
+            return create_error_embed(
+                "Connection Error",
+                "Unable to connect to the API server to load settings.\n\nYour settings are still saved, but cannot be displayed right now. Please try again later."
+            )
+        else:
+            return create_error_embed(
+                "Error Loading Settings",
+                "Unable to load server settings. Please try again later."
+            )
     
     allowed = config.get("allowed_channels", [])
     denied = config.get("denied_channels", [])

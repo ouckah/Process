@@ -130,7 +130,15 @@ async def check_channel_restrictions(guild_id: str, channel_id: int, message: di
         if message.author.guild_permissions.manage_guild:
             return True
     
-    config = await guild_config.get_config(guild_id)
+    try:
+        config = await guild_config.get_config(guild_id)
+    except Exception as e:
+        # If config can't be loaded, fail open (allow commands) but log the error
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to load config for guild {guild_id}, allowing channel: {type(e).__name__}")
+        # Return True to allow commands if config can't be loaded
+        return True
     allowed = config.get("allowed_channels", [])
     denied = config.get("denied_channels", [])
     

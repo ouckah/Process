@@ -82,7 +82,25 @@ def _split_list_into_fields(items: list, field_name_prefix: str, format_func, ma
 
 async def handle_settings(guild_id: str) -> discord.Embed:
     """View all current bot settings."""
-    config = await guild_config.get_config(guild_id)
+    try:
+        config = await guild_config.get_config(guild_id)
+    except Exception as e:
+        error_msg = str(e)
+        if "CONFIG_CONNECTION_TIMEOUT" in error_msg:
+            return create_error_embed(
+                "Connection Timeout",
+                "Unable to load server settings. The API server did not respond in time.\n\nYour settings are still saved, but cannot be displayed right now. Please try again later."
+            )
+        elif "CONFIG_CONNECTION_ERROR" in error_msg:
+            return create_error_embed(
+                "Connection Error",
+                "Unable to connect to the API server to load settings.\n\nYour settings are still saved, but cannot be displayed right now. Please try again later."
+            )
+        else:
+            return create_error_embed(
+                "Error Loading Settings",
+                "Unable to load server settings. Please try again later."
+            )
     
     # Get channel lists
     allowed = config.get("allowed_channels", [])

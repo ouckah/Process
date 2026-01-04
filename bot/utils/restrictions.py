@@ -28,7 +28,17 @@ async def check_command_restrictions(
     if not guild_id:
         return True, None
     
-    config = await guild_config.get_config(guild_id)
+    try:
+        config = await guild_config.get_config(guild_id)
+    except Exception as e:
+        # If config can't be loaded, fail open (allow commands) but log the error
+        # This prevents the bot from breaking if the API is temporarily down
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to load config for guild {guild_id}, allowing command: {type(e).__name__}")
+        # Return default config to allow commands
+        from utils.config import DEFAULT_CONFIG
+        config = DEFAULT_CONFIG.copy()
     
     # Check if command is disabled
     disabled_commands = config.get("disabled_commands", [])

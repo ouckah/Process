@@ -16,7 +16,7 @@ DEFAULT_CONFIG = {
     "disabled_commands": []
 }
 
-TIMEOUT = 10.0
+TIMEOUT = 3.0  # Reduced timeout for faster failure detection
 logger = logging.getLogger(__name__)
 
 # Bot API token for authenticating guild config requests
@@ -52,12 +52,15 @@ class GuildConfig:
                 
                 response.raise_for_status()
                 return response.json()
+            except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.TimeoutException) as e:
+                logger.error(f"Timeout {method}ing guild config for {guild_id}: {type(e).__name__}")
+                raise Exception("CONFIG_CONNECTION_TIMEOUT")
+            except httpx.ConnectError as e:
+                logger.error(f"Connection error {method}ing guild config for {guild_id}: {type(e).__name__}")
+                raise Exception("CONFIG_CONNECTION_ERROR")
             except httpx.RequestError as e:
                 logger.error(f"Failed to {method} guild config for {guild_id}: {type(e).__name__}")
-                # Fallback to default config on error
-                if method == "GET":
-                    return {"guild_id": guild_id, "config": DEFAULT_CONFIG.copy(), "updated_at": None}
-                raise
+                raise Exception(f"CONFIG_REQUEST_ERROR: {str(e)}")
     
     async def load_config(self, guild_id: str) -> Dict[str, Any]:
         """Load configuration for a guild from API, returning defaults if not found."""
@@ -69,8 +72,11 @@ class GuildConfig:
             merged.update(config)
             return merged
         except Exception as e:
+            # Re-raise config errors so command handlers can show error embeds
+            if str(e).startswith("CONFIG_"):
+                raise
             logger.error(f"Error loading config for guild {guild_id}: {e}")
-            return DEFAULT_CONFIG.copy()
+            raise Exception("CONFIG_LOAD_ERROR")
     
     async def save_config(self, guild_id: str, config: Dict[str, Any]) -> bool:
         """Save configuration for a guild via API."""
