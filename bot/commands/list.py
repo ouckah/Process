@@ -319,8 +319,8 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 frontend_url = get_frontend_url()
                 profile_url = f"{frontend_url}/profile/{profile_username}"
                 embed.add_field(
-                    name="🔗 Profile",
-                    value=f"[View on Website]({profile_url})",
+                    name="\u200b",  # Zero-width space for minimal appearance
+                    value=f"[View Profile]({profile_url})",
                     inline=False
                 )
             
