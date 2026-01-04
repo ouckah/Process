@@ -4,11 +4,9 @@ Authentication utilities for JWT token handling.
 from datetime import datetime, timedelta
 from typing import Optional
 import os
-import hashlib
-import bcrypt
 from jose import JWTError, jwt
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, status, Request
+from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
@@ -23,37 +21,8 @@ SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# OAuth2 scheme
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-
-
-def _pre_hash_password(password: str) -> bytes:
-    """
-    Pre-hash password with SHA-256 to handle bcrypt's 72-byte limit.
-    Returns bytes (32 bytes) which is well under bcrypt's 72-byte limit.
-    """
-    return hashlib.sha256(password.encode('utf-8')).digest()
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against a hash."""
-    try:
-        # Pre-hash the password to handle bcrypt's 72-byte limit
-        pre_hashed = _pre_hash_password(plain_password)
-        # bcrypt expects bytes
-        return bcrypt.checkpw(pre_hashed, hashed_password.encode('utf-8'))
-    except (ValueError, TypeError, Exception):
-        return False
-
-
-def get_password_hash(password: str) -> str:
-    """Hash a password using bcrypt."""
-    # Pre-hash the password to handle bcrypt's 72-byte limit
-    pre_hashed = _pre_hash_password(password)
-    # Generate salt and hash (bcrypt handles salt automatically)
-    hashed = bcrypt.hashpw(pre_hashed, bcrypt.gensalt())
-    # Return as string for storage
-    return hashed.decode('utf-8')
+# HTTP Bearer scheme for JWT tokens
+security = HTTPBearer()
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -96,29 +65,8 @@ def get_user_by_google_id(db: Session, google_id: str) -> Optional[User]:
     return db.query(User).filter(User.google_id == google_id).first()
 
 
-def authenticate_user(db: Session, identifier: str, password: str) -> Optional[User]:
-    """
-    Authenticate a user with username or email and password.
-    Tries email first, then username if email lookup fails.
-    """
-    # Try email first
-    user = get_user_by_email(db, identifier)
-    
-    # If not found by email, try username
-    if not user:
-        user = get_user_by_username(db, identifier)
-    
-    if not user:
-        return None
-    if not user.hashed_password:
-        return None  # User doesn't have a password (OAuth only)
-    if not verify_password(password, user.hashed_password):
-        return None
-    return user
-
-
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPBearer = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     """Get the current authenticated user from JWT token."""
@@ -128,6 +76,7 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        token = credentials.credentials
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         if user_id is None:
@@ -144,13 +93,20 @@ def get_current_user(
 
 
 def get_current_user_optional(
-    token: Optional[str] = Depends(oauth2_scheme),
+    request: Request,
     db: Session = Depends(get_db)
 ) -> Optional[User]:
     """Get the current authenticated user from JWT token, or None if not authenticated."""
-    if not token:
-        return None
+    # Try to get token from Authorization header
     try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return None
+        
+        token = auth_header.split(" ")[1].strip()
+        if not token:
+            return None
+        
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         if user_id is None:
@@ -158,7 +114,7 @@ def get_current_user_optional(
         user_id = int(user_id)
         user = db.query(User).filter(User.id == user_id).first()
         return user
-    except (JWTError, ValueError, TypeError):
+    except (JWTError, ValueError, TypeError, AttributeError, IndexError):
         return None
 
 

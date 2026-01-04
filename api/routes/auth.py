@@ -1,9 +1,8 @@
 """
-Authentication routes for login, registration, and OAuth.
+Authentication routes for OAuth.
 """
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -14,63 +13,13 @@ from auth import (
     get_user_by_discord_id,
     get_user_by_google_id,
     get_current_user,
-    get_password_hash,
-    verify_password,
-    authenticate_user,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     merge_user_accounts,
     is_admin_user
 )
-from schemas import UserResponse, UserUpdate, TokenResponse, UserRegister, DiscordBotTokenRequest
+from schemas import UserResponse, UserUpdate, TokenResponse, DiscordBotTokenRequest
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-
-@router.post("/register", response_model=UserResponse, status_code=201)
-def register(
-    user_data: UserRegister,
-    db: Session = Depends(get_db)
-):
-    """
-    Register a new user with email/password.
-    DEPRECATED: New registrations are only available via OAuth (Google/Discord).
-    This endpoint is kept for backward compatibility but returns an error.
-    """
-    raise HTTPException(
-        status_code=status.HTTP_410_GONE,
-        detail="Email/password registration is no longer available. Please use Google or Discord OAuth to sign up."
-    )
-
-
-@router.post("/login", response_model=TokenResponse)
-def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
-):
-    """
-    Login with username or email and password.
-    Returns JWT token on successful authentication.
-    """
-    # OAuth2PasswordRequestForm uses 'username' field, but we accept both username and email
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username/email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Update last login
-    from datetime import datetime
-    user.last_login = datetime.utcnow()
-    db.commit()
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": str(user.id)}, expires_delta=access_token_expires
-    )
-    
-    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.get("/me", response_model=UserResponse)

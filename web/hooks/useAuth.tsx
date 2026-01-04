@@ -9,8 +9,6 @@ import { useRouter } from 'next/navigation';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, username: string, password: string) => Promise<void>;
   logout: () => void;
   updateProfile: (data: { username?: string; display_name?: string | null; is_anonymous?: boolean; comments_enabled?: boolean }) => Promise<void>;
   isAuthenticated: boolean;
@@ -42,46 +40,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    try {
-      const tokenData = await authApi.login(email, password);
-      if (!tokenData.access_token) {
-        throw new Error('No access token received');
-      }
-      
-      // Verify token is stored before calling getMe
-      const storedToken = localStorage.getItem('auth_token');
-      if (!storedToken || storedToken !== tokenData.access_token) {
-        // If token wasn't stored, store it now
-        localStorage.setItem('auth_token', tokenData.access_token);
-      }
-      
-      // Small delay to ensure token is available
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      const userData = await authApi.getMe();
-      setUser(userData);
-      router.push('/dashboard');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      // Clear token on error
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth_token');
-      }
-      throw error;
-    }
-  };
-
-  const register = async (email: string, username: string, password: string) => {
-    try {
-      await authApi.register(email, username, password);
-      // Auto-login after registration
-      await login(email, password);
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      throw error;
-    }
-  };
 
   const logout = () => {
     authApi.logout();
@@ -104,8 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         loading,
-        login,
-        register,
         logout,
         updateProfile,
         isAuthenticated: !!user,

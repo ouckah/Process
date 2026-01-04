@@ -1,7 +1,7 @@
 """
 Profile comment routes for user interactions on public profiles.
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import urllib.parse
@@ -79,6 +79,7 @@ def build_comment_response(comment: ProfileComment, db: Session, current_user_id
 @router.get("/{username}/comments", response_model=List[ProfileCommentResponse])
 def get_profile_comments(
     username: str,
+    request: Request,
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):

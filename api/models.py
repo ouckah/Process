@@ -21,7 +21,6 @@ class User(Base):
     google_id = Column(String, unique=True, nullable=True)   # Google user ID
     email = Column(String, unique=True, nullable=True)  # Nullable for ghost accounts created via Discord bot
     username = Column(String, nullable=False)
-    hashed_password = Column(String, nullable=True)  # Nullable for OAuth users
     display_name = Column(String(100), nullable=True)  # Pseudonym for public display
     is_anonymous = Column(Boolean, default=False)  # Hide username on public profile
     comments_enabled = Column(Boolean, default=True)  # Allow comments on public profile

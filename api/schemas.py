@@ -11,21 +11,6 @@ class TokenResponse(BaseModel):
     token_type: str
 
 
-class UserRegister(BaseModel):
-    """Schema for user registration."""
-    email: str
-    username: str
-    password: str
-    
-    class Config:
-        # Add example values for API docs
-        json_schema_extra = {
-            "example": {
-                "email": "user@example.com",
-                "username": "johndoe",
-                "password": "password123"
-            }
-        }
 
 
 class UserUpdate(BaseModel):

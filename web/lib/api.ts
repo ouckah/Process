@@ -67,36 +67,6 @@ export const setAuthToken = (token: string | null) => {
 
 // Auth API
 export const authApi = {
-  register: async (email: string, username: string, password: string): Promise<User> => {
-    const response = await apiClient.post<User>('/auth/register', {
-      email,
-      username,
-      password,
-    });
-    return response.data;
-  },
-
-  login: async (email: string, password: string): Promise<TokenResponse> => {
-    const formData = new URLSearchParams();
-    formData.append('username', email); // OAuth2PasswordRequestForm uses 'username' field
-    formData.append('password', password);
-    
-    const response = await apiClient.post<TokenResponse>('/auth/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-    
-    if (response.data.access_token) {
-      setAuthToken(response.data.access_token);
-      // Update the default header immediately
-      apiClient.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
-    } else {
-      throw new Error('No access token received from login');
-    }
-    
-    return response.data;
-  },
 
   getMe: async (): Promise<User> => {
     // Ensure token is available
