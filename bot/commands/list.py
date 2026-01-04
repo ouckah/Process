@@ -314,6 +314,16 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                     inline=False
                 )
             
+            # Add profile link as a field if username is available (for both own and other users' profiles)
+            if profile_username:
+                frontend_url = get_frontend_url()
+                profile_url = f"{frontend_url}/profile/{profile_username}"
+                embed.add_field(
+                    name="🔗 Profile",
+                    value=f"[View on Website]({profile_url})",
+                    inline=False
+                )
+            
             # Build footer text
             footer_parts = []
             
@@ -329,12 +339,6 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 # Add tip for prefix commands viewing own processes (same size as timestamp)
                 if is_prefix_command and is_viewing_own and page == 0:
                     footer_parts.append("💡 Use /list to see private processes")
-            
-                # Add profile link if username is available
-                if profile_username:
-                    frontend_url = get_frontend_url()
-                    profile_url = f"{frontend_url}/profile/{profile_username}"
-                    footer_parts.append(f"[View Profile]({profile_url})")
             
             if footer_parts:
                 embed.set_footer(text=" • ".join(footer_parts))
