@@ -7,7 +7,7 @@ import os
 
 from utils.auth import get_user_token, api_request
 from utils.embeds import create_success_embed, create_error_embed
-from utils.constants import VALID_STAGE_NAMES
+from utils.constants import VALID_STAGE_NAMES, match_stage_name
 from utils.errors import handle_command_error
 from utils.logging import log_command
 
@@ -130,11 +130,9 @@ async def handle_legacy_process_command(ctx: commands.Context):
         await ctx.send(embed=embed)
         return
     
-    # Create a case-insensitive lookup dictionary for stage names
-    stage_name_lookup = {name.lower(): name for name in VALID_STAGE_NAMES}
-    
     # Try to match stage name from the end of the args (reverse order)
     # This allows multi-word company names to work without quotes
+    # Supports partial matching (e.g., "Phone" -> "Phone Screen")
     stage_name = None
     stage_start_idx = None
     
@@ -142,11 +140,13 @@ async def handle_legacy_process_command(ctx: commands.Context):
     for length in range(len(parts), 0, -1):
         # Try matching the last N words as a stage name
         potential_stage_parts = parts[-length:]
-        potential_stage = ' '.join(potential_stage_parts).lower()
+        potential_stage = ' '.join(potential_stage_parts)
         
-        if potential_stage in stage_name_lookup:
-            # Found a match! Use the original capitalized version
-            stage_name = stage_name_lookup[potential_stage]
+        # Try to match (supports partial matching)
+        matched = match_stage_name(potential_stage)
+        if matched:
+            # Found a match! Use the matched full stage name
+            stage_name = matched
             stage_start_idx = len(parts) - length
             break
     
@@ -190,7 +190,7 @@ async def handle_legacy_process_command(ctx: commands.Context):
 def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
     """Setup add command (both slash and prefix)."""
     from utils.embeds import create_usage_embed, create_error_embed
-    from utils.constants import VALID_STAGE_NAMES
+    from utils.constants import VALID_STAGE_NAMES, match_stage_name
     PREFIX = os.getenv("PREFIX", "p!")  # Get PREFIX from environment
     
     # Slash command
@@ -305,11 +305,9 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
             await ctx.send(embed=embed)
             return
         
-        # Create a case-insensitive lookup dictionary for stage names
-        stage_name_lookup = {name.lower(): name for name in VALID_STAGE_NAMES}
-        
         # Try to match stage name from the end of the args (reverse order)
         # This allows multi-word company names to work without quotes
+        # Supports partial matching (e.g., "Phone" -> "Phone Screen")
         stage_name = None
         stage_start_idx = None
         
@@ -317,11 +315,13 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
         for length in range(len(parts), 0, -1):
             # Try matching the last N words as a stage name
             potential_stage_parts = parts[-length:]
-            potential_stage = ' '.join(potential_stage_parts).lower()
+            potential_stage = ' '.join(potential_stage_parts)
             
-            if potential_stage in stage_name_lookup:
-                # Found a match! Use the original capitalized version
-                stage_name = stage_name_lookup[potential_stage]
+            # Try to match (supports partial matching)
+            matched = match_stage_name(potential_stage)
+            if matched:
+                # Found a match! Use the matched full stage name
+                stage_name = matched
                 stage_start_idx = len(parts) - length
                 break
         
