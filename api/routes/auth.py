@@ -657,7 +657,6 @@ def get_discord_bot_token(
             discord_id=discord_id,
             username=username,
             email=None,
-            hashed_password=None,
         )
         db.add(user)
         db.commit()
