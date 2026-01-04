@@ -28,6 +28,8 @@ def build_comment_response(comment: ProfileComment, db: Session, current_user_id
     # Get author display info
     author_username = None
     author_display_name = None
+    author_discord_avatar = None
+    author_discord_id = None
     
     if comment.author_id:
         author = db.query(User).filter(User.id == comment.author_id).first()
@@ -37,6 +39,8 @@ def build_comment_response(comment: ProfileComment, db: Session, current_user_id
             else:
                 author_username = author.username
                 author_display_name = author.display_name or author.username
+                author_discord_avatar = author.discord_avatar
+                author_discord_id = author.discord_id
     else:
         # Anonymous comment
         author_display_name = comment.author_display_name or "Anonymous User"
@@ -64,6 +68,8 @@ def build_comment_response(comment: ProfileComment, db: Session, current_user_id
         author_id=comment.author_id,
         author_display_name=author_display_name,
         author_username=author_username,
+        author_discord_avatar=author_discord_avatar,
+        author_discord_id=author_discord_id,
         parent_comment_id=comment.parent_comment_id,
         content=comment.content,
         is_question=comment.is_question,

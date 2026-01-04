@@ -5,6 +5,7 @@ import { formatDate } from '@/lib/utils';
 import type { ProfileComment } from '@/types';
 import { MessageSquare, Reply, Edit, Trash2, CheckCircle, MoreVertical, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Avatar } from '@/components/ui/Avatar';
 import { useAuth } from '@/hooks/useAuth';
 // Using simple markdown rendering for now - can upgrade to react-markdown if needed
 
@@ -44,11 +45,12 @@ export function CommentItem({
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm dark:shadow-gray-900/50">
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
-              <span className="text-primary-600 dark:text-primary-400 text-sm font-medium">
-                {authorName.charAt(0).toUpperCase()}
-              </span>
-            </div>
+            <Avatar
+              discordAvatar={comment.author_discord_avatar}
+              discordId={comment.author_discord_id}
+              username={comment.author_username || authorName}
+              size="sm"
+            />
             <div>
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center flex-wrap gap-2">
                 <span>{authorName}</span>

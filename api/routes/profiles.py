@@ -128,6 +128,8 @@ def get_public_profile(
     return PublicProfileResponse(
         username=user.username,
         display_name=display_name,
+        discord_avatar=user.discord_avatar,
+        discord_id=user.discord_id,  # Include for avatar URL generation
         is_anonymous=user.is_anonymous,
         comments_enabled=user.comments_enabled,
         account_created_at=user.created_at.isoformat(),

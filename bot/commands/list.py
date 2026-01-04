@@ -132,6 +132,8 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
         is_viewing_own = False
         user_privacy_mode = None  # Will be set when viewing own processes
         profile_username = None  # Will be set when we have a username
+        profile_discord_avatar = None  # Will be set when we have avatar info
+        profile_discord_id = None  # Will be set when we have Discord ID
         
         # If viewing another user's profile
         if target_username or target_discord_id:
@@ -211,6 +213,8 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             display_name = profile.get("display_name") or target_username
             title_prefix = f"📋 {display_name}'s Public Processes"
             profile_username = target_username  # Store username for profile link
+            profile_discord_avatar = profile.get("discord_avatar")
+            profile_discord_id = profile.get("discord_id")
             
             # Check if viewing own processes (for adding note about /list command)
             is_viewing_own = target_discord_id == discord_id if target_discord_id else False
@@ -225,8 +229,10 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
             if privacy_mode not in ["private", "public"]:
                 privacy_mode = "private"
             
-            # Get username for profile link
+            # Get username and avatar info for profile link
             profile_username = user_info.get("username")
+            profile_discord_avatar = user_info.get("discord_avatar")
+            profile_discord_id = user_info.get("discord_id")
             
             # Get all processes
             processes = await api_request("GET", "/api/processes/", token)
@@ -302,6 +308,11 @@ async def handle_list_processes(discord_id: str, username: str, target_username:
                 embed_kwargs["url"] = profile_url
             
             embed = discord.Embed(**embed_kwargs)
+            
+            # Add avatar as thumbnail if available
+            if profile_discord_avatar and profile_discord_id:
+                avatar_url = f"https://cdn.discordapp.com/avatars/{profile_discord_id}/{profile_discord_avatar}.png?size=128"
+                embed.set_thumbnail(url=avatar_url)
             
             for p in page_processes:
                 # Get latest stage

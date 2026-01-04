@@ -5,6 +5,7 @@ export interface User {
   email: string;
   username: string;
   discord_id?: string | null;
+  discord_avatar?: string | null;
   google_id?: string | null;
   display_name?: string | null;
   is_anonymous?: boolean;
@@ -89,6 +90,8 @@ export interface FeedbackCreate {
 export interface PublicProfileResponse {
   username: string;
   display_name?: string | null;
+  discord_avatar?: string | null;
+  discord_id?: string | null;
   is_anonymous: boolean;
   comments_enabled: boolean;
   account_created_at: string;
@@ -109,6 +112,8 @@ export interface ProfileComment {
   author_id?: number | null;
   author_display_name?: string | null;
   author_username?: string | null;
+  author_discord_avatar?: string | null;
+  author_discord_id?: string | null;
   parent_comment_id?: number | null;
   content: string;
   is_question: boolean;

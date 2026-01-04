@@ -18,6 +18,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     discord_id = Column(String, unique=True, nullable=True)  # Discord user ID
+    discord_avatar = Column(String, nullable=True)  # Discord avatar hash
     google_id = Column(String, unique=True, nullable=True)   # Google user ID
     email = Column(String, unique=True, nullable=True)  # Nullable for ghost accounts created via Discord bot
     username = Column(String, nullable=False)

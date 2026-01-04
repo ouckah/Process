@@ -48,6 +48,8 @@ export default function PublicProfilePage() {
         <PublicProfileView
           username={profile.username}
           displayName={profile.display_name}
+          discordAvatar={profile.discord_avatar}
+          discordId={profile.discord_id}
           isAnonymous={profile.is_anonymous}
           commentsEnabled={profile.comments_enabled}
           accountCreatedAt={profile.account_created_at}

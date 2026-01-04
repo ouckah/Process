@@ -31,6 +31,7 @@ def get_me(current_user: User = Depends(get_current_user)):
         "email": current_user.email,
         "username": current_user.username,
         "discord_id": current_user.discord_id,
+        "discord_avatar": current_user.discord_avatar,
         "google_id": current_user.google_id,
         "display_name": current_user.display_name,
         "is_anonymous": current_user.is_anonymous,
@@ -175,6 +176,7 @@ def discord_oauth_callback(
             discord_id = str(discord_user.get("id"))
             username = discord_user.get("username", "")
             email = discord_user.get("email", "")
+            discord_avatar = discord_user.get("avatar")  # Discord avatar hash
             
             # Parse state to get user_id if linking to existing account
             import json
@@ -215,6 +217,8 @@ def discord_oauth_callback(
                             )
                     
                     user.discord_id = discord_id
+                    if discord_avatar:
+                        user.discord_avatar = discord_avatar
                     # IMPORTANT: Only update email if user doesn't have one (never change existing email)
                     # This preserves the original email the user registered with, preventing
                     # authentication issues if Discord email differs from web account email
@@ -236,6 +240,7 @@ def discord_oauth_callback(
                         )
                     user = User(
                         discord_id=discord_id,
+                        discord_avatar=discord_avatar,
                         email=email,
                         username=username,
                     )
@@ -249,6 +254,8 @@ def discord_oauth_callback(
                     merge_user_accounts(db, ghost_user, web_user)
                     # Update web account with discord_id
                     web_user.discord_id = discord_id
+                    if discord_avatar:
+                        web_user.discord_avatar = discord_avatar
                     if not web_user.username:
                         web_user.username = username
                     db.commit()
@@ -268,6 +275,8 @@ def discord_oauth_callback(
                     ghost_user.email = email
                     if not ghost_user.username:
                         ghost_user.username = username
+                    if discord_avatar:
+                        ghost_user.discord_avatar = discord_avatar
                     db.commit()
                     db.refresh(ghost_user)
                     user = ghost_user
@@ -275,6 +284,8 @@ def discord_oauth_callback(
                     # No email from Discord, can't convert - just update username
                     if not ghost_user.username:
                         ghost_user.username = username
+                    if discord_avatar:
+                        ghost_user.discord_avatar = discord_avatar
                     db.commit()
                     db.refresh(ghost_user)
                     user = ghost_user
@@ -282,6 +293,8 @@ def discord_oauth_callback(
                 # Scenario: No ghost account, web account exists
                 # Link discord_id to web account
                 web_user.discord_id = discord_id
+                if discord_avatar:
+                    web_user.discord_avatar = discord_avatar
                 if not web_user.username:
                     web_user.username = username
                 db.commit()
@@ -296,6 +309,7 @@ def discord_oauth_callback(
                     )
                 user = User(
                     discord_id=discord_id,
+                    discord_avatar=discord_avatar,
                     email=email,
                     username=username,
                 )
@@ -408,6 +422,8 @@ def link_discord_account(
             original_email = current_user.email
             
             current_user.discord_id = discord_id
+            if discord_avatar:
+                current_user.discord_avatar = discord_avatar
             # IMPORTANT: Only update email if user doesn't have one (never change existing email)
             # This preserves the original email the user registered with, preventing
             # authentication issues if Discord email differs from web account email
@@ -445,8 +461,9 @@ def disconnect_discord_account(
             detail="Discord account is not connected"
         )
     
-    # Remove Discord ID from user
+    # Remove Discord ID and avatar from user
     current_user.discord_id = None
+    current_user.discord_avatar = None
     db.commit()
     db.refresh(current_user)
     

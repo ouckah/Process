@@ -8,6 +8,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Avatar } from '@/components/ui/Avatar';
 import { Loader2, User, Mail, CheckCircle, XCircle, Edit, Save, X, ExternalLink, Eye, EyeOff, MessageSquare, Shield } from 'lucide-react';
 import Link from 'next/link';
 
@@ -150,8 +151,18 @@ export default function ProfilePage() {
       <Header />
       <main className="flex-grow max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Profile</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage your account settings and connected accounts.</p>
+          <div className="flex items-center space-x-4 mb-4">
+            <Avatar
+              discordAvatar={user?.discord_avatar}
+              discordId={user?.discord_id}
+              username={user?.username || ''}
+              size="xl"
+            />
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Profile</h1>
+              <p className="text-gray-600 dark:text-gray-400">Manage your account settings and connected accounts.</p>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 space-y-6">

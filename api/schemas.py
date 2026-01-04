@@ -58,6 +58,7 @@ class UserResponse(BaseModel):
     email: Optional[str] = None  # Can be None for ghost accounts (Discord-only users)
     username: str
     discord_id: Optional[str] = None
+    discord_avatar: Optional[str] = None
     google_id: Optional[str] = None
     display_name: Optional[str] = None
     is_anonymous: Optional[bool] = None
@@ -265,6 +266,8 @@ class ProfileCommentResponse(BaseModel):
     author_id: Optional[int] = None
     author_display_name: Optional[str] = None
     author_username: Optional[str] = None  # Only if not anonymous
+    author_discord_avatar: Optional[str] = None  # Discord avatar hash for author
+    author_discord_id: Optional[str] = None  # Discord ID for author (needed for avatar URL)
     parent_comment_id: Optional[int] = None
     content: str
     is_question: bool
@@ -287,6 +290,8 @@ class PublicProfileResponse(BaseModel):
     """Schema for public profile response."""
     username: str
     display_name: Optional[str] = None
+    discord_avatar: Optional[str] = None
+    discord_id: Optional[str] = None  # Needed for avatar URL generation
     is_anonymous: bool
     comments_enabled: bool
     account_created_at: str

@@ -4,6 +4,7 @@ import React from 'react';
 import { PublicProcessCard } from './PublicProcessCard';
 import { ProfileStats } from './ProfileStats';
 import { ProfileComments } from './ProfileComments';
+import { Avatar } from '@/components/ui/Avatar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Loader2 } from 'lucide-react';
 import type { Process } from '@/types';
@@ -13,6 +14,8 @@ import { useAuth } from '@/hooks/useAuth';
 interface PublicProfileViewProps {
   username: string;
   displayName?: string | null;
+  discordAvatar?: string | null;
+  discordId?: string | null;
   isAnonymous?: boolean;
   commentsEnabled?: boolean;
   accountCreatedAt: string;
@@ -31,6 +34,8 @@ interface PublicProfileViewProps {
 export function PublicProfileView({
   username,
   displayName,
+  discordAvatar,
+  discordId,
   isAnonymous = false,
   commentsEnabled = true,
   accountCreatedAt,
@@ -58,19 +63,29 @@ export function PublicProfileView({
     <div className="space-y-6">
       {/* User Header */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
-        <div className="flex items-center space-x-3">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {profileDisplayName}
-          </h1>
-          {isAnonymous && (
-            <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
-              Anonymous
-            </span>
-          )}
+        <div className="flex items-center space-x-4">
+          <Avatar
+            discordAvatar={discordAvatar}
+            discordId={discordId}
+            username={username}
+            size="xl"
+          />
+          <div className="flex-1">
+            <div className="flex items-center space-x-3">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {profileDisplayName}
+              </h1>
+              {isAnonymous && (
+                <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                  Anonymous
+                </span>
+              )}
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Member since {formatDate(accountCreatedAt)}
+            </p>
+          </div>
         </div>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Member since {formatDate(accountCreatedAt)}
-        </p>
       </div>
 
       {/* Stats */}
