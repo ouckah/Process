@@ -107,72 +107,17 @@ async def on_ready():
         print(f'Failed to sync commands: {e}')
 
 
-async def check_channel_restrictions(guild_id: str, channel_id: int, message: discord.Message = None) -> bool:
-    """
-    Check if a channel is allowed for bot commands.
-    
-    Args:
-        guild_id: The guild ID
-        channel_id: The channel ID
-        message: Optional message object to check if it's a moderator command
-    
-    Returns:
-        True if channel is allowed, False if denied/restricted
-    """
-    from utils.config import guild_config
-    
-    if not guild_id:
-        # DMs are always allowed
-        return True
-    
-    # Check if user has manage_guild permission - mods bypass all channel restrictions
-    if message and message.guild and message.author:
-        if message.author.guild_permissions.manage_guild:
-            return True
-    
-    try:
-        config = await guild_config.get_config(guild_id)
-    except Exception as e:
-        # If config can't be loaded, fail open (allow commands) but log the error
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.warning(f"Failed to load config for guild {guild_id}, allowing channel: {type(e).__name__}")
-        # Return True to allow commands if config can't be loaded
-        return True
-    allowed = config.get("allowed_channels", [])
-    denied = config.get("denied_channels", [])
-    
-    # If channel is explicitly denied, block it
-    if channel_id in denied:
-        return False
-    
-    # If allowed list exists and is not empty, only allow those channels
-    if allowed:
-        return channel_id in allowed
-    
-    # If no restrictions set, allow all channels
-    return True
-
-
 @bot.event
 async def on_message(message):
-    """Handle legacy !process command specifically and check channel restrictions."""
+    """Handle legacy !process command specifically."""
     # Ignore bot messages
     if message.author.bot:
         return
     
-    # Check channel restrictions (skip for DMs)
-    if message.guild:
-        guild_id = str(message.guild.id)
-        channel_id = message.channel.id
-        
-        if not await check_channel_restrictions(guild_id, channel_id, message):
-            # Silently ignore commands in restricted channels
-            return
-    
     # Only handle !process, not other ! commands
     if message.content.startswith("!process"):
         # Create context and call the legacy process handler
+        # Channel restrictions are checked inside the command handler via check_command_restrictions
         ctx = await bot.get_context(message)
         # Import here to avoid circular imports
         from commands.add import handle_legacy_process_command
@@ -180,6 +125,7 @@ async def on_message(message):
         return
     
     # Process other commands normally
+    # Channel restrictions are checked inside each command handler via check_command_restrictions
     await bot.process_commands(message)
 
 
