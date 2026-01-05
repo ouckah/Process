@@ -315,3 +315,24 @@ class GuildConfigResponse(BaseModel):
 class GuildConfigUpdate(BaseModel):
     """Schema for updating guild configuration."""
     config: dict
+
+
+# Notification Schemas
+class NotificationResponse(BaseModel):
+    """Schema for notification response."""
+    id: int
+    user_id: int
+    type: str  # 'comment' or 'question'
+    comment_id: Optional[int] = None
+    is_read: bool
+    created_at: str
+    # Include comment details for convenience
+    comment_content: Optional[str] = None
+    author_display_name: Optional[str] = None
+    author_username: Optional[str] = None
+    author_discord_avatar: Optional[str] = None
+    author_discord_id: Optional[str] = None
+    profile_username: Optional[str] = None  # Username of the profile owner
+    
+    class Config:
+        from_attributes = True

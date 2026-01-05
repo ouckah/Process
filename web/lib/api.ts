@@ -14,7 +14,8 @@ import type {
   PublicProfileResponse,
   ProfileComment,
   ProfileCommentCreate,
-  ProfileCommentUpdate
+  ProfileCommentUpdate,
+  Notification
 } from '@/types';
 
 // Ensure API URL uses HTTPS in production (browsers block mixed content)
@@ -256,6 +257,29 @@ export const analyticsApi = {
   getSankeyImageUrl: (username: string): string => {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
     return `${appUrl}/api/analytics/${encodeURIComponent(username)}/sankey-image`;
+  },
+};
+
+// Notification API
+export const notificationApi = {
+  getAll: async (): Promise<Notification[]> => {
+    const response = await apiClient.get<Notification[]>('/api/notifications');
+    return response.data;
+  },
+
+  getUnreadCount: async (): Promise<{ unread_count: number }> => {
+    const response = await apiClient.get<{ unread_count: number }>('/api/notifications/unread-count');
+    return response.data;
+  },
+
+  markAsRead: async (notificationId: number): Promise<Notification> => {
+    const response = await apiClient.patch<Notification>(`/api/notifications/${notificationId}/read`);
+    return response.data;
+  },
+
+  markAllAsRead: async (): Promise<{ message: string }> => {
+    const response = await apiClient.patch<{ message: string }>('/api/notifications/read-all');
+    return response.data;
   },
 };
 

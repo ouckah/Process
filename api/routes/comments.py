@@ -7,7 +7,7 @@ from typing import List, Optional
 import urllib.parse
 
 from database import get_db
-from models import User, ProfileComment, CommentUpvote
+from models import User, ProfileComment, CommentUpvote, Notification
 from schemas import ProfileCommentCreate, ProfileCommentUpdate, ProfileCommentResponse
 from auth import get_current_user, get_user_by_username, get_current_user_optional
 
@@ -179,6 +179,19 @@ def create_profile_comment(
     )
     
     db.add(new_comment)
+    db.flush()  # Flush to get the comment ID without committing
+    
+    # Create notification for the profile owner (don't notify if they're commenting on their own profile)
+    if profile_user.id != current_user.id:
+        notification_type = "question" if comment_data.is_question else "comment"
+        notification = Notification(
+            user_id=profile_user.id,
+            type=notification_type,
+            comment_id=new_comment.id,
+            is_read=False
+        )
+        db.add(notification)
+    
     db.commit()
     db.refresh(new_comment)
     

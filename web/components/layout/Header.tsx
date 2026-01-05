@@ -7,6 +7,7 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from './ThemeToggle';
 import { User, Menu, X } from 'lucide-react';
+import { NotificationBadge } from '@/components/notifications/NotificationBadge';
 
 export function Header() {
   const { user, logout, isAuthenticated } = useAuth();
@@ -36,6 +37,7 @@ export function Header() {
                   </Link>
                 )}
                 <ThemeToggle />
+                <NotificationBadge />
                 <Link href="/profile" className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                   <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                   <span className="text-sm text-gray-700 dark:text-gray-300">{user?.username}</span>
@@ -101,6 +103,9 @@ export function Header() {
                   </Link>
                   <div className="px-3 py-2">
                     <ThemeToggle />
+                  </div>
+                  <div className="px-3 py-2">
+                    <NotificationBadge />
                   </div>
                   <Button variant="outline" size="sm" onClick={logout} className="mx-3">
                     Logout

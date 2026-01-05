@@ -136,3 +136,18 @@ export interface ProfileCommentUpdate {
   content?: string | null;
 }
 
+export interface Notification {
+  id: number;
+  user_id: number;
+  type: 'comment' | 'question';
+  comment_id?: number | null;
+  is_read: boolean;
+  created_at: string;
+  comment_content?: string | null;
+  author_display_name?: string | null;
+  author_username?: string | null;
+  author_discord_avatar?: string | null;
+  author_discord_id?: string | null;
+  profile_username?: string | null;
+}
+

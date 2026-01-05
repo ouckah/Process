@@ -34,6 +34,7 @@ class User(Base):
     feedback = relationship("Feedback", back_populates="user", cascade="all, delete-orphan")
     profile_comments = relationship("ProfileComment", foreign_keys="ProfileComment.profile_user_id", back_populates="profile_user", cascade="all, delete-orphan")
     authored_comments = relationship("ProfileComment", foreign_keys="ProfileComment.author_id", back_populates="author")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         email_str = self.email if self.email else "no-email"
@@ -117,6 +118,7 @@ class ProfileComment(Base):
     profile_user = relationship("User", foreign_keys=[profile_user_id], back_populates="profile_comments")
     author = relationship("User", foreign_keys=[author_id], back_populates="authored_comments")
     parent_comment = relationship("ProfileComment", remote_side=[id], backref="replies")
+    notifications = relationship("Notification", back_populates="comment", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"ProfileComment(id={self.id}, profile_user_id={self.profile_user_id}, author_id={self.author_id}, created_at={self.created_at})"
@@ -149,3 +151,21 @@ class GuildConfig(Base):
     
     def __repr__(self):
         return f"GuildConfig(id={self.id}, guild_id={self.guild_id})"
+
+
+class Notification(Base):
+    __tablename__ = 'notifications'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)  # User who receives the notification
+    type = Column(String(50), nullable=False)  # 'comment' or 'question'
+    comment_id = Column(Integer, ForeignKey('profile_comments.id'), nullable=True)  # Related comment
+    is_read = Column(Boolean, default=False)  # Whether the notification has been read
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User", back_populates="notifications")
+    comment = relationship("ProfileComment", back_populates="notifications")
+    
+    def __repr__(self):
+        return f"Notification(id={self.id}, user_id={self.user_id}, type={self.type}, is_read={self.is_read})"
