@@ -99,7 +99,7 @@ export function NotificationInbox({ onClose, onNotificationRead }: NotificationI
           </div>
         ) : notifications.length === 0 ? (
           <EmptyState
-            icon={MessageSquare}
+            icon={<MessageSquare className="w-16 h-16 text-gray-400 dark:text-gray-500" />}
             title="No notifications"
             description="You're all caught up! New comments and questions will appear here."
           />
