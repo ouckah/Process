@@ -13,6 +13,7 @@ interface EmptyStateProps {
   actionHref?: string;
   onAction?: () => void;
   icon?: React.ReactNode;
+  hideAction?: boolean; // Explicitly hide the action button
 }
 
 export function EmptyState({
@@ -23,6 +24,7 @@ export function EmptyState({
   actionHref,
   onAction,
   icon,
+  hideAction = false,
 }: EmptyStateProps) {
   // Default content based on type
   const getDefaultContent = () => {
@@ -86,7 +88,7 @@ export function EmptyState({
         </div>
       )}
 
-      {(content.actionHref || actionHref || onAction) && (
+      {!hideAction && (content.actionHref || actionHref || onAction) && (
         <div className="flex justify-center gap-3">
           {content.actionHref || actionHref ? (
             <Link href={content.actionHref || actionHref || '#'}>
