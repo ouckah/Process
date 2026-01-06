@@ -72,7 +72,7 @@ function GoogleCallbackContent() {
               <p className="text-red-600 dark:text-red-400">{message}</p>
               <button
                 onClick={() => router.push('/login')}
-                className="mt-4 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+                className="mt-4 px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded hover:bg-primary-700 dark:hover:bg-primary-600"
               >
                 Back to Login
               </button>
@@ -88,7 +88,7 @@ function GoogleCallbackContent() {
 export default function GoogleCallbackPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
         <Loader2 className="w-8 h-8 animate-spin text-primary-600 dark:text-primary-400" />
       </div>
     }>
