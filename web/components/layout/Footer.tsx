@@ -9,9 +9,17 @@ export function Footer() {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             © {new Date().getFullYear()} Process. All rights reserved.
           </p>
-          <Link href="/feedback" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
-            Feedback
-          </Link>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link href="/privacy" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
+              Terms of Service
+            </Link>
+            <Link href="/feedback" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
+              Feedback
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
