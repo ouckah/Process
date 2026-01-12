@@ -19,11 +19,11 @@ const bodyFont = DM_Sans({
 });
 
 // Get the base URL for metadata
-const metadataBase = new URL(
-  process.env.NEXT_PUBLIC_APP_URL || 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 
   process.env.NEXT_PUBLIC_FRONTEND_URL || 
-  'http://localhost:3000'
-);
+  'http://localhost:3000';
+
+const metadataBase = new URL(appUrl);
 
 export const metadata: Metadata = {
   metadataBase,
@@ -33,10 +33,11 @@ export const metadata: Metadata = {
     title: 'Process - Master Your Job Application Process',
     description: 'Track job applications with brutal efficiency. Discord bot for speed. Web dashboard for depth. No compromises.',
     type: 'website',
+    url: appUrl,
     siteName: 'Process',
     images: [
       {
-        url: '/og-image.png',
+        url: `${appUrl}/og-image.png`,
         width: 1200,
         height: 630,
         alt: 'Process - Master Your Job Application Process',
@@ -47,7 +48,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Process - Master Your Job Application Process',
     description: 'Track job applications with brutal efficiency. Discord bot for speed. Web dashboard for depth.',
-    images: ['/og-image.png'],
+    images: [`${appUrl}/og-image.png`],
   },
 };
 
