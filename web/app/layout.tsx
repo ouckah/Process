@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   metadataBase,
   title: 'Process',
   description: 'Track your job application processes and stages',
+  other: {
+    'google-site-verification': '7f35dkWcoUQK5j307CyAIEreC78D50ZXB4UmQi2jxbQ',
+  },
   openGraph: {
     title: 'Process - Master Your Job Application Process',
     description: 'Track job applications with brutal efficiency. Discord bot for speed. Web dashboard for depth. No compromises.',
