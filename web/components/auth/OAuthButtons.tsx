@@ -39,9 +39,10 @@ export function OAuthButtons({ mode = 'login' }: OAuthButtonsProps) {
     const scopes = encodeURIComponent('identify email');
     
     // If user is logged in, include userId in state for account linking
+    // Always send a state parameter (even if empty) to avoid issues
     const state = user 
       ? encodeURIComponent(JSON.stringify({ userId: user.id }))
-      : '';
+      : encodeURIComponent(JSON.stringify({}));
     
     if (!clientId) {
       alert('Discord OAuth is not configured. Please set NEXT_PUBLIC_DISCORD_CLIENT_ID in your environment variables.');
