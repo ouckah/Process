@@ -25,6 +25,25 @@ export default function SharePage() {
       try {
         setLoading(true);
         const data = await processApi.getPublic(shareId);
+        console.log('Fetched process data:', data); // Debug log
+        
+        // If username is missing, try to fetch it from explore endpoint
+        if (!data.username && data.id) {
+          try {
+            const { exploreApi } = await import('@/lib/api');
+            const exploreProcesses = await exploreApi.getProcesses({ 
+              search: data.company_name,
+              limit: 100 
+            });
+            const matchingProcess = exploreProcesses.find((p: any) => p.share_id === shareId);
+            if (matchingProcess?.user_username) {
+              data.username = matchingProcess.user_username;
+            }
+          } catch (exploreErr) {
+            console.warn('Could not fetch username from explore endpoint:', exploreErr);
+          }
+        }
+        
         setProcess(data);
       } catch (err: any) {
         const errorDetail = err.response?.data?.detail;
@@ -120,21 +139,6 @@ export default function SharePage() {
                 </div>
               </div>
             </div>
-            {process.username && (
-              <div className="mt-6">
-                <Link href={`/profile/${process.username}?ask=true&question=${encodeURIComponent(`Can you tell me more about your experience with ${process.company_name}${process.position ? ` for the ${process.position} position` : ''}?`)}`}>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button
-                      variant="outline"
-                      className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Ask About Process
-                    </Button>
-                  </motion.div>
-                </Link>
-              </div>
-            )}
           </div>
         </motion.div>
 
@@ -144,12 +148,25 @@ export default function SharePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <div className="mb-6">
-            <div className="inline-block bg-ink-900 dark:bg-cream-50 px-6 py-2 border-4 border-ink-900 dark:border-cream-50 transform rotate-1 mb-6">
+          <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
+            <div className="inline-block bg-ink-900 dark:bg-cream-50 px-6 py-2 border-4 border-ink-900 dark:border-cream-50 transform rotate-1">
               <h3 className="font-display text-xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
                 Process Timeline
               </h3>
             </div>
+            {process.username && (
+              <Link href={`/profile/${process.username}?ask=true&question=${encodeURIComponent(`Can you tell me more about your experience with ${process.company_name}${process.position ? ` for the ${process.position} position` : ''}?`)}`}>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    variant="outline"
+                    className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Ask About Process
+                  </Button>
+                </motion.div>
+              </Link>
+            )}
           </div>
           <StageTimeline stages={process.stages} />
         </motion.div>

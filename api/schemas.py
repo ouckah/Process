@@ -94,6 +94,7 @@ class ProcessResponse(BaseModel):
     share_id: Optional[str] = None
     created_at: str
     updated_at: str
+    username: Optional[str] = None  # Username of process owner (for public shares)
 
     class Config:
         from_attributes = True
