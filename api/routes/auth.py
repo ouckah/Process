@@ -18,7 +18,8 @@ from auth import (
     get_current_user,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     merge_user_accounts,
-    is_admin_user
+    is_admin_user,
+    generate_unique_username
 )
 from schemas import UserResponse, UserUpdate, TokenResponse, DiscordBotTokenRequest
 
@@ -122,7 +123,8 @@ def discord_oauth_callback(
 ):
     """
     Discord OAuth callback - handles the OAuth redirect from Discord.
-    Links Discord account to existing user or creates new account.
+    ONLY allows linking Discord account to existing user account.
+    Sign-ups via Discord are not allowed - users must sign up with Google.
     """
     DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
     DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
@@ -171,23 +173,26 @@ def discord_oauth_callback(
             discord_user = user_response.json()
             
             discord_id = str(discord_user.get("id"))
-            username = discord_user.get("username", "")
+            raw_username = discord_user.get("username", "")
             email = discord_user.get("email", "")
             discord_avatar = discord_user.get("avatar")  # Discord avatar hash
             
-            # Parse state to get user_id if linking to existing account
+            # Generate unique, sanitized username from Discord username
+            username = generate_unique_username(db, raw_username)
+            
+            # Parse state to get user_id - REQUIRED for Discord OAuth (only for linking)
             import json
             state_data = json.loads(state) if state else {}
             user_id = state_data.get("userId")
             
-            # Check for existing accounts
-            ghost_user = get_user_by_discord_id(db, discord_id)  # Ghost account (discord_id only, no email)
-            web_user = None
-            if email:
-                web_user = get_user_by_email(db, email)  # Web account (has email)
+            # Discord OAuth is ONLY for linking existing accounts - reject sign-ups
+            if not user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Discord authentication is only available for linking to existing accounts. Please sign up with Google first, then connect Discord from your profile page."
+                )
             
-            # Handle all merging scenarios
-            # IMPORTANT: If user_id is provided in state, prioritize that over email/discord lookups
+            # Handle account linking (user_id is required)
             if user_id:
                 # Scenario: Explicit user_id in state (linking from profile page)
                 user = db.query(User).filter(User.id == user_id).first()
@@ -198,20 +203,11 @@ def discord_oauth_callback(
                     # Check if discord_id is already linked to another account
                     existing_discord_user = get_user_by_discord_id(db, discord_id)
                     if existing_discord_user and existing_discord_user.id != user.id:
-                        # Merge ghost account into target user
-                        merge_user_accounts(db, existing_discord_user, user)
-                        # Refresh user after merge to ensure we have the latest state
-                        db.refresh(user)
-                    
-                    # Check if Discord email is already used by a different account (after merge)
-                    if email:
-                        existing_email_user = get_user_by_email(db, email)
-                        if existing_email_user and existing_email_user.id != user.id:
-                            # Discord email belongs to another account - this is a conflict
-                            raise HTTPException(
-                                status_code=status.HTTP_400_BAD_REQUEST,
-                                detail=f"Discord email ({email}) is already associated with another account. Please use a different Discord account or contact support."
-                            )
+                        # Discord ID is already linked to another account - this is not allowed
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="This Discord account is already linked to another account. Please disconnect it from the other account first or use a different Discord account."
+                        )
                     
                     user.discord_id = discord_id
                     if discord_avatar:
@@ -228,91 +224,12 @@ def discord_oauth_callback(
                         user.username = username
                     db.commit()
                     db.refresh(user)
-                else:
-                    # User not found, create new
-                    if not email:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Discord account email not available"
-                        )
-                    user = User(
-                        discord_id=discord_id,
-                        discord_avatar=discord_avatar,
-                        email=email,
-                        username=username,
-                    )
-                    db.add(user)
-                    db.commit()
-                    db.refresh(user)
-            elif ghost_user and web_user:
-                # Scenario: Ghost account exists AND web account exists (same email)
-                # Merge: Transfer processes from ghost to web, delete ghost
-                if ghost_user.id != web_user.id:
-                    merge_user_accounts(db, ghost_user, web_user)
-                    # Update web account with discord_id
-                    web_user.discord_id = discord_id
-                    if discord_avatar:
-                        web_user.discord_avatar = discord_avatar
-                    if not web_user.username:
-                        web_user.username = username
-                    db.commit()
-                    db.refresh(web_user)
-                    user = web_user
-                else:
-                    # Same user, just update
-                    user = ghost_user
-                    if not user.email:
-                        user.email = email
-                    db.commit()
-                    db.refresh(user)
-            elif ghost_user and not web_user:
-                # Scenario: Ghost account exists, no web account
-                # Convert ghost to full account by adding email
-                if email:
-                    ghost_user.email = email
-                    if not ghost_user.username:
-                        ghost_user.username = username
-                    if discord_avatar:
-                        ghost_user.discord_avatar = discord_avatar
-                    db.commit()
-                    db.refresh(ghost_user)
-                    user = ghost_user
-                else:
-                    # No email from Discord, can't convert - just update username
-                    if not ghost_user.username:
-                        ghost_user.username = username
-                    if discord_avatar:
-                        ghost_user.discord_avatar = discord_avatar
-                    db.commit()
-                    db.refresh(ghost_user)
-                    user = ghost_user
-            elif not ghost_user and web_user:
-                # Scenario: No ghost account, web account exists
-                # Link discord_id to web account
-                web_user.discord_id = discord_id
-                if discord_avatar:
-                    web_user.discord_avatar = discord_avatar
-                if not web_user.username:
-                    web_user.username = username
-                db.commit()
-                db.refresh(web_user)
-                user = web_user
             else:
-                # Scenario: Neither exists - create new user
-                if not email:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Discord account email not available"
-                    )
-                user = User(
-                    discord_id=discord_id,
-                    discord_avatar=discord_avatar,
-                    email=email,
-                    username=username,
+                # User not found - this shouldn't happen if user_id is valid, but handle it
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="User account not found. Please sign up with Google first, then connect Discord from your profile page."
                 )
-                db.add(user)
-                db.commit()
-                db.refresh(user)
             
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
             access_token = create_access_token(
@@ -534,7 +451,10 @@ def google_oauth_callback(
             
             google_id = str(google_user.get("id"))
             email = google_user.get("email", "")
-            username = google_user.get("name", email.split("@")[0] if email else "user")
+            raw_username = google_user.get("name", email.split("@")[0] if email else "user")
+            
+            # Generate unique, sanitized username from Google name
+            username = generate_unique_username(db, raw_username)
             
             # Parse state to get user_id if linking to existing account
             import json
@@ -673,7 +593,10 @@ def get_discord_bot_token(
     Used by Discord bot to authenticate API requests.
     """
     discord_id = request.discord_id
-    username = request.username
+    raw_username = request.username
+    # Generate unique, sanitized username
+    username = generate_unique_username(db, raw_username)
+    
     # Get or create user by discord_id
     user = get_user_by_discord_id(db, discord_id)
     
@@ -688,7 +611,7 @@ def get_discord_bot_token(
         db.commit()
         db.refresh(user)
     else:
-        # Update username if changed
+        # Update username if it's different (bot can update usernames as Discord changes)
         if user.username != username:
             user.username = username
             db.commit()

@@ -26,7 +26,7 @@ export function RegisterForm() {
               </div>
               <div className="bg-cream-100 dark:bg-ink-800 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 inline-block">
                 <p className="font-body text-sm font-black text-ink-900 dark:text-cream-50">
-                  Sign up with Google or Discord to get started
+                  Sign up with Google to get started
                 </p>
               </div>
             </div>

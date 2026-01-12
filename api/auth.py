@@ -51,6 +51,53 @@ def get_user_by_username(db: Session, username: str) -> Optional[User]:
     return db.query(User).filter(func.lower(User.username) == func.lower(username)).first()
 
 
+def sanitize_username(username: str) -> str:
+    """
+    Sanitize a username by removing spaces and special characters.
+    Keeps only alphanumeric characters, underscores, and hyphens.
+    Converts to lowercase.
+    """
+    import re
+    if not username:
+        return ""
+    # Remove all special characters except alphanumeric, underscore, and hyphen
+    # Replace spaces and other invalid chars with nothing
+    sanitized = re.sub(r'[^a-zA-Z0-9_-]', '', username)
+    # Convert to lowercase
+    sanitized = sanitized.lower()
+    return sanitized
+
+
+def generate_unique_username(db: Session, base_username: str) -> str:
+    """
+    Generate a unique username by sanitizing the base username and appending numbers if needed.
+    """
+    if not base_username:
+        base_username = "user"
+    
+    # Sanitize the base username
+    sanitized = sanitize_username(base_username)
+    
+    # If sanitization resulted in empty string, use a default
+    if not sanitized:
+        sanitized = "user"
+    
+    # Check if the sanitized username is already taken
+    username = sanitized
+    counter = 1
+    
+    while get_user_by_username(db, username):
+        username = f"{sanitized}{counter}"
+        counter += 1
+        # Safety check to prevent infinite loops
+        if counter > 10000:
+            import uuid
+            username = f"{sanitized}{uuid.uuid4().hex[:8]}"
+            break
+    
+    return username
+
+
 def get_user_by_discord_id(db: Session, discord_id: str) -> Optional[User]:
     """Get a user by Discord ID."""
     return db.query(User).filter(User.discord_id == discord_id).first()
