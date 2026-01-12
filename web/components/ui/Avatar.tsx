@@ -57,7 +57,7 @@ export function Avatar({
         sizeClasses[size],
         className
       )}
-      title={username}
+      title={displayName}
     >
       {initial}
     </div>
