@@ -40,7 +40,7 @@ export function Avatar({
       <div className={cn('relative rounded-full overflow-hidden flex-shrink-0', sizeClasses[size], className)}>
         <Image
           src={discordAvatarUrl}
-          alt={username}
+          alt={displayName}
           fill
           className="object-cover"
           unoptimized // Discord CDN images are already optimized
