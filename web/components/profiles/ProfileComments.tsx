@@ -32,34 +32,63 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [prefilledQuestion, setPrefilledQuestion] = useState<string>('');
 
-  // Check URL params on mount to open question form (only if user is logged in)
+  // Check URL params on mount to open question form and scroll
   React.useEffect(() => {
-    if (typeof window !== 'undefined' && user) {
+    if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const askParam = urlParams.get('ask');
       const questionParam = urlParams.get('question');
+      
       if (askParam === 'true' || askParam === '1') {
-        setShowQuestionForm(true);
-        setShowCommentForm(false);
-        if (questionParam) {
-          setPrefilledQuestion(decodeURIComponent(questionParam));
-        }
-        // Scroll to comments section after form is rendered
-        setTimeout(() => {
-          const commentsSection = document.getElementById('profile-comments');
-          const questionForm = document.getElementById('question-form');
-          if (commentsSection) {
-            // Scroll to the comments section
-            commentsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            // If form is visible, scroll to it instead for better UX
-            if (questionForm) {
-              setTimeout(() => {
-                questionForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                window.scrollBy({ top: -20, behavior: 'smooth' });
-              }, 100);
-            }
+        // Only open form if user is logged in
+        if (user) {
+          setShowQuestionForm(true);
+          setShowCommentForm(false);
+          if (questionParam) {
+            setPrefilledQuestion(decodeURIComponent(questionParam));
           }
-        }, 500);
+        }
+        
+        // Always scroll to comments section, regardless of login status
+        const scrollToComments = () => {
+          const commentsSection = document.getElementById('profile-comments');
+          if (commentsSection) {
+            const rect = commentsSection.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const targetY = rect.top + scrollTop - 20; // 20px offset from top
+            
+            window.scrollTo({
+              top: targetY,
+              behavior: 'smooth'
+            });
+            
+            // If form exists and user is logged in, scroll to it after a delay
+            if (user) {
+              setTimeout(() => {
+                const questionForm = document.getElementById('question-form');
+                if (questionForm) {
+                  const formRect = questionForm.getBoundingClientRect();
+                  const formTargetY = formRect.top + scrollTop - 20;
+                  window.scrollTo({
+                    top: formTargetY,
+                    behavior: 'smooth'
+                  });
+                }
+              }, 600);
+            }
+            return true;
+          }
+          return false;
+        };
+        
+        // Try scrolling immediately, then retry with increasing delays
+        if (!scrollToComments()) {
+          setTimeout(() => {
+            if (!scrollToComments()) {
+              setTimeout(scrollToComments, 500);
+            }
+          }, 300);
+        }
       }
     }
   }, [user]);
