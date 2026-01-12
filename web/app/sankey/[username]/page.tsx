@@ -87,7 +87,7 @@ export default function PublicSankeyPage() {
     <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
       <Header />
       <main className="flex-grow w-full py-8">
-        <div className="w-full max-w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-full px-4 sm:px-6 lg:px-8">
           <PublicSankeyView
             analytics={analytics}
             isOwnPage={isOwnPage}
