@@ -29,6 +29,26 @@ export const metadata: Metadata = {
   metadataBase,
   title: 'Process',
   description: 'Track your job application processes and stages',
+  openGraph: {
+    title: 'Process - Master Your Job Application Process',
+    description: 'Track job applications with brutal efficiency. Discord bot for speed. Web dashboard for depth. No compromises.',
+    type: 'website',
+    siteName: 'Process',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Process - Master Your Job Application Process',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Process - Master Your Job Application Process',
+    description: 'Track job applications with brutal efficiency. Discord bot for speed. Web dashboard for depth.',
+    images: ['/og-image.png'],
+  },
 };
 
 export default function RootLayout({
