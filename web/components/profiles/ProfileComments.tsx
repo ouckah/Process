@@ -30,6 +30,30 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
 
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
+  const [prefilledQuestion, setPrefilledQuestion] = useState<string>('');
+
+  // Check URL params on mount to open question form
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const askParam = urlParams.get('ask');
+      const questionParam = urlParams.get('question');
+      if (askParam === 'true' || askParam === '1') {
+        setShowQuestionForm(true);
+        setShowCommentForm(false);
+        if (questionParam) {
+          setPrefilledQuestion(decodeURIComponent(questionParam));
+        }
+        // Scroll to comments section
+        setTimeout(() => {
+          const commentsSection = document.getElementById('profile-comments');
+          if (commentsSection) {
+            commentsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+    }
+  }, []);
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [editingComment, setEditingComment] = useState<ProfileComment | null>(null);
   const [filter, setFilter] = useState<'all' | 'comments' | 'questions'>('all');
@@ -39,6 +63,7 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
       await createComment.mutateAsync(data);
       setShowCommentForm(false);
       setShowQuestionForm(false);
+      setPrefilledQuestion('');
     } catch (error) {
       console.error('Failed to create comment:', error);
     }
@@ -128,6 +153,7 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
 
   return (
     <motion.div
+      id="profile-comments"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -225,9 +251,13 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
           <div className="mb-6 pb-6 border-b-4 border-ink-900 dark:border-cream-50">
             <CommentForm
               onSubmit={handleCreateComment}
-              onCancel={() => setShowQuestionForm(false)}
+              onCancel={() => {
+                setShowQuestionForm(false);
+                setPrefilledQuestion('');
+              }}
               isQuestion
               loading={createComment.isPending}
+              initialContent={prefilledQuestion}
             />
           </div>
         )}

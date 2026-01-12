@@ -30,6 +30,7 @@ export interface Process {
 
 export interface ProcessDetail extends Process {
   stages: Stage[];
+  username?: string | null;
 }
 
 export interface Stage {

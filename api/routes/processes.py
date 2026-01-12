@@ -377,7 +377,8 @@ def get_public_process(
     Get a public process by share ID (no authentication required).
     """
     process = db.query(Process).options(
-        joinedload(Process.stages)
+        joinedload(Process.stages),
+        joinedload(Process.user)
     ).filter(
         Process.share_id == share_id,
         Process.is_public == True
@@ -389,6 +390,9 @@ def get_public_process(
     # Calculate status from stages
     calculated_status = calculate_status_from_stages(process.stages)
     
+    # Get username from user relationship
+    username = process.user.username if process.user else None
+    
     # Convert to response format with stages
     return {
         "id": process.id,
@@ -399,6 +403,7 @@ def get_public_process(
         "share_id": process.share_id,
         "created_at": process.created_at.isoformat(),
         "updated_at": process.updated_at.isoformat(),
+        "username": username,
         "stages": [
             {
                 "id": s.id,

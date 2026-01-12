@@ -6,9 +6,11 @@ import { processApi } from '@/lib/api';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { StageTimeline } from '@/components/stages/StageTimeline';
-import { StatusBadge } from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MessageSquare } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import type { ProcessDetail } from '@/types';
 
 export default function SharePage() {
@@ -43,21 +45,33 @@ export default function SharePage() {
     }
   }, [shareId]);
 
+  // Status color mapping
+  const statusColors = {
+    active: 'bg-blue-600 dark:bg-blue-500',
+    completed: 'bg-green-600 dark:bg-green-500',
+    rejected: 'bg-red-600 dark:bg-red-500',
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600 dark:text-primary-400" />
+      <div className="min-h-screen flex items-center justify-center bg-cream-50 dark:bg-ink-950">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
       </div>
     );
   }
 
   if (error || !process) {
     return (
-      <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+      <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
         <Header />
         <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
-            {error || 'Process not found'}
+          <div className="relative group">
+            <div className="absolute inset-0 bg-red-600 dark:bg-red-500 translate-x-2 translate-y-2"></div>
+            <div className="relative bg-red-600 dark:bg-red-500 border-4 border-ink-900 dark:border-cream-50 p-6 transform rotate-1">
+              <p className="font-body text-lg font-black uppercase tracking-wider text-white">
+                {error || 'Process not found'}
+              </p>
+            </div>
           </div>
         </main>
         <Footer />
@@ -66,29 +80,79 @@ export default function SharePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
       <Header />
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 mb-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{process.company_name}</h1>
-            <StatusBadge status={process.status} />
-          </div>
-          {process.position && (
-            <p className="text-xl text-gray-600 dark:text-gray-400 mb-2">{process.position}</p>
-          )}
-          <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-            <span>Created: {formatDate(process.created_at)}</span>
-            {process.updated_at !== process.created_at && (
-              <span>Updated: {formatDate(process.updated_at)}</span>
+        {/* Process Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative group mb-8"
+        >
+          <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
+          <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-6 transform rotate-1">
+            <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
+              <div className="flex-1 min-w-0">
+                <h1 className="font-display text-3xl font-black uppercase tracking-tight text-ink-900 dark:text-cream-50 mb-3">
+                  {process.company_name}
+                </h1>
+                {process.position && (
+                  <p className="font-body text-xl text-ink-700 dark:text-ink-300 font-bold mb-4">
+                    {process.position}
+                  </p>
+                )}
+                <div className="flex items-center gap-4 flex-wrap">
+                  <div className={`inline-block ${statusColors[process.status]} px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1`}>
+                    <span className="font-body text-xs uppercase tracking-wider font-black text-white">
+                      {process.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="font-body text-ink-600 dark:text-ink-400">
+                      Created: {formatDate(process.created_at)}
+                    </span>
+                    {process.updated_at !== process.created_at && (
+                      <span className="font-body text-ink-600 dark:text-ink-400">
+                        Updated: {formatDate(process.updated_at)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {process.username && (
+              <div className="mt-6">
+                <Link href={`/profile/${process.username}?ask=true&question=${encodeURIComponent(`Can you tell me more about your experience with ${process.company_name}${process.position ? ` for the ${process.position} position` : ''}?`)}`}>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button
+                      variant="outline"
+                      className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Ask About Process
+                    </Button>
+                  </motion.div>
+                </Link>
+              </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Process Timeline</h3>
+        {/* Process Timeline */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <div className="mb-6">
+            <div className="inline-block bg-ink-900 dark:bg-cream-50 px-6 py-2 border-4 border-ink-900 dark:border-cream-50 transform rotate-1 mb-6">
+              <h3 className="font-display text-xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
+                Process Timeline
+              </h3>
+            </div>
+          </div>
           <StageTimeline stages={process.stages} />
-        </div>
+        </motion.div>
       </main>
       <Footer />
     </div>
