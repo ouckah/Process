@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # In production (Railway), environment variables are provided directly, so this is harmless
 load_dotenv()
 
-from routes import processes, auth, stages, feedback, profiles, comments, analytics, guild_configs, notifications
+from routes import processes, auth, stages, feedback, profiles, comments, analytics, guild_configs, notifications, explore, forum
 from database import init_db
 
 app = FastAPI()
@@ -63,6 +63,8 @@ app.include_router(comments.router)
 app.include_router(analytics.router)
 app.include_router(guild_configs.router)
 app.include_router(notifications.router)
+app.include_router(explore.router)
+app.include_router(forum.router)
 
 
 @app.get("/")

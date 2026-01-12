@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, JSON, JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, JSON, JSON, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
 import enum
@@ -169,3 +169,74 @@ class Notification(Base):
     
     def __repr__(self):
         return f"Notification(id={self.id}, user_id={self.user_id}, type={self.type}, is_read={self.is_read})"
+
+
+class ForumThread(Base):
+    __tablename__ = 'forum_threads'
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(200), nullable=False)
+    content = Column(String(5000), nullable=False)  # Initial post content
+    author_id = Column(Integer, ForeignKey('users.id'), nullable=True)  # Null if anonymous
+    author_display_name = Column(String(100), nullable=True)  # For anonymous posts
+    category = Column(String(50), nullable=True)  # Optional category (e.g., "company", "stage", "general")
+    related_company = Column(String(100), nullable=True)  # Link to company if company-specific
+    related_stage = Column(String(100), nullable=True)  # Link to stage if stage-specific
+    is_pinned = Column(Boolean, default=False)
+    is_locked = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False)  # Soft delete
+    view_count = Column(Integer, default=0)
+    reply_count = Column(Integer, default=0)  # Denormalized for performance
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_reply_at = Column(DateTime, nullable=True)  # For sorting by activity
+    
+    # Relationships
+    author = relationship("User", foreign_keys=[author_id])
+    replies = relationship("ForumReply", back_populates="thread", cascade="all, delete-orphan", order_by="ForumReply.created_at")
+
+    def __repr__(self):
+        return f"ForumThread(id={self.id}, title={self.title}, author_id={self.author_id})"
+
+
+class ForumReply(Base):
+    __tablename__ = 'forum_replies'
+
+    id = Column(Integer, primary_key=True)
+    thread_id = Column(Integer, ForeignKey('forum_threads.id'), nullable=False)
+    author_id = Column(Integer, ForeignKey('users.id'), nullable=True)  # Null if anonymous
+    author_display_name = Column(String(100), nullable=True)  # For anonymous posts
+    content = Column(String(5000), nullable=False)
+    parent_reply_id = Column(Integer, ForeignKey('forum_replies.id'), nullable=True)  # For nested replies
+    is_deleted = Column(Boolean, default=False)  # Soft delete
+    upvotes = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    thread = relationship("ForumThread", back_populates="replies")
+    author = relationship("User", foreign_keys=[author_id])
+    parent_reply = relationship("ForumReply", remote_side=[id], backref="nested_replies")
+    upvote_records = relationship("ForumReplyUpvote", back_populates="reply", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"ForumReply(id={self.id}, thread_id={self.thread_id}, author_id={self.author_id})"
+
+
+class ForumReplyUpvote(Base):
+    __tablename__ = 'forum_reply_upvotes'
+
+    id = Column(Integer, primary_key=True)
+    reply_id = Column(Integer, ForeignKey('forum_replies.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    reply = relationship("ForumReply", back_populates="upvote_records")
+    user = relationship("User")
+    
+    # Unique constraint to prevent duplicate upvotes
+    __table_args__ = (UniqueConstraint('reply_id', 'user_id', name='_forum_reply_user_upvote_uc'),)
+
+    def __repr__(self):
+        return f"ForumReplyUpvote(id={self.id}, reply_id={self.reply_id}, user_id={self.user_id})"

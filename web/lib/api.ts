@@ -15,7 +15,16 @@ import type {
   ProfileComment,
   ProfileCommentCreate,
   ProfileCommentUpdate,
-  Notification
+  Notification,
+  ExploreProcess,
+  ExploreFilters,
+  ExploreStats,
+  ForumThread,
+  ForumThreadCreate,
+  ForumThreadUpdate,
+  ForumReply,
+  ForumReplyCreate,
+  ForumReplyUpdate
 } from '@/types';
 
 // Ensure API URL uses HTTPS in production (browsers block mixed content)
@@ -257,6 +266,114 @@ export const analyticsApi = {
   getSankeyImageUrl: (username: string): string => {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
     return `${appUrl}/api/analytics/${encodeURIComponent(username)}/sankey-image`;
+  },
+};
+
+// Explore API
+export const exploreApi = {
+  getProcesses: async (params?: {
+    search?: string;
+    company?: string;
+    stage?: string;
+    position?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ExploreProcess[]> => {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.company) queryParams.append('company', params.company);
+    if (params?.stage) queryParams.append('stage', params.stage);
+    if (params?.position) queryParams.append('position', params.position);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const response = await apiClient.get<ExploreProcess[]>(
+      `/api/explore/processes?${queryParams.toString()}`
+    );
+    return response.data;
+  },
+
+  getCompanies: async (): Promise<string[]> => {
+    const response = await apiClient.get<string[]>('/api/explore/companies');
+    return response.data;
+  },
+
+  getStages: async (): Promise<string[]> => {
+    const response = await apiClient.get<string[]>('/api/explore/stages');
+    return response.data;
+  },
+
+  getStats: async (): Promise<ExploreStats> => {
+    const response = await apiClient.get<ExploreStats>('/api/explore/stats');
+    return response.data;
+  },
+};
+
+// Forum API
+export const forumApi = {
+  getThreads: async (params?: {
+    category?: string;
+    company?: string;
+    stage?: string;
+    sort?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ForumThread[]> => {
+    const queryParams = new URLSearchParams();
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.company) queryParams.append('company', params.company);
+    if (params?.stage) queryParams.append('stage', params.stage);
+    if (params?.sort) queryParams.append('sort', params.sort);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const response = await apiClient.get<ForumThread[]>(
+      `/api/forum/threads?${queryParams.toString()}`
+    );
+    return response.data;
+  },
+
+  getThread: async (threadId: number): Promise<ForumThread> => {
+    const response = await apiClient.get<ForumThread>(`/api/forum/threads/${threadId}`);
+    return response.data;
+  },
+
+  createThread: async (data: ForumThreadCreate): Promise<ForumThread> => {
+    const response = await apiClient.post<ForumThread>('/api/forum/threads', data);
+    return response.data;
+  },
+
+  updateThread: async (threadId: number, data: ForumThreadUpdate): Promise<ForumThread> => {
+    const response = await apiClient.patch<ForumThread>(`/api/forum/threads/${threadId}`, data);
+    return response.data;
+  },
+
+  deleteThread: async (threadId: number): Promise<void> => {
+    await apiClient.delete(`/api/forum/threads/${threadId}`);
+  },
+
+  createReply: async (threadId: number, data: ForumReplyCreate): Promise<ForumReply> => {
+    const response = await apiClient.post<ForumReply>(`/api/forum/threads/${threadId}/replies`, data);
+    return response.data;
+  },
+
+  updateReply: async (replyId: number, data: ForumReplyUpdate): Promise<ForumReply> => {
+    const response = await apiClient.patch<ForumReply>(`/api/forum/replies/${replyId}`, data);
+    return response.data;
+  },
+
+  deleteReply: async (replyId: number): Promise<void> => {
+    await apiClient.delete(`/api/forum/replies/${replyId}`);
+  },
+
+  upvoteReply: async (replyId: number): Promise<void> => {
+    await apiClient.post(`/api/forum/replies/${replyId}/upvote`);
+  },
+
+  removeUpvote: async (replyId: number): Promise<void> => {
+    await apiClient.delete(`/api/forum/replies/${replyId}/upvote`);
   },
 };
 

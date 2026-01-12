@@ -297,9 +297,184 @@ class PublicProfileResponse(BaseModel):
     account_created_at: str
     processes: List[ProcessResponse]
     stats: dict  # Detailed stats will be included here
+
+
+# Explore Schemas
+class ExploreProcessResponse(BaseModel):
+    """Schema for process in explore view with user info."""
+    id: int
+    company_name: str
+    position: Optional[str]
+    status: str
+    is_public: bool
+    share_id: Optional[str]
+    created_at: str
+    updated_at: str
+    stages: List[StageResponse]
+    # User info
+    user_username: Optional[str] = None  # Only if not anonymous
+    user_display_name: Optional[str] = None
+    user_is_anonymous: bool
+    user_discord_avatar: Optional[str] = None
+    user_discord_id: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ExploreFiltersResponse(BaseModel):
+    """Schema for available filter options."""
+    companies: List[str]
+    stages: List[str]
+    positions: List[str]
+
+
+class ExploreStatsResponse(BaseModel):
+    """Schema for explore page statistics."""
+    total_processes: int
+    total_companies: int
+    total_users: int
+
+
+# Forum Schemas
+class ForumThreadCreate(BaseModel):
+    """Schema for creating a forum thread."""
+    title: str
+    content: str
+    category: Optional[str] = None
+    related_company: Optional[str] = None
+    related_stage: Optional[str] = None
+    author_display_name: Optional[str] = None  # Required if posting anonymously
+    
+    @field_validator('title')
+    @classmethod
+    def validate_title(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Thread title cannot be empty')
+        if len(v) > 200:
+            raise ValueError('Thread title must be at most 200 characters')
+        return v.strip()
+    
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Thread content cannot be empty')
+        if len(v) > 5000:
+            raise ValueError('Thread content must be at most 5000 characters')
+        return v.strip()
+
+
+class ForumThreadUpdate(BaseModel):
+    """Schema for updating a forum thread."""
+    title: Optional[str] = None
+    content: Optional[str] = None
+    
+    @field_validator('title')
+    @classmethod
+    def validate_title(cls, v):
+        if v is None:
+            return v
+        if not v.strip():
+            raise ValueError('Thread title cannot be empty')
+        if len(v) > 200:
+            raise ValueError('Thread title must be at most 200 characters')
+        return v.strip()
+    
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v):
+        if v is None:
+            return v
+        if not v.strip():
+            raise ValueError('Thread content cannot be empty')
+        if len(v) > 5000:
+            raise ValueError('Thread content must be at most 5000 characters')
+        return v.strip()
+
+
+class ForumReplyCreate(BaseModel):
+    """Schema for creating a forum reply."""
+    content: str
+    parent_reply_id: Optional[int] = None
+    author_display_name: Optional[str] = None  # Required if posting anonymously
+    
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Reply content cannot be empty')
+        if len(v) > 5000:
+            raise ValueError('Reply content must be at most 5000 characters')
+        return v.strip()
+
+
+class ForumReplyUpdate(BaseModel):
+    """Schema for updating a forum reply."""
+    content: Optional[str] = None
+    
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v):
+        if v is None:
+            return v
+        if not v.strip():
+            raise ValueError('Reply content cannot be empty')
+        if len(v) > 5000:
+            raise ValueError('Reply content must be at most 5000 characters')
+        return v.strip()
+
+
+class ForumReplyResponse(BaseModel):
+    """Schema for forum reply response."""
+    id: int
+    thread_id: int
+    author_id: Optional[int] = None
+    author_display_name: Optional[str] = None
+    author_username: Optional[str] = None
+    author_discord_avatar: Optional[str] = None
+    author_discord_id: Optional[str] = None
+    content: str
+    parent_reply_id: Optional[int] = None
+    is_deleted: bool
+    upvotes: int
+    user_has_upvoted: bool = False
+    created_at: str
+    updated_at: str
+    nested_replies: List['ForumReplyResponse'] = []
     
     class Config:
         from_attributes = True
+
+
+class ForumThreadResponse(BaseModel):
+    """Schema for forum thread response."""
+    id: int
+    title: str
+    content: str
+    author_id: Optional[int] = None
+    author_display_name: Optional[str] = None
+    author_username: Optional[str] = None
+    author_discord_avatar: Optional[str] = None
+    author_discord_id: Optional[str] = None
+    category: Optional[str] = None
+    related_company: Optional[str] = None
+    related_stage: Optional[str] = None
+    is_pinned: bool
+    is_locked: bool
+    view_count: int
+    reply_count: int
+    created_at: str
+    updated_at: str
+    last_reply_at: Optional[str] = None
+    replies: List[ForumReplyResponse] = []
+    
+    class Config:
+        from_attributes = True
+
+
+# Update forward reference
+ForumReplyResponse.model_rebuild()
 
 
 class GuildConfigResponse(BaseModel):

@@ -38,6 +38,30 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-2">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link 
+                href="/explore" 
+                className="relative block"
+              >
+                <div className="bg-cream-100 dark:bg-ink-800 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 hover:rotate-0 transition-transform">
+                  <span className="font-body text-sm font-black uppercase tracking-wider text-ink-900 dark:text-cream-50">
+                    Explore
+                  </span>
+                </div>
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link 
+                href="/forum" 
+                className="relative block"
+              >
+                <div className="bg-cream-100 dark:bg-ink-800 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 hover:rotate-0 transition-transform">
+                  <span className="font-body text-sm font-black uppercase tracking-wider text-ink-900 dark:text-cream-50">
+                    Forum
+                  </span>
+                </div>
+              </Link>
+            </motion.div>
             {isAuthenticated ? (
               <>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -145,6 +169,40 @@ export function Header() {
               className="md:hidden border-t-4 border-ink-900 dark:border-cream-50 overflow-hidden bg-cream-50 dark:bg-ink-950"
             >
               <nav className="flex flex-col space-y-3 py-4">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <Link
+                    href="/explore"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block"
+                  >
+                    <div className="bg-cream-100 dark:bg-ink-800 px-4 py-3 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 mx-4">
+                      <span className="font-body text-base font-black uppercase tracking-wider text-ink-900 dark:text-cream-50">
+                        Explore
+                      </span>
+                    </div>
+                  </Link>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <Link
+                    href="/forum"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block"
+                  >
+                    <div className="bg-cream-100 dark:bg-ink-800 px-4 py-3 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 mx-4">
+                      <span className="font-body text-base font-black uppercase tracking-wider text-ink-900 dark:text-cream-50">
+                        Forum
+                      </span>
+                    </div>
+                  </Link>
+                </motion.div>
                 {isAuthenticated ? (
                   <>
                     <motion.div

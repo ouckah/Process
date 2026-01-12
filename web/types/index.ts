@@ -132,6 +132,101 @@ export interface ProfileCommentCreate {
   parent_comment_id?: number | null;
 }
 
+// Explore Types
+export interface ExploreProcess {
+  id: number;
+  company_name: string;
+  position: string | null;
+  status: string;
+  is_public: boolean;
+  share_id: string | null;
+  created_at: string;
+  updated_at: string;
+  stages: Stage[];
+  user_username?: string | null;
+  user_display_name?: string | null;
+  user_is_anonymous: boolean;
+  user_discord_avatar?: string | null;
+  user_discord_id?: string | null;
+}
+
+export interface ExploreFilters {
+  companies: string[];
+  stages: string[];
+  positions: string[];
+}
+
+export interface ExploreStats {
+  total_processes: number;
+  total_companies: number;
+  total_users: number;
+}
+
+// Forum Types
+export interface ForumThread {
+  id: number;
+  title: string;
+  content: string;
+  author_id?: number | null;
+  author_display_name?: string | null;
+  author_username?: string | null;
+  author_discord_avatar?: string | null;
+  author_discord_id?: string | null;
+  category?: string | null;
+  related_company?: string | null;
+  related_stage?: string | null;
+  is_pinned: boolean;
+  is_locked: boolean;
+  view_count: number;
+  reply_count: number;
+  created_at: string;
+  updated_at: string;
+  last_reply_at?: string | null;
+  replies: ForumReply[];
+}
+
+export interface ForumReply {
+  id: number;
+  thread_id: number;
+  author_id?: number | null;
+  author_display_name?: string | null;
+  author_username?: string | null;
+  author_discord_avatar?: string | null;
+  author_discord_id?: string | null;
+  content: string;
+  parent_reply_id?: number | null;
+  is_deleted: boolean;
+  upvotes: number;
+  user_has_upvoted: boolean;
+  created_at: string;
+  updated_at: string;
+  nested_replies: ForumReply[];
+}
+
+export interface ForumThreadCreate {
+  title: string;
+  content: string;
+  category?: string | null;
+  related_company?: string | null;
+  related_stage?: string | null;
+  author_display_name?: string | null;
+}
+
+export interface ForumThreadUpdate {
+  title?: string | null;
+  content?: string | null;
+}
+
+export interface ForumReplyCreate {
+  content: string;
+  parent_reply_id?: number | null;
+  author_display_name?: string | null;
+}
+
+export interface ForumReplyUpdate {
+  content?: string | null;
+}
+
 export interface ProfileCommentUpdate {
   content?: string | null;
 }

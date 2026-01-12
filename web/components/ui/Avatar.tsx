@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 interface AvatarProps {
   discordAvatar?: string | null;
   discordId?: string | null;
-  username: string;
+  username?: string | null;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
@@ -26,8 +26,9 @@ export function Avatar({
   size = 'md',
   className 
 }: AvatarProps) {
-  // Get first letter of username for fallback
-  const initial = username.charAt(0).toUpperCase();
+  // Get first letter of username for fallback (handle undefined/null)
+  const displayName = username || '?';
+  const initial = displayName.charAt(0).toUpperCase();
   
   // Generate Discord avatar URL if we have both discord_id and avatar hash
   const discordAvatarUrl = discordAvatar && discordId
