@@ -9,18 +9,7 @@ export function Footer() {
     <footer className="relative bg-cream-50 dark:bg-ink-950 border-t-4 border-ink-900 dark:border-cream-50 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-6 md:space-y-0">
-          <div className="space-y-3">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-block"
-            >
-              <div className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-4 border-ink-900 dark:border-cream-50 transform rotate-1">
-                <p className="font-display text-xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
-                  Process
-                </p>
-              </div>
-            </motion.div>
+          <div>
             <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 inline-block">
               <p className="text-sm font-body font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
                 © {new Date().getFullYear()} Process. All rights reserved.
