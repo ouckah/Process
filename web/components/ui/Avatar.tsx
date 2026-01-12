@@ -27,7 +27,7 @@ export function Avatar({
   className 
 }: AvatarProps) {
   // Get first letter of username for fallback (handle undefined/null)
-  const displayName = username || '?';
+  const displayName: string = username || '?';
   const initial = displayName.charAt(0).toUpperCase();
   
   // Generate Discord avatar URL if we have both discord_id and avatar hash
