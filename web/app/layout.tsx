@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   title: 'Process',
   description: 'Track your job application processes and stages',
   verification: {
-    google: '7f35dkWcoUQK5j307CyAIEreC78D50ZXB4UmQi2jxbQ',
+    google: 'hDeDaPPErQ91xC6VfHfqVJh1fMqo8Jz1ixXKV5X6ynk',
   },
   openGraph: {
     title: 'Process - Master Your Job Application Process',
