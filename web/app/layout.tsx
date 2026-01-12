@@ -27,31 +27,56 @@ const metadataBase = new URL(appUrl);
 
 export const metadata: Metadata = {
   metadataBase,
-  title: 'Process',
-  description: 'Track your job application processes and stages',
+  title: 'Process - Job Application Tracker & Discord Bot | Track Job Processes',
+  description: 'Track job applications and processes with Process - a powerful job tracker with Discord bot integration. Manage your job search, track application stages, and visualize your progress. The best job application tracker for developers and job seekers.',
+  keywords: [
+    'job tracker',
+    'job application tracker',
+    'processes discord bot',
+    'processes job tracker',
+    'job process tracker',
+    'application tracker',
+    'job search tracker',
+    'discord bot job tracker',
+    'track job applications',
+    'job application management',
+    'sankey diagram job tracker',
+    'visual job tracker',
+  ],
   verification: {
     google: 'hDeDaPPErQ91xC6VfHfqVJh1fMqo8Jz1ixXKV5X6ynk',
   },
   openGraph: {
-    title: 'Process - Master Your Job Application Process',
-    description: 'Track job applications with brutal efficiency. Discord bot for speed. Web dashboard for depth. No compromises.',
+    title: 'Process - Job Application Tracker & Discord Bot',
+    description: 'Track job applications with brutal efficiency. Discord bot for speed. Web dashboard for depth. The best job tracker for managing your application process.',
     type: 'website',
     url: appUrl,
-    siteName: 'Process',
+    siteName: 'Process - Job Application Tracker',
     images: [
       {
         url: `${appUrl}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: 'Process - Master Your Job Application Process',
+        alt: 'Process - Job Application Tracker and Discord Bot',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Process - Master Your Job Application Process',
+    title: 'Process - Job Application Tracker & Discord Bot',
     description: 'Track job applications with brutal efficiency. Discord bot for speed. Web dashboard for depth.',
     images: [`${appUrl}/og-image.png`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 };
 

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Script from 'next/script';
 import { Button } from '@/components/ui/Button';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -37,8 +38,37 @@ export default function Home() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.95, 1], [1, 1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.95, 1], [1, 1, 0.9]);
 
+  // Structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Process",
+    "applicationCategory": "JobApplication",
+    "operatingSystem": "Web, Discord",
+    "description": "Track job applications and processes with Process - a powerful job tracker with Discord bot integration. Manage your job search, track application stages, and visualize your progress.",
+    "url": "https://processes.cc",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Job application tracking",
+      "Discord bot integration",
+      "Sankey diagram visualization",
+      "Timeline tracking",
+      "Public profile sharing",
+      "Process analytics"
+    ]
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
+      <Script
+        id="structured-data"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <Header />
       <main className="flex-grow bg-cream-50 dark:bg-ink-950">
         {/* Hero Section - Brutalist Retro-Futuristic */}
@@ -100,7 +130,7 @@ export default function Home() {
                 transition={{ duration: 0.8, delay: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="font-body text-xl sm:text-2xl text-ink-700 dark:text-ink-300 leading-tight mb-16 max-w-3xl font-bold"
               >
-                Track job applications with brutal efficiency. Discord bot for speed. Web dashboard for depth. 
+                Track job applications with brutal efficiency. Discord bot for speed. Web dashboard for depth. The best job application tracker for managing your process.
                 <span className="block mt-2 text-indigo-600 dark:text-indigo-400">No compromises.</span>
               </motion.p>
 
@@ -181,7 +211,7 @@ export default function Home() {
                   <span className="text-indigo-600 dark:text-indigo-400">WORKFLOW</span>
                 </h2>
                 <p className="font-body text-xl text-ink-700 dark:text-ink-300 leading-relaxed font-bold max-w-2xl">
-                  Discord for speed. Web for depth. Both designed with brutal efficiency.
+                  Job tracker with Discord bot for speed. Web dashboard for depth. Both designed with brutal efficiency.
                 </p>
               </div>
             </AnimatedSection>
@@ -210,7 +240,7 @@ export default function Home() {
                     </div>
                     
                     <p className="font-body text-lg text-ink-800 dark:text-ink-200 mb-10 leading-relaxed font-bold">
-                      Track applications directly from Discord. Quick commands. Instant updates. Zero friction.
+                      Track job applications directly from Discord. Quick commands. Instant updates. Zero friction. The best Discord bot for job tracking.
                     </p>
                     
                     <ul className="space-y-5 mb-10">
@@ -233,7 +263,7 @@ export default function Home() {
                         <span className="text-amber-500 dark:text-amber-600">p!</span>add Google OA
                       </p>
                       <p className="font-body text-xs text-indigo-200 dark:text-indigo-800 uppercase tracking-wider font-black">
-                        Add a stage in seconds
+                        Add a job application stage in seconds with the Processes Discord bot
                       </p>
                     </div>
                   </div>
@@ -262,7 +292,7 @@ export default function Home() {
                     </div>
                     
                     <p className="font-body text-lg text-ink-800 dark:text-ink-200 mb-10 leading-relaxed font-bold">
-                      Comprehensive tracking with visualizations. Detailed analytics. Full control.
+                      Comprehensive job application tracking with visualizations. Detailed analytics. Full control. Track your entire job search process.
                     </p>
                     
                     <ul className="space-y-5 mb-10">

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://processes.cc/sitemap.xml
