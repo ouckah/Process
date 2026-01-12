@@ -17,7 +17,7 @@ DEFAULT_CONFIG = {
     "disabled_commands": []
 }
 
-TIMEOUT = 3.0  # Reduced timeout for faster failure detection
+TIMEOUT = 10.0  # Timeout for API requests (increased from 3s to handle network latency)
 CACHE_TTL = 60  # Cache configs for 60 seconds
 logger = logging.getLogger(__name__)
 
@@ -84,13 +84,16 @@ class GuildConfig:
                 logger.error(f"Error {method}ing guild config for {guild_id}: {e.response.status_code} - {e.response.text}")
                 raise Exception(f"CONFIG_HTTP_ERROR: {e.response.status_code}")
             except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.TimeoutException) as e:
-                logger.error(f"Timeout {method}ing guild config for {guild_id}: {type(e).__name__}")
+                logger.error(f"Timeout {method}ing guild config for {guild_id} from {url}: {type(e).__name__}")
+                logger.error(f"API URL being used: {api_url}")
                 raise Exception("CONFIG_CONNECTION_TIMEOUT")
             except httpx.ConnectError as e:
-                logger.error(f"Connection error {method}ing guild config for {guild_id}: {type(e).__name__}")
+                logger.error(f"Connection error {method}ing guild config for {guild_id} from {url}: {type(e).__name__}")
+                logger.error(f"API URL being used: {api_url}")
                 raise Exception("CONFIG_CONNECTION_ERROR")
             except httpx.RequestError as e:
-                logger.error(f"Failed to {method} guild config for {guild_id}: {type(e).__name__}")
+                logger.error(f"Failed to {method} guild config for {guild_id} from {url}: {type(e).__name__}")
+                logger.error(f"API URL being used: {api_url}")
                 raise Exception(f"CONFIG_REQUEST_ERROR: {str(e)}")
     
     async def load_config(self, guild_id: str, use_cache: bool = True) -> Dict[str, Any]:

@@ -17,8 +17,36 @@ def get_api_url() -> str:
     """
     Get API URL from environment variable.
     Use this function instead of importing API_URL constant to avoid import-time issues.
+    
+    Handles Railway internal URLs by converting them to public URLs when needed.
     """
-    return os.getenv("API_URL", "http://localhost:8000")
+    api_url = os.getenv("API_URL", "http://localhost:8000")
+    
+    # If Railway internal URL, try to convert to public URL
+    # Railway internal URLs use .railway.internal domain which is only accessible within Railway's private network
+    if ".railway.internal" in api_url:
+        # Try to get the public URL from RAILWAY_PUBLIC_DOMAIN or construct from service name
+        public_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN")
+        if public_domain:
+            # Replace internal domain with public domain
+            api_url = api_url.replace(".railway.internal", public_domain)
+            # Ensure HTTPS for public URLs
+            if not api_url.startswith("https://"):
+                api_url = api_url.replace("http://", "https://")
+            logger.info(f"Converted Railway internal URL to public URL: {api_url}")
+        else:
+            # If no public domain set, try to extract from service name
+            # Railway internal URLs are like: http://service-name.railway.internal:port
+            # Try using RAILWAY_STATIC_URL or construct from service
+            railway_static_url = os.getenv("RAILWAY_STATIC_URL")
+            if railway_static_url:
+                # Use the static URL if available
+                api_url = railway_static_url
+                logger.info(f"Using Railway static URL: {api_url}")
+            else:
+                logger.warning(f"Using Railway internal URL {api_url} - this may not be accessible. Set RAILWAY_PUBLIC_DOMAIN or use public API_URL.")
+    
+    return api_url
 
 
 def get_frontend_url() -> str:
