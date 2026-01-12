@@ -502,12 +502,27 @@ def google_oauth_callback(
                 },
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
+            
+            # Check for errors in response
+            if token_response.status_code != 200:
+                error_detail = token_response.text
+                try:
+                    error_json = token_response.json()
+                    error_detail = error_json.get("error_description", error_json.get("error", error_detail))
+                except:
+                    pass
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Google OAuth token exchange failed: {error_detail}. Redirect URI used: {backend_redirect_uri}"
+                )
+            
             token_data = token_response.json()
             
             if "access_token" not in token_data:
+                error_msg = token_data.get("error_description", token_data.get("error", "Unknown error"))
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Failed to get Google access token"
+                    detail=f"Failed to get Google access token: {error_msg}. Redirect URI used: {backend_redirect_uri}"
                 )
             
             # Get user info from Google
