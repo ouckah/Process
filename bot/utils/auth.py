@@ -25,26 +25,40 @@ def get_api_url() -> str:
     # If Railway internal URL, try to convert to public URL
     # Railway internal URLs use .railway.internal domain which is only accessible within Railway's private network
     if ".railway.internal" in api_url:
-        # Try to get the public URL from RAILWAY_PUBLIC_DOMAIN or construct from service name
+        # Try to get the public URL from RAILWAY_PUBLIC_DOMAIN first
         public_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN")
         if public_domain:
-            # Replace internal domain with public domain
-            api_url = api_url.replace(".railway.internal", public_domain)
-            # Ensure HTTPS for public URLs
-            if not api_url.startswith("https://"):
-                api_url = api_url.replace("http://", "https://")
-            logger.info(f"Converted Railway internal URL to public URL: {api_url}")
+            # If public_domain starts with http/https, use it directly
+            if public_domain.startswith("http://") or public_domain.startswith("https://"):
+                api_url = public_domain
+                logger.info(f"Using Railway public domain: {api_url}")
+            else:
+                # Replace internal domain with public domain
+                api_url = api_url.replace(".railway.internal", public_domain)
+                # Remove port from URL if present (public domains typically don't need ports)
+                if ":8080" in api_url:
+                    api_url = api_url.replace(":8080", "")
+                # Ensure HTTPS for public URLs
+                if not api_url.startswith("https://"):
+                    api_url = api_url.replace("http://", "https://")
+                logger.info(f"Converted Railway internal URL to public URL: {api_url}")
         else:
-            # If no public domain set, try to extract from service name
-            # Railway internal URLs are like: http://service-name.railway.internal:port
-            # Try using RAILWAY_STATIC_URL or construct from service
+            # If no public domain set, try using RAILWAY_STATIC_URL
             railway_static_url = os.getenv("RAILWAY_STATIC_URL")
             if railway_static_url:
                 # Use the static URL if available
                 api_url = railway_static_url
+                # Ensure HTTPS
+                if not api_url.startswith("https://"):
+                    api_url = api_url.replace("http://", "https://")
                 logger.info(f"Using Railway static URL: {api_url}")
             else:
-                logger.warning(f"Using Railway internal URL {api_url} - this may not be accessible. Set RAILWAY_PUBLIC_DOMAIN or use public API_URL.")
+                # Cannot convert - log error and still use internal URL (will likely fail)
+                # User must set either API_URL to public URL or RAILWAY_PUBLIC_DOMAIN
+                logger.error(f"Cannot convert Railway internal URL {api_url} to public URL.")
+                logger.error(f"Please set RAILWAY_PUBLIC_DOMAIN environment variable to your public API domain (e.g., 'process-api-production.up.railway.app')")
+                logger.error(f"OR set API_URL directly to the public URL (e.g., 'https://process-api-production.up.railway.app')")
+                logger.warning(f"Attempting to use internal URL {api_url} - this will likely fail if bot is outside Railway network")
     
     return api_url
 

@@ -3,12 +3,8 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 import os
 from typing import Generator
-from dotenv import load_dotenv
 
 from models import Base
-
-
-load_dotenv()
 
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./process_tracker.db")

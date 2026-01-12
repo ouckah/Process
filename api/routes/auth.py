@@ -1,6 +1,8 @@
 """
 Authentication routes for OAuth.
 """
+import os
+import httpx
 from datetime import timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -122,11 +124,6 @@ def discord_oauth_callback(
     Discord OAuth callback - handles the OAuth redirect from Discord.
     Links Discord account to existing user or creates new account.
     """
-    import os
-    import httpx
-    from dotenv import load_dotenv
-    load_dotenv()
-    
     DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
     DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
@@ -344,11 +341,6 @@ def link_discord_account(
     """
     Link Discord account to existing authenticated user.
     """
-    import os
-    import httpx
-    from dotenv import load_dotenv
-    load_dotenv()
-    
     DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
     DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
@@ -393,6 +385,7 @@ def link_discord_account(
             
             discord_id = str(discord_user.get("id"))
             email = discord_user.get("email", "")
+            discord_avatar = discord_user.get("avatar")  # Discord avatar hash
             
             # Check if Discord ID is already linked to another account
             existing_discord_user = get_user_by_discord_id(db, discord_id)
@@ -480,11 +473,6 @@ def google_oauth_callback(
     Google OAuth callback - handles the OAuth redirect from Google.
     Links Google account to existing user or creates new account.
     """
-    import os
-    import httpx
-    from dotenv import load_dotenv
-    load_dotenv()
-    
     GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")

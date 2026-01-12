@@ -8,13 +8,9 @@ from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
-from dotenv import load_dotenv
 
 from database import get_db
 from models import User
-
-# Load environment variables
-load_dotenv()
 
 # JWT Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
