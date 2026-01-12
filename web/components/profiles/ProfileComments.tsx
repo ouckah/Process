@@ -32,9 +32,9 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [prefilledQuestion, setPrefilledQuestion] = useState<string>('');
 
-  // Check URL params on mount to open question form
+  // Check URL params on mount to open question form (only if user is logged in)
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && user) {
       const urlParams = new URLSearchParams(window.location.search);
       const askParam = urlParams.get('ask');
       const questionParam = urlParams.get('question');
@@ -44,16 +44,25 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
         if (questionParam) {
           setPrefilledQuestion(decodeURIComponent(questionParam));
         }
-        // Scroll to comments section
+        // Scroll to comments section after form is rendered
         setTimeout(() => {
           const commentsSection = document.getElementById('profile-comments');
+          const questionForm = document.getElementById('question-form');
           if (commentsSection) {
+            // Scroll to the comments section
             commentsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // If form is visible, scroll to it instead for better UX
+            if (questionForm) {
+              setTimeout(() => {
+                questionForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                window.scrollBy({ top: -20, behavior: 'smooth' });
+              }, 100);
+            }
           }
-        }, 100);
+        }, 500);
       }
     }
-  }, []);
+  }, [user]);
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [editingComment, setEditingComment] = useState<ProfileComment | null>(null);
   const [filter, setFilter] = useState<'all' | 'comments' | 'questions'>('all');
@@ -237,7 +246,7 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
           </div>
         )}
 
-        {showCommentForm && (
+        {showCommentForm && user && (
           <div className="mb-6 pb-6 border-b-4 border-ink-900 dark:border-cream-50">
             <CommentForm
               onSubmit={handleCreateComment}
@@ -247,8 +256,8 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
           </div>
         )}
 
-        {showQuestionForm && (
-          <div className="mb-6 pb-6 border-b-4 border-ink-900 dark:border-cream-50">
+        {showQuestionForm && user && (
+          <div id="question-form" className="mb-6 pb-6 border-b-4 border-ink-900 dark:border-cream-50">
             <CommentForm
               onSubmit={handleCreateComment}
               onCancel={() => {
@@ -265,7 +274,7 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
         {filteredComments.length === 0 ? (
           <div className="text-center py-12">
             <div className="inline-block bg-ink-900 dark:bg-cream-50 px-6 py-3 border-4 border-ink-900 dark:border-cream-50 transform rotate-1">
-              <p className="font-body text-ink-700 dark:text-ink-300 font-bold uppercase tracking-wider">
+              <p className="font-body text-cream-50 dark:text-ink-900 font-bold uppercase tracking-wider">
                 {filter === 'all' 
                   ? (user ? 'Be the first to ask a question or leave a comment!' : 'No comments or questions yet.')
                   : filter === 'comments'
