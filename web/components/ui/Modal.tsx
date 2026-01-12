@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from './Button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ModalProps {
   isOpen: boolean;
@@ -14,13 +14,26 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const sizes = {
-    sm: 'max-w-md', // 28rem / 448px
-    md: 'max-w-lg', // 32rem / 512px
-    lg: 'max-w-2xl', // 42rem / 672px
-    xl: 'max-w-4xl', // 56rem / 896px
+    sm: 'max-w-md',
+    md: 'max-w-lg',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl',
   };
 
   const maxWidthPx = {
@@ -31,58 +44,79 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        {/* Background overlay */}
-        <div
-          className="fixed inset-0 transition-opacity bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75"
-          onClick={onClose}
-        />
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-cream-50/60 dark:bg-ink-950/60 backdrop-blur-md"
+              onClick={onClose}
+            />
 
-        {/* Modal panel */}
-        <div
-          className={cn(
-            'inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left shadow-xl transform transition-all sm:my-8 sm:align-middle',
-            'w-[calc(100%-2rem)]'
-          )}
-          style={{ 
-            maxWidth: maxWidthPx[size],
-            width: 'calc(100% - 2rem)',
-            overflow: 'hidden',
-            boxSizing: 'border-box'
-          }}
-        >
-          {/* Header */}
-          {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 overflow-hidden">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 truncate flex-1 min-w-0">{title}</h3>
-              <button
-                onClick={onClose}
-                className="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none flex-shrink-0 ml-2"
+            {/* Modal panel */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className={cn(
+                'relative inline-block align-bottom bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 text-left sm:my-8 sm:align-middle',
+                'w-[calc(100%-2rem)] transform rotate-1',
+                sizes[size]
+              )}
+              style={{ 
+                maxWidth: maxWidthPx[size],
+                width: 'calc(100% - 2rem)',
+                overflow: 'hidden',
+                boxSizing: 'border-box',
+                position: 'relative',
+                zIndex: 10
+              }}
+            >
+              {/* Shadow */}
+              <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2 -z-10"></div>
+
+              {/* Header */}
+              {title && (
+                <div className="flex items-center justify-between px-6 py-4 border-b-4 border-ink-900 dark:border-cream-50 bg-ink-900 dark:bg-cream-50">
+                  <div className="bg-cream-50 dark:bg-ink-900 px-4 py-1 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 inline-block">
+                    <h3 className="font-display text-lg font-black uppercase tracking-tight text-ink-900 dark:text-cream-50">{title}</h3>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={onClose}
+                    className="bg-red-600 dark:bg-red-500 w-8 h-8 border-2 border-ink-900 dark:border-cream-50 flex items-center justify-center flex-shrink-0 transform rotate-1"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </motion.button>
+                </div>
+              )}
+
+              {/* Content */}
+              <div 
+                className="px-6 py-4 bg-cream-50 dark:bg-ink-900 text-ink-900 dark:text-cream-50 max-h-[calc(100vh-200px)] overflow-y-auto" 
+                style={{ 
+                  overflowX: 'hidden',
+                  minWidth: 0, 
+                  maxWidth: '100%', 
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word'
+                }}
               >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-          )}
-
-          {/* Content */}
-          <div 
-            className="px-6 py-4 text-gray-900 dark:text-gray-100" 
-            style={{ 
-              overflow: 'hidden', 
-              minWidth: 0, 
-              maxWidth: '100%', 
-              width: '100%',
-              boxSizing: 'border-box',
-              wordWrap: 'break-word',
-              overflowWrap: 'break-word'
-            }}
-          >
-            {children}
+                {children}
+              </div>
+            </motion.div>
           </div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }
-

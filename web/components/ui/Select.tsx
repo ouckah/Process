@@ -17,33 +17,39 @@ export function Select({ label, error, className, options, placeholder, ...props
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-black uppercase tracking-wider text-ink-900 dark:text-cream-50 mb-2">
           {label}
         </label>
       )}
-      <select
-        className={cn(
-          'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100',
-          error && 'border-red-500 dark:border-red-500 focus:ring-red-500',
-          className
-        )}
-        {...props}
-      >
-        {placeholder && (
-          <option value="" disabled>
-            {placeholder}
-          </option>
-        )}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-1 translate-y-1"></div>
+        <select
+          className={cn(
+            'relative w-full px-4 py-3 border-4 border-ink-900 dark:border-cream-50 bg-cream-50 dark:bg-ink-900 text-ink-900 dark:text-cream-50 font-bold focus:outline-none focus:bg-cream-100 dark:focus:bg-ink-800 transition-colors appearance-none cursor-pointer',
+            error && 'border-red-600 dark:border-red-500',
+            className
+          )}
+          {...props}
+        >
+          {placeholder && (
+            <option value="" disabled>
+              {placeholder}
+            </option>
+          )}
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        {/* Custom arrow */}
+        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+          <div className="w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-ink-900 dark:border-t-cream-50"></div>
+        </div>
+      </div>
       {error && (
-        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
+        <p className="mt-2 text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-wider">{error}</p>
       )}
     </div>
   );
 }
-

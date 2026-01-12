@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { MessageSquare, HelpCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { MarkdownTextarea } from '@/components/ui/MarkdownTextarea';
+import { motion } from 'framer-motion';
 
 interface CommentFormProps {
   onSubmit: (data: { content: string; is_question: boolean; author_display_name?: string | null }) => void;
@@ -59,39 +60,55 @@ export function CommentForm({
   const canPostAnonymously = user?.is_anonymous || false;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
-          <p className="text-sm">{error}</p>
+        <div className="relative group">
+          <div className="absolute inset-0 bg-red-600 dark:bg-red-500 translate-x-1 translate-y-1"></div>
+          <div className="relative bg-red-600 dark:bg-red-500 border-2 border-ink-900 dark:border-cream-50 p-4 transform rotate-1">
+            <p className="font-body text-sm font-black uppercase tracking-wider text-white">{error}</p>
+          </div>
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          {isQuestion ? 'Your Question' : 'Your Comment'}
-        </label>
-        <MarkdownTextarea
-          value={content}
-          onChange={(value) => setContent(value)}
-          placeholder={placeholder || (isQuestion ? 'Ask a question...' : 'Write a comment...')}
-          rows={4}
-        />
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {content.length}/2000 characters
-        </p>
+        <div className="mb-3">
+          <div className="inline-block bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1">
+            <label className="font-body text-sm font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+              {isQuestion ? 'Your Question' : 'Your Comment'}
+            </label>
+          </div>
+        </div>
+        <div className="relative">
+          <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-1 translate-y-1"></div>
+          <MarkdownTextarea
+            value={content}
+            onChange={(value) => setContent(value)}
+            placeholder={placeholder || (isQuestion ? 'Ask a question...' : 'Write a comment...')}
+            rows={6}
+            className="relative border-4 border-ink-900 dark:border-cream-50 bg-cream-50 dark:bg-ink-900 text-ink-900 dark:text-cream-50 font-bold focus:outline-none focus:bg-cream-100 dark:focus:bg-ink-800 transition-colors"
+          />
+        </div>
+        <div className="mt-2 bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 inline-block">
+          <p className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+            {content.length}/2000 characters
+          </p>
+        </div>
       </div>
 
       {canPostAnonymously && (
-        <div className="space-y-2">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={postAnonymously}
-              onChange={(e) => setPostAnonymously(e.target.checked)}
-              disabled={loading}
-              className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-            />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Post anonymously</span>
+        <div className="space-y-3">
+          <label className="flex items-center space-x-3 cursor-pointer group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-1 translate-y-1"></div>
+              <input
+                type="checkbox"
+                checked={postAnonymously}
+                onChange={(e) => setPostAnonymously(e.target.checked)}
+                disabled={loading}
+                className="relative w-5 h-5 border-2 border-ink-900 dark:border-cream-50 bg-cream-50 dark:bg-ink-900 text-indigo-600 focus:ring-2 focus:ring-indigo-600 cursor-pointer"
+              />
+            </div>
+            <span className="font-body text-sm font-black uppercase tracking-wider text-ink-900 dark:text-cream-50">Post anonymously</span>
           </label>
           {postAnonymously && (
             <Input
@@ -105,17 +122,30 @@ export function CommentForm({
         </div>
       )}
 
-      <div className="flex items-center space-x-2">
-        <Button type="submit" disabled={loading || !content.trim()}>
-          {loading ? 'Posting...' : (isQuestion ? 'Ask Question' : 'Post Comment')}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
-            Cancel
+      <div className="flex items-center space-x-3">
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button 
+            type="submit" 
+            disabled={loading || !content.trim()}
+            className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+          >
+            {loading ? 'Posting...' : (isQuestion ? 'Ask Question' : 'Post Comment')}
           </Button>
+        </motion.div>
+        {onCancel && (
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel} 
+              disabled={loading}
+              className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+            >
+              Cancel
+            </Button>
+          </motion.div>
         )}
       </div>
     </form>
   );
 }
-

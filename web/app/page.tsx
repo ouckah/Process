@@ -4,21 +4,21 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { MessageSquare, BarChart3, Users, Zap, Shield, ArrowRight, Bot, Globe } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowRight, Bot, Globe, Zap, BarChart3, Shield } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
 
-function AnimatedSection({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function AnimatedSection({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const isInView = useInView(ref, { once: true, margin: '-50px' });
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, scale: 0.95, y: 50 }}
-      animate={isInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.95, y: 50 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+      initial={{ opacity: 0, y: 40, scale: 0.95 }}
+      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 40, scale: 0.95 }}
+      transition={{ duration: 0.6, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={className}
     >
       {children}
@@ -27,277 +27,297 @@ function AnimatedSection({ children, className = '' }: { children: React.ReactNo
 }
 
 export default function Home() {
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.95, 1], [1, 1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.95, 1], [1, 1, 0.9]);
+
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
       <Header />
-      <main className="flex-grow bg-white dark:bg-gray-900">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="text-center"
-            >
-              <h1 className="text-5xl font-extrabold text-gray-900 dark:text-gray-100 sm:text-6xl md:text-7xl">
-                Track Your Job Process
-                <span className="block text-primary-600 dark:text-primary-400 mt-2">From Discord or Web</span>
-              </h1>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
+      <main className="flex-grow bg-cream-50 dark:bg-ink-950">
+        {/* Hero Section - Brutalist Retro-Futuristic */}
+        <section ref={heroRef} className="relative overflow-hidden min-h-screen flex items-center">
+          {/* Brutalist grid background */}
+          <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]">
+            <div 
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `
+                  linear-gradient(to right, currentColor 1px, transparent 1px),
+                  linear-gradient(to bottom, currentColor 1px, transparent 1px)
+                `,
+                backgroundSize: '60px 60px',
+              }}
+            />
+          </div>
+
+          {/* Geometric accent shapes */}
+          <div className="absolute top-20 right-10 w-64 h-64 bg-indigo-600 dark:bg-indigo-500 rotate-45 opacity-10 blur-3xl"></div>
+          <div className="absolute bottom-20 left-10 w-96 h-96 bg-amber-500 dark:bg-amber-400 -rotate-12 opacity-10 blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/4 w-32 h-32 border-8 border-indigo-600 dark:border-indigo-400 rotate-12 opacity-5"></div>
+
+          <motion.div
+            style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
+            className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20"
+          >
+            <div className="max-w-5xl">
+              {/* Main headline - Brutalist typography */}
+              <motion.h1
+                initial={{ opacity: 0, y: 60 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-                className="mt-6 max-w-3xl mx-auto text-xl text-gray-600 dark:text-gray-300 sm:text-2xl"
+                transition={{ duration: 1, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-ink-900 dark:text-cream-50 leading-[0.85] mb-8 tracking-tighter"
+                style={{ 
+                  textShadow: '8px 8px 0px rgba(79, 70, 229, 0.2), -4px -4px 0px rgba(245, 158, 11, 0.1)',
+                  WebkitTextStroke: '2px transparent'
+                }}
               >
-                The easiest way to keep track of your job applications. Use our Discord bot for quick updates or the web dashboard for detailed insights.
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                MASTER
+                <br />
+                <span className="relative inline-block">
+                  YOUR
+                  <motion.span
+                    initial={{ width: 0 }}
+                    animate={{ width: '100%' }}
+                    transition={{ duration: 1, delay: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="absolute bottom-2 left-0 h-6 bg-gradient-to-r from-indigo-600 to-amber-500 dark:from-indigo-400 dark:to-amber-400 opacity-30 -z-10"
+                  />
+                </span>
+                <br />
+                <span className="text-indigo-600 dark:text-indigo-400">PROCESS</span>
+              </motion.h1>
+
+              {/* Subheadline - Brutalist style */}
+              <motion.p
+                initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
-                className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center"
+                transition={{ duration: 0.8, delay: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="font-body text-xl sm:text-2xl text-ink-700 dark:text-ink-300 leading-tight mb-16 max-w-3xl font-bold"
+              >
+                Track job applications with brutal efficiency. Discord bot for speed. Web dashboard for depth. 
+                <span className="block mt-2 text-indigo-600 dark:text-indigo-400">No compromises.</span>
+              </motion.p>
+
+              {/* CTA Buttons - Brutalist design */}
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="flex flex-col sm:flex-row gap-6 items-start"
               >
                 <Link href="/register">
-                  <Button size="lg" className="text-lg px-8 py-4">
-                    Get Started Free
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
+                  <motion.div
+                    whileHover={{ scale: 1.05, x: 4, y: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="relative group"
+                  >
+                    <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2 group-hover:translate-x-3 group-hover:translate-y-3 transition-transform"></div>
+                    <Button 
+                      size="lg" 
+                      className="relative bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-5 text-xl font-black border-4 border-ink-900 dark:border-cream-50 transform -rotate-1 group-hover:rotate-0 transition-all duration-200"
+                    >
+                      <span className="flex items-center">
+                        GET STARTED
+                        <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                      </span>
+                    </Button>
+                  </motion.div>
                 </Link>
                 <Link href="/login">
-                  <Button variant="outline" size="lg" className="text-lg px-8 py-4">
-                    Sign In
-                  </Button>
+                  <motion.div
+                    whileHover={{ scale: 1.05, x: 4, y: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="relative group"
+                  >
+                    <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2 group-hover:translate-x-3 group-hover:translate-y-3 transition-transform"></div>
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      className="relative px-10 py-5 text-xl font-black border-4 border-ink-900 dark:border-cream-50 bg-cream-50 dark:bg-ink-950 text-ink-900 dark:text-cream-50 transform rotate-1 group-hover:rotate-0 transition-all duration-200"
+                    >
+                      SIGN IN
+                    </Button>
+                  </motion.div>
                 </Link>
               </motion.div>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.6, ease: 'easeOut' }}
-                className="mt-6 text-sm text-gray-500 dark:text-gray-400"
-              >
-                No credit card required • Free forever
-              </motion.p>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </section>
 
-        {/* Features Section */}
-        <section className="py-20 bg-white dark:bg-gray-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Features Section - Brutalist Cards */}
+        <section className="relative py-32 bg-cream-50 dark:bg-ink-950 overflow-hidden">
+          {/* Brutalist grid overlay */}
+          <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03]">
+            <div 
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `
+                  linear-gradient(to right, currentColor 1px, transparent 1px),
+                  linear-gradient(to bottom, currentColor 1px, transparent 1px)
+                `,
+                backgroundSize: '80px 80px',
+              }}
+            />
+          </div>
+
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Section header */}
             <AnimatedSection>
-              <div className="text-center mb-16">
-                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 sm:text-4xl">
-                  Two Ways to Track, One Powerful Platform
+              <div className="mb-24 max-w-4xl">
+                <div className="inline-block bg-ink-900 dark:bg-cream-50 px-6 py-2 border-4 border-ink-900 dark:border-cream-50 transform rotate-1 mb-8">
+                  <p className="font-body text-xs uppercase tracking-[0.3em] font-black text-cream-50 dark:text-ink-900">
+                    Two Interfaces
+                  </p>
+                </div>
+                <h2 className="font-display text-6xl sm:text-7xl md:text-8xl font-black text-ink-900 dark:text-cream-50 leading-tight mb-6 tracking-tighter">
+                  CHOOSE YOUR
+                  <br />
+                  <span className="text-indigo-600 dark:text-indigo-400">WORKFLOW</span>
                 </h2>
-                <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-                  Choose the method that works best for you
+                <p className="font-body text-xl text-ink-700 dark:text-ink-300 leading-relaxed font-bold max-w-2xl">
+                  Discord for speed. Web for depth. Both designed with brutal efficiency.
                 </p>
               </div>
             </AnimatedSection>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
+            {/* Feature Cards - Brutalist Design */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-24">
               {/* Discord Bot Feature */}
-              <AnimatedSection>
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-8 border border-indigo-100 dark:border-indigo-800">
-                <div className="flex items-center mb-6">
-                  <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-indigo-600 text-white">
-                    <Bot className="w-7 h-7" />
+              <AnimatedSection delay={0.1}>
+                <motion.div
+                  whileHover={{ scale: 1.02, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  className="relative h-full group"
+                >
+                  <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-4 translate-y-4 group-hover:translate-x-6 group-hover:translate-y-6 transition-transform"></div>
+                  <div className="relative bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-ink-900 dark:to-indigo-950 border-4 border-ink-900 dark:border-cream-50 p-10 transform -rotate-1 group-hover:rotate-0 transition-transform">
+                    <div className="flex items-center mb-8">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-500 translate-x-2 translate-y-2"></div>
+                        <div className="relative bg-indigo-600 dark:bg-indigo-500 w-20 h-20 border-4 border-ink-900 dark:border-cream-50 flex items-center justify-center">
+                          <Bot className="w-10 h-10 text-white" />
+                        </div>
+                      </div>
+                      <h3 className="ml-6 font-display text-4xl font-black text-ink-900 dark:text-cream-50 uppercase tracking-tight">
+                        Discord Bot
+                      </h3>
+                    </div>
+                    
+                    <p className="font-body text-lg text-ink-800 dark:text-ink-200 mb-10 leading-relaxed font-bold">
+                      Track applications directly from Discord. Quick commands. Instant updates. Zero friction.
+                    </p>
+                    
+                    <ul className="space-y-5 mb-10">
+                      {[
+                        { icon: Zap, text: 'Lightning-fast updates with simple commands' },
+                        { icon: Shield, text: 'Granular privacy controls' },
+                        { icon: BarChart3, text: 'Sankey diagrams on demand' },
+                      ].map((item, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <div className="bg-indigo-600 dark:bg-indigo-500 w-8 h-8 border-2 border-ink-900 dark:border-cream-50 flex items-center justify-center mr-4 flex-shrink-0">
+                            <item.icon className="w-4 h-4 text-white" />
+                          </div>
+                          <span className="font-body text-ink-800 dark:text-ink-200 font-semibold">{item.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <div className="bg-ink-900 dark:bg-cream-50 border-4 border-indigo-600 dark:border-indigo-400 p-6 transform rotate-1">
+                      <p className="font-mono text-base text-indigo-300 dark:text-indigo-700 mb-2 font-bold">
+                        <span className="text-amber-500 dark:text-amber-600">p!</span>add Google OA
+                      </p>
+                      <p className="font-body text-xs text-indigo-200 dark:text-indigo-800 uppercase tracking-wider font-black">
+                        Add a stage in seconds
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="ml-4 text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Discord Bot
-                  </h3>
-                </div>
-                <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-                  Track your applications directly from Discord. Quick commands, instant updates, and seamless workflow.
-                </p>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start">
-                    <Zap className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300">Lightning-fast updates with simple commands</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Shield className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300">Privacy controls for your processes</span>
-                  </li>
-                  <li className="flex items-start">
-                    <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300">View Sankey diagrams and analytics</span>
-                  </li>
-                </ul>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-indigo-200 dark:border-indigo-700">
-                  <p className="text-sm font-mono text-gray-800 dark:text-gray-200">
-                    <span className="text-indigo-600 dark:text-indigo-400">p!</span>add Google OA
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Add a stage in seconds</p>
-                </div>
-                </div>
+                </motion.div>
               </AnimatedSection>
 
               {/* Web Dashboard Feature */}
-              <AnimatedSection>
-                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-8 border border-blue-100 dark:border-blue-800">
-                <div className="flex items-center mb-6">
-                  <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-blue-600 text-white">
-                    <Globe className="w-7 h-7" />
+              <AnimatedSection delay={0.2}>
+                <motion.div
+                  whileHover={{ scale: 1.02, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  className="relative h-full group"
+                >
+                  <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-4 translate-y-4 group-hover:translate-x-6 group-hover:translate-y-6 transition-transform"></div>
+                  <div className="relative bg-gradient-to-br from-amber-50 to-amber-100 dark:from-ink-900 dark:to-amber-950 border-4 border-ink-900 dark:border-cream-50 p-10 transform rotate-1 group-hover:rotate-0 transition-transform">
+                    <div className="flex items-center mb-8">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-amber-600 dark:bg-amber-500 translate-x-2 translate-y-2"></div>
+                        <div className="relative bg-amber-600 dark:bg-amber-500 w-20 h-20 border-4 border-ink-900 dark:border-cream-50 flex items-center justify-center">
+                          <Globe className="w-10 h-10 text-white" />
+                        </div>
+                      </div>
+                      <h3 className="ml-6 font-display text-4xl font-black text-ink-900 dark:text-cream-50 uppercase tracking-tight">
+                        Web Dashboard
+                      </h3>
+                    </div>
+                    
+                    <p className="font-body text-lg text-ink-800 dark:text-ink-200 mb-10 leading-relaxed font-bold">
+                      Comprehensive tracking with visualizations. Detailed analytics. Full control.
+                    </p>
+                    
+                    <ul className="space-y-5 mb-10">
+                      {[
+                        { icon: BarChart3, text: 'Interactive Sankey diagrams' },
+                        { icon: Zap, text: 'Timeline visualizations' },
+                        { icon: Shield, text: 'Public profiles & sharing' },
+                      ].map((item, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <div className="bg-amber-600 dark:bg-amber-500 w-8 h-8 border-2 border-ink-900 dark:border-cream-50 flex items-center justify-center mr-4 flex-shrink-0">
+                            <item.icon className="w-4 h-4 text-white" />
+                          </div>
+                          <span className="font-body text-ink-800 dark:text-ink-200 font-semibold">{item.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <div className="bg-ink-900 dark:bg-cream-50 border-4 border-amber-600 dark:border-amber-400 p-6 transform -rotate-1">
+                      <p className="font-body text-base text-amber-200 dark:text-amber-800 mb-2 font-black uppercase">
+                        📊 Visualize your entire journey
+                      </p>
+                      <p className="font-body text-xs text-amber-300 dark:text-amber-700 uppercase tracking-wider font-bold">
+                        See patterns. Track progress.
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="ml-4 text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Web Dashboard
-                  </h3>
-                </div>
-                <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-                  Comprehensive tracking with visualizations, detailed analytics, and full control over your processes.
-                </p>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start">
-                    <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300">Interactive Sankey diagrams and analytics</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300">Timeline visualizations and stage tracking</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300">Public profiles and sharing options</span>
-                  </li>
-                </ul>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
-                  <p className="text-sm text-gray-800 dark:text-gray-200">
-                    📊 Visualize your entire job search journey
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">See patterns and track progress</p>
-                </div>
-                </div>
+                </motion.div>
               </AnimatedSection>
             </div>
 
-            {/* Core Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <AnimatedSection>
-                <div className="text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-800">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary-500 text-white mx-auto mb-4">
-                    <BarChart3 className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Easy Tracking</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Add stages with simple commands. No complex setup required.
-                  </p>
-                </div>
-              </AnimatedSection>
-
-              <AnimatedSection>
-                <div className="text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-800">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary-500 text-white mx-auto mb-4">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Community Insights</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Join the community to share and learn from interview experiences.
-                  </p>
-                </div>
-              </AnimatedSection>
-
-              <AnimatedSection>
-                <div className="text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-800">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary-500 text-white mx-auto mb-4">
-                    <MessageSquare className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Interview Insights</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Ask questions and get answers from others who've been through similar processes.
-                  </p>
-                </div>
-              </AnimatedSection>
-            </div>
-          </div>
-        </section>
-
-        {/* Community Section */}
-        <section className="py-20 bg-gradient-to-br from-primary-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <AnimatedSection>
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 md:p-12 shadow-xl border border-primary-200 dark:border-primary-800">
-              <div className="text-center mb-8">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary-500 text-white mx-auto mb-4">
-                  <Users className="w-8 h-8" />
-                </div>
-                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 sm:text-4xl mb-4">
-                  Join the Community
-                </h2>
-                <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                  Connect with others going through the job search process. Share interview experiences, get insights, and learn from the community.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <AnimatedSection>
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center">
-                      <MessageSquare className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
-                      Ask Questions
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      Get answers about interview processes, company culture, and what to expect at each stage.
-                    </p>
-                  </div>
-                </AnimatedSection>
-
-                <AnimatedSection>
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center">
-                      <Users className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
-                      Share Experiences
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      Help others by sharing your interview experiences and insights from your job search journey.
-                    </p>
-                  </div>
-                </AnimatedSection>
-              </div>
-
+            {/* Final CTA */}
+            <AnimatedSection delay={0.3}>
               <div className="text-center">
                 <Link href="/register">
-                  <Button size="lg" className="text-lg px-8 py-4">
-                    Join the Community
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
+                  <motion.div
+                    whileHover={{ scale: 1.05, x: 4, y: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="inline-block relative group"
+                  >
+                    <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-3 translate-y-3 group-hover:translate-x-4 group-hover:translate-y-4 transition-transform"></div>
+                    <Button 
+                      size="lg" 
+                      className="relative bg-indigo-600 hover:bg-indigo-700 text-white px-12 py-6 text-2xl font-black border-4 border-ink-900 dark:border-cream-50 transform rotate-1 group-hover:rotate-0 transition-all"
+                    >
+                      START TRACKING NOW
+                      <ArrowRight className="ml-4 w-6 h-6 inline" />
+                    </Button>
+                  </motion.div>
                 </Link>
-              </div>
               </div>
             </AnimatedSection>
           </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 bg-white dark:bg-gray-900">
-          <AnimatedSection>
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 sm:text-4xl mb-4">
-              Ready to Track Your Job Process?
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
-              Start tracking your applications today. Use Discord for quick updates or the web for detailed insights.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/register">
-                <Button size="lg" className="text-lg px-8 py-4">
-                  Get Started Free
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button variant="outline" size="lg" className="text-lg px-8 py-4">
-                  Sign In
-                </Button>
-              </Link>
-            </div>
-            </div>
-          </AnimatedSection>
         </section>
       </main>
       <Footer />
     </div>
   );
 }
-

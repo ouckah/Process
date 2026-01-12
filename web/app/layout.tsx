@@ -1,10 +1,22 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Cormorant_Garamond, DM_Sans } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ReactQueryProvider } from './providers';
 
-const inter = Inter({ subsets: ['latin'] });
+const displayFont = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const bodyFont = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-body',
+  display: 'swap',
+});
 
 // Get the base URL for metadata
 const metadataBase = new URL(
@@ -25,8 +37,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="bg-white">
-      <body className={`${inter.className} bg-white text-gray-900`}>
+    <html lang="en" className={`${displayFont.variable} ${bodyFont.variable}`}>
+      <body className="font-body bg-cream-50 dark:bg-ink-950 text-ink-900 dark:text-cream-50 antialiased">
         <ReactQueryProvider>
           <AuthProvider>
             {children}

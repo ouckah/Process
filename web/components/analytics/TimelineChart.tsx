@@ -69,8 +69,11 @@ export function TimelineChart({ processes, processDetails = [] }: TimelineChartP
 
   if (timelineData.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 flex items-center justify-center h-64">
-        <p className="text-gray-500 dark:text-gray-400">No data to display</p>
+      <div className="relative group">
+        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
+        <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 flex items-center justify-center h-64 transform rotate-1">
+          <p className="font-body text-ink-700 dark:text-ink-300 font-bold uppercase tracking-wider">No data to display</p>
+        </div>
       </div>
     );
   }
@@ -78,15 +81,22 @@ export function TimelineChart({ processes, processDetails = [] }: TimelineChartP
   // Show placeholder if less than 3 days of data
   if (timelineData.length < 3) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Process Timeline</h3>
-        <div className="flex flex-col items-center justify-center h-64 text-center">
-          <p className="text-gray-500 dark:text-gray-400 mb-2">
-            Timeline requires at least 3 days of data
-          </p>
-          <p className="text-sm text-gray-400 dark:text-gray-500">
-            Add more stages to see your process progression over time
-          </p>
+      <div className="relative group">
+        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
+        <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-6 transform -rotate-1">
+          <div className="mb-6">
+            <div className="inline-block bg-amber-600 dark:bg-amber-500 px-4 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 mb-3">
+              <h3 className="font-display text-lg font-black uppercase tracking-tight text-white">Process Timeline</h3>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <p className="font-body text-ink-700 dark:text-ink-300 font-bold mb-2 uppercase tracking-wider">
+              Timeline requires at least 3 days of data
+            </p>
+            <p className="font-body text-sm text-ink-600 dark:text-ink-400 uppercase tracking-wider">
+              Add more stages to see progression
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -130,39 +140,54 @@ export function TimelineChart({ processes, processDetails = [] }: TimelineChartP
   });
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Process Timeline</h3>
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={timelineData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="date" 
-            angle={-45}
-            textAnchor="end"
-            height={100}
-            interval="preserveStartEnd"
-          />
-          <YAxis />
-          <Tooltip />
-          <Legend 
-            wrapperStyle={{ paddingTop: '20px' }}
-            iconType="line"
-            formatter={(value) => <span className="text-sm">{value}</span>}
-          />
-          {/* Dynamically render lines for all stage names that appear */}
-          {sortedStageNames.map((stageName) => (
-            <Line
-              key={stageName}
-              type="monotone"
-              dataKey={stageName}
-              stroke={stageColors[stageName] || '#6B7280'}
-              name={stageName}
-              strokeWidth={stageName === 'Offer' || stageName === 'Reject' ? 2 : 1}
-              dot={false}
+    <div className="relative group">
+      <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
+      <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-6 transform -rotate-1 group-hover:rotate-0 transition-transform">
+        <div className="mb-6">
+          <div className="inline-block bg-amber-600 dark:bg-amber-500 px-4 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 mb-3">
+            <h3 className="font-display text-lg font-black uppercase tracking-tight text-white">Process Timeline</h3>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart data={timelineData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#000" strokeOpacity={0.1} />
+            <XAxis 
+              dataKey="date" 
+              angle={-45}
+              textAnchor="end"
+              height={100}
+              interval="preserveStartEnd"
+              tick={{ fill: 'currentColor', fontSize: 12, fontWeight: 'bold' }}
             />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+            <YAxis tick={{ fill: 'currentColor', fontSize: 12, fontWeight: 'bold' }} />
+            <Tooltip 
+              contentStyle={{
+                backgroundColor: 'rgb(var(--color-cream-50))',
+                border: '4px solid rgb(var(--color-ink-900))',
+                borderRadius: '0',
+                fontWeight: 'bold',
+              }}
+            />
+            <Legend 
+              wrapperStyle={{ paddingTop: '20px' }}
+              iconType="line"
+              formatter={(value) => <span className="text-sm font-bold">{value}</span>}
+            />
+            {/* Dynamically render lines for all stage names that appear */}
+            {sortedStageNames.map((stageName) => (
+              <Line
+                key={stageName}
+                type="monotone"
+                dataKey={stageName}
+                stroke={stageColors[stageName] || '#6B7280'}
+                name={stageName}
+                strokeWidth={stageName === 'Offer' || stageName === 'Reject' ? 3 : 2}
+                dot={false}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

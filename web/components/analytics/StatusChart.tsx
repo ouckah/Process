@@ -65,34 +65,52 @@ export function StatusChart({ processes, processDetails = [] }: StatusChartProps
 
   if (filteredStatusData.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 flex items-center justify-center h-64">
-        <p className="text-gray-500 dark:text-gray-400">No data to display</p>
+      <div className="relative group">
+        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
+        <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 flex items-center justify-center h-64 transform -rotate-1">
+          <p className="font-body text-ink-700 dark:text-ink-300 font-bold uppercase tracking-wider">No data to display</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Stage Distribution (All Stages)</h3>
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={filteredStatusData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="name" 
-            angle={-45}
-            textAnchor="end"
-            height={100}
-            interval={0}
-          />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-            {filteredStatusData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="relative group">
+      <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
+      <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-6 transform rotate-1 group-hover:rotate-0 transition-transform">
+        <div className="mb-6">
+          <div className="inline-block bg-indigo-600 dark:bg-indigo-500 px-4 py-1 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 mb-3">
+            <h3 className="font-display text-lg font-black uppercase tracking-tight text-white">Stage Distribution</h3>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart data={filteredStatusData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#000" strokeOpacity={0.1} />
+            <XAxis 
+              dataKey="name" 
+              angle={-45}
+              textAnchor="end"
+              height={100}
+              interval={0}
+              tick={{ fill: 'currentColor', fontSize: 12, fontWeight: 'bold' }}
+            />
+            <YAxis tick={{ fill: 'currentColor', fontSize: 12, fontWeight: 'bold' }} />
+            <Tooltip 
+              contentStyle={{
+                backgroundColor: 'rgb(var(--color-cream-50))',
+                border: '4px solid rgb(var(--color-ink-900))',
+                borderRadius: '0',
+                fontWeight: 'bold',
+              }}
+            />
+            <Bar dataKey="count" radius={0}>
+              {filteredStatusData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { ProfileComments } from './ProfileComments';
 import { Avatar } from '@/components/ui/Avatar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import type { Process } from '@/types';
 import { formatDate } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -49,7 +50,7 @@ export function PublicProfileView({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600 dark:text-primary-400" />
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
       </div>
     );
   }
@@ -60,47 +61,82 @@ export function PublicProfileView({
     : username;
 
   return (
-    <div className="space-y-6">
-      {/* User Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
-        <div className="flex items-center space-x-4">
-          <Avatar
-            discordAvatar={discordAvatar}
-            discordId={discordId}
-            username={username}
-            size="xl"
-          />
-          <div className="flex-1">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {profileDisplayName}
-              </h1>
-              {isAnonymous && (
-                <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
-                  Anonymous
-                </span>
-              )}
+    <div className="space-y-12">
+      {/* User Header - Brutalist */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative group"
+      >
+        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-3 translate-y-3 group-hover:translate-x-4 group-hover:translate-y-4 transition-transform"></div>
+        <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 transform -rotate-1 group-hover:rotate-0 transition-transform">
+          <div className="flex items-center space-x-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-500 translate-x-2 translate-y-2"></div>
+              <div className="relative">
+                <Avatar
+                  discordAvatar={discordAvatar}
+                  discordId={discordId}
+                  username={username}
+                  size="xl"
+                />
+              </div>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Member since {formatDate(accountCreatedAt)}
-            </p>
+            <div className="flex-1">
+              <div className="flex items-center space-x-4 mb-3">
+                <h1 className="font-display text-4xl sm:text-5xl font-black text-ink-900 dark:text-cream-50 uppercase tracking-tight">
+                  {profileDisplayName}
+                </h1>
+                {isAnonymous && (
+                  <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1">
+                    <span className="font-body text-xs uppercase tracking-widest font-black text-cream-50 dark:text-ink-900">
+                      Anonymous
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="bg-indigo-600 dark:bg-indigo-500 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 inline-block">
+                <p className="font-body text-sm font-black uppercase tracking-wider text-white">
+                  Member since {formatDate(accountCreatedAt)}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Stats */}
+      {/* Stats - Brutalist */}
       {stats.total_public_processes > 0 && (
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Statistics</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <div className="mb-6">
+            <div className="inline-block bg-ink-900 dark:bg-cream-50 px-4 py-1 border-4 border-ink-900 dark:border-cream-50 transform rotate-1 mb-4">
+              <h2 className="font-display text-xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
+                Statistics
+              </h2>
+            </div>
+          </div>
           <ProfileStats stats={stats} />
-        </div>
+        </motion.div>
       )}
 
-      {/* Public Processes */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          Public Processes ({processes.length})
-        </h2>
+      {/* Public Processes - Brutalist */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <div className="mb-6">
+          <div className="inline-block bg-ink-900 dark:bg-cream-50 px-4 py-1 border-4 border-ink-900 dark:border-cream-50 transform -rotate-1 mb-4">
+            <h2 className="font-display text-xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
+              Public Processes ({processes.length})
+            </h2>
+          </div>
+        </div>
         {processes.length === 0 ? (
           <EmptyState
             type="no-processes"
@@ -109,22 +145,32 @@ export function PublicProfileView({
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {processes.map((process) => (
-              <PublicProcessCard key={process.id} process={process} />
+            {processes.map((process, idx) => (
+              <motion.div
+                key={process.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 + idx * 0.05 }}
+              >
+                <PublicProcessCard process={process} />
+              </motion.div>
             ))}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Comments & Questions */}
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
         <ProfileComments
           username={username}
           commentsEnabled={commentsEnabled}
           isProfileOwner={isProfileOwner}
         />
-      </div>
+      </motion.div>
     </div>
   );
 }
-

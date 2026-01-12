@@ -229,38 +229,51 @@ export function SankeyChart({ processes, processDetails = [], largeText = false 
 
   if (sankeyData.nodes.length === 0 || sankeyData.links.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 flex items-center justify-center h-64">
-        <p className="text-gray-500 dark:text-gray-400">No data to display</p>
+      <div className="relative group">
+        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
+        <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 flex items-center justify-center h-64 transform rotate-1">
+          <p className="font-body text-ink-700 dark:text-ink-300 font-bold uppercase tracking-wider">No data to display</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 w-full">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Stage Flow (Sankey Diagram)</h3>
-      <div className="w-full h-[500px] bg-gray-50 dark:bg-gray-900/50 rounded-lg p-8">
-        <ResponsiveContainer width="100%" height="100%">
-          <Sankey
-            data={sankeyData}
-            node={<CustomNode largeText={largeText} />}
-            nodePadding={50}
-            margin={{ top: 20, right: largeText ? 400 : 300, bottom: 20, left: largeText ? 400 : 300 }}
-            link={<CustomLink />}
-            nodeWidth={largeText ? 24 : 20}
-          >
-            <Tooltip 
-              contentStyle={{
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                border: '1px solid #e5e7eb',
-                borderRadius: '6px',
-              }}
-            />
-          </Sankey>
-        </ResponsiveContainer>
+    <div className="relative group w-full">
+      <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
+      <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-6 transform -rotate-1 group-hover:rotate-0 transition-transform">
+        <div className="mb-6">
+          <div className="inline-block bg-purple-600 dark:bg-purple-500 px-4 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 mb-3">
+            <h3 className="font-display text-lg font-black uppercase tracking-tight text-white">Stage Flow</h3>
+          </div>
+        </div>
+        <div className="w-full h-[500px] bg-cream-100 dark:bg-ink-800 border-4 border-ink-900 dark:border-cream-50 p-8">
+          <ResponsiveContainer width="100%" height="100%">
+            <Sankey
+              data={sankeyData}
+              node={<CustomNode largeText={largeText} />}
+              nodePadding={50}
+              margin={{ top: 20, right: largeText ? 500 : 400, bottom: 20, left: largeText ? 500 : 400 }}
+              link={<CustomLink />}
+              nodeWidth={largeText ? 28 : 24}
+            >
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'rgb(var(--color-cream-50))',
+                  border: '4px solid rgb(var(--color-ink-900))',
+                  borderRadius: '0',
+                  fontWeight: 'bold',
+                }}
+              />
+            </Sankey>
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-4 bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1">
+          <p className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+            Wider flows = more transitions
+          </p>
+        </div>
       </div>
-      <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-        Shows the flow of processes through different stages. Wider flows indicate more transitions.
-      </p>
     </div>
   );
 }

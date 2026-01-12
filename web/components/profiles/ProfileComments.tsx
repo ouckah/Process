@@ -9,6 +9,7 @@ import { MessageSquare, HelpCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { motion } from 'framer-motion';
 import type { ProfileComment } from '@/types';
 
 interface ProfileCommentsProps {
@@ -86,19 +87,23 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
 
   if (!commentsEnabled) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
-        <p className="text-gray-500 dark:text-gray-400 text-center">
-          Comments are disabled for this profile.
-        </p>
+      <div className="relative group">
+        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
+        <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-6 text-center transform rotate-1">
+          <p className="font-body text-ink-700 dark:text-ink-300 font-bold uppercase tracking-wider">
+            Comments are disabled for this profile
+          </p>
+        </div>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-8 h-8 animate-spin text-primary-600 dark:text-primary-400" />
+      <div className="relative group">
+        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
+        <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 flex items-center justify-center transform -rotate-1">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
         </div>
       </div>
     );
@@ -122,89 +127,92 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
-        <div className="mb-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Comments & Questions
-            </h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="relative group"
+    >
+      <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2 group-hover:translate-x-3 group-hover:translate-y-3 transition-transform"></div>
+      <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 transform rotate-1 group-hover:rotate-0 transition-transform">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+            <div className="inline-block bg-ink-900 dark:bg-cream-50 px-4 py-1 border-4 border-ink-900 dark:border-cream-50 transform -rotate-1">
+              <h2 className="font-display text-2xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
+                Comments & Questions
+              </h2>
+            </div>
             {user && (
-              <div className="flex items-center space-x-2 flex-shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setShowQuestionForm(true);
-                    setShowCommentForm(false);
-                  }}
-                >
-                  <HelpCircle className="w-4 h-4 mr-2" />
-                  Ask Question
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setShowCommentForm(true);
-                    setShowQuestionForm(false);
-                  }}
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Add Comment
-                </Button>
+              <div className="flex items-center space-x-3 flex-shrink-0">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowQuestionForm(true);
+                      setShowCommentForm(false);
+                    }}
+                    className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                  >
+                    <HelpCircle className="w-4 h-4 mr-2" />
+                    Ask Question
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setShowCommentForm(true);
+                      setShowQuestionForm(false);
+                    }}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Add Comment
+                  </Button>
+                </motion.div>
               </div>
             )}
           </div>
 
-          {/* Filter buttons */}
-          <div className="flex items-center space-x-2 mt-4 mb-4">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-3 py-1 text-sm rounded ${
-                filter === 'all'
-                  ? 'bg-primary-600 dark:bg-primary-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setFilter('comments')}
-              className={`px-3 py-1 text-sm rounded ${
-                filter === 'comments'
-                  ? 'bg-primary-600 dark:bg-primary-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
-            >
-              Comments
-            </button>
-            <button
-              onClick={() => setFilter('questions')}
-              className={`px-3 py-1 text-sm rounded ${
-                filter === 'questions'
-                  ? 'bg-primary-600 dark:bg-primary-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
-            >
-              Questions
-            </button>
+          {/* Filter buttons - Brutalist */}
+          <div className="flex items-center space-x-3 mb-6">
+            {(['all', 'comments', 'questions'] as const).map((filterOption) => (
+              <motion.button
+                key={filterOption}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setFilter(filterOption)}
+                className={`relative group ${
+                  filter === filterOption
+                    ? 'bg-indigo-600 dark:bg-indigo-500 text-white'
+                    : 'bg-cream-100 dark:bg-ink-800 text-ink-900 dark:text-cream-50'
+                } px-4 py-2 border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider text-sm transform ${filter === filterOption ? 'rotate-0' : 'rotate-1'} hover:rotate-0 transition-transform`}
+              >
+                {filterOption === 'all' ? 'All' : filterOption === 'comments' ? 'Comments' : 'Questions'}
+              </motion.button>
+            ))}
           </div>
         </div>
 
         {!user && (
-          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <p className="text-sm text-yellow-800 dark:text-yellow-300">
-              <strong>Sign in required:</strong> Please{' '}
-              <a href="/login" className="underline font-medium hover:text-yellow-900 dark:hover:text-yellow-200">
-                log in
-              </a>
-              {' '}to post comments or ask questions.
-            </p>
+          <div className="mb-6 relative group">
+            <div className="absolute inset-0 bg-amber-500 dark:bg-amber-400 translate-x-1 translate-y-1"></div>
+            <div className="relative bg-amber-500 dark:bg-amber-400 border-2 border-ink-900 dark:border-cream-50 p-4 transform -rotate-1">
+              <p className="font-body text-sm font-black uppercase tracking-wider text-ink-900">
+                <strong>Sign in required:</strong> Please{' '}
+                <a href="/login" className="underline hover:text-ink-700">
+                  log in
+                </a>
+                {' '}to post comments or ask questions.
+              </p>
+            </div>
           </div>
         )}
 
         {showCommentForm && (
-          <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="mb-6 pb-6 border-b-4 border-ink-900 dark:border-cream-50">
             <CommentForm
               onSubmit={handleCreateComment}
               onCancel={() => setShowCommentForm(false)}
@@ -214,7 +222,7 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
         )}
 
         {showQuestionForm && (
-          <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="mb-6 pb-6 border-b-4 border-ink-900 dark:border-cream-50">
             <CommentForm
               onSubmit={handleCreateComment}
               onCancel={() => setShowQuestionForm(false)}
@@ -225,28 +233,38 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
         )}
 
         {filteredComments.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-gray-400">
-              {filter === 'all' 
-                ? (user ? 'Be the first to ask a question or leave a comment!' : 'No comments or questions yet.')
-                : filter === 'comments'
-                ? (user ? 'Be the first to leave a comment!' : 'No comments yet.')
-                : (user ? 'Be the first to ask a question!' : 'No questions yet.')
-              }
-            </p>
+          <div className="text-center py-12">
+            <div className="inline-block bg-ink-900 dark:bg-cream-50 px-6 py-3 border-4 border-ink-900 dark:border-cream-50 transform rotate-1">
+              <p className="font-body text-ink-700 dark:text-ink-300 font-bold uppercase tracking-wider">
+                {filter === 'all' 
+                  ? (user ? 'Be the first to ask a question or leave a comment!' : 'No comments or questions yet.')
+                  : filter === 'comments'
+                  ? (user ? 'Be the first to leave a comment!' : 'No comments yet.')
+                  : (user ? 'Be the first to ask a question!' : 'No questions yet.')
+                }
+              </p>
+            </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredComments.map((comment) => (
-              <div key={comment.id}>
+          <div className="space-y-6">
+            {filteredComments.map((comment, idx) => (
+              <motion.div
+                key={comment.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: idx * 0.05 }}
+              >
                 {editingComment && editingComment.id === comment.id ? (
-                  <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                    <CommentForm
-                      onSubmit={handleUpdateComment}
-                      onCancel={() => setEditingComment(null)}
-                      loading={updateComment.isPending}
-                      initialContent={editingComment.content}
-                    />
+                  <div className="mb-4 relative group">
+                    <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-1 translate-y-1"></div>
+                    <div className="relative bg-cream-100 dark:bg-ink-800 border-4 border-ink-900 dark:border-cream-50 p-6 transform rotate-1">
+                      <CommentForm
+                        onSubmit={handleUpdateComment}
+                        onCancel={() => setEditingComment(null)}
+                        loading={updateComment.isPending}
+                        initialContent={editingComment.content}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -261,22 +279,24 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
                       onUpvote={handleUpvote}
                     />
                     {replyingTo === comment.id && (
-                      <div className="ml-6 mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <CommentForm
-                          onSubmit={handleReply}
-                          onCancel={() => setReplyingTo(null)}
-                          loading={replyToComment.isPending}
-                        />
+                      <div className="ml-6 mt-4 relative group">
+                        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-1 translate-y-1"></div>
+                        <div className="relative bg-cream-100 dark:bg-ink-800 border-4 border-ink-900 dark:border-cream-50 p-6 transform -rotate-1">
+                          <CommentForm
+                            onSubmit={handleReply}
+                            onCancel={() => setReplyingTo(null)}
+                            loading={replyToComment.isPending}
+                          />
+                        </div>
                       </div>
                     )}
                   </>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
-

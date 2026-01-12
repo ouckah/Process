@@ -11,9 +11,10 @@ import { Input } from '@/components/ui/Input';
 import { Avatar } from '@/components/ui/Avatar';
 import { Loader2, User, Mail, CheckCircle, XCircle, Edit, Save, X, ExternalLink, Eye, EyeOff, MessageSquare, Shield } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function ProfilePage() {
-  const { user, loading: authLoading, isAuthenticated, updateProfile } = useAuth();
+  const { user, loading: authLoading, isAuthenticated, updateProfile, refreshUser } = useAuth();
   const router = useRouter();
   const [disconnecting, setDisconnecting] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
@@ -40,6 +41,14 @@ export default function ProfilePage() {
       setCommentsEnabled(user.comments_enabled !== false); // Default to true
     }
   }, [user]);
+
+  // Refresh user data when component mounts to ensure we have latest avatar info
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      refreshUser();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, authLoading]);
 
   const handleStartEditUsername = () => {
     setIsEditingUsername(true);
@@ -80,8 +89,8 @@ export default function ProfilePage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600 dark:text-primary-400" />
+      <div className="min-h-screen flex items-center justify-center bg-cream-50 dark:bg-ink-950">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
       </div>
     );
   }
@@ -147,46 +156,89 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
       <Header />
-      <main className="flex-grow max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex items-center space-x-4 mb-4">
-            <Avatar
-              discordAvatar={user?.discord_avatar}
-              discordId={user?.discord_id}
-              username={user?.username || ''}
-              size="xl"
-            />
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Profile</h1>
-              <p className="text-gray-600 dark:text-gray-400">Manage your account settings and connected accounts.</p>
+      <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-12"
+        >
+          <div className="mb-4">
+            <div className="inline-block bg-ink-900 dark:bg-cream-50 px-4 py-1 border-4 border-ink-900 dark:border-cream-50 transform rotate-1">
+              <h1 className="font-display text-2xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
+                Profile Settings
+              </h1>
             </div>
           </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 space-y-6">
-          {/* User Information */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Account Information</h2>
-              {user && (
-                <Link href={`/profile/${user.username}`}>
-                  <Button variant="outline" size="sm">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    View Public Profile
-                  </Button>
-                </Link>
-              )}
+          <div className="relative group">
+            <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-3 translate-y-3 group-hover:translate-x-4 group-hover:translate-y-4 transition-transform"></div>
+            <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 transform -rotate-1 group-hover:rotate-0 transition-transform">
+              <div className="flex items-center space-x-6">
+                <div className="relative flex-shrink-0">
+                  <Avatar
+                    discordAvatar={user?.discord_avatar}
+                    discordId={user?.discord_id}
+                    username={user?.username || ''}
+                    size="xl"
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="inline-block bg-ink-900 dark:bg-cream-50 px-4 py-2 border-4 border-ink-900 dark:border-cream-50 transform -rotate-1">
+                    <p className="font-display text-xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
+                      Manage your account settings
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 flex-1">
-                  <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          </div>
+        </motion.div>
+
+        {/* Account Information */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-12"
+        >
+          <div className="relative group">
+            <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2 group-hover:translate-x-3 group-hover:translate-y-3 transition-transform"></div>
+            <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 transform rotate-1 group-hover:rotate-0 transition-transform">
+              <div className="flex items-center justify-between mb-6">
+                <div className="inline-block bg-ink-900 dark:bg-cream-50 px-4 py-1 border-4 border-ink-900 dark:border-cream-50 transform -rotate-1">
+                  <h2 className="font-display text-xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
+                    Account Information
+                  </h2>
+                </div>
+                {user && (
+                  <Link href={`/profile/${user.username}`}>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button variant="outline" size="sm" className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        View Public Profile
+                      </Button>
+                    </motion.div>
+                  </Link>
+                )}
+              </div>
+              
+              <div className="space-y-6">
+                {/* Username */}
+                <div className="flex items-start space-x-4">
+                  <div className="bg-indigo-600 dark:bg-indigo-500 p-3 border-2 border-ink-900 dark:border-cream-50 transform rotate-1">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
                   <div className="flex-1">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Username</p>
+                    <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 inline-block mb-3">
+                      <p className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                        Username
+                      </p>
+                    </div>
                     {isEditingUsername ? (
-                      <div className="mt-1">
+                      <div className="space-y-3">
                         <Input
                           value={usernameValue}
                           onChange={(e) => setUsernameValue(e.target.value)}
@@ -194,197 +246,313 @@ export default function ProfilePage() {
                           className="max-w-xs"
                           disabled={updatingUsername}
                         />
-                        <div className="flex items-center space-x-2 mt-2">
-                          <Button
-                            size="sm"
-                            onClick={handleSaveUsername}
-                            disabled={updatingUsername}
-                          >
-                            <Save className="w-4 h-4 mr-1" />
-                            {updatingUsername ? 'Saving...' : 'Save'}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleCancelEditUsername}
-                            disabled={updatingUsername}
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            Cancel
-                          </Button>
+                        {usernameError && (
+                          <div className="relative group">
+                            <div className="absolute inset-0 bg-red-600 dark:bg-red-500 translate-x-1 translate-y-1"></div>
+                            <div className="relative bg-red-600 dark:bg-red-500 border-2 border-ink-900 dark:border-cream-50 p-3 transform rotate-1">
+                              <p className="font-body text-sm font-black uppercase tracking-wider text-white">{usernameError}</p>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-center space-x-3">
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button
+                              size="sm"
+                              onClick={handleSaveUsername}
+                              disabled={updatingUsername}
+                              className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                            >
+                              <Save className="w-4 h-4 mr-1" />
+                              {updatingUsername ? 'Saving...' : 'Save'}
+                            </Button>
+                          </motion.div>
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleCancelEditUsername}
+                              disabled={updatingUsername}
+                              className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Cancel
+                            </Button>
+                          </motion.div>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center space-x-2">
-                        <p className="text-lg font-medium text-gray-900 dark:text-gray-100">{user.username}</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleStartEditUsername}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
+                      <div className="flex items-center space-x-3">
+                        <p className="font-display text-xl font-black text-ink-900 dark:text-cream-50 uppercase tracking-tight">{user.username}</p>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleStartEditUsername}
+                            className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </motion.div>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
-                  <p className="text-lg font-medium text-gray-900 dark:text-gray-100">{user.email || 'Not set'}</p>
+
+                {/* Email */}
+                <div className="flex items-start space-x-4 pt-6 border-t-4 border-ink-900 dark:border-cream-50">
+                  <div className="bg-indigo-600 dark:bg-indigo-500 p-3 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1">
+                    <Mail className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 inline-block mb-3">
+                      <p className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                        Email
+                      </p>
+                    </div>
+                    <p className="font-display text-xl font-black text-ink-900 dark:text-cream-50 uppercase tracking-tight">{user.email || 'Not set'}</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </motion.div>
 
-          {/* Privacy & Anonymization */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Privacy & Anonymization</h2>
-            {privacyError && (
-              <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
-                <p className="text-sm">{privacyError}</p>
+        {/* Privacy & Anonymization */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mb-12"
+        >
+          <div className="relative group">
+            <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2 group-hover:translate-x-3 group-hover:translate-y-3 transition-transform"></div>
+            <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 transform -rotate-1 group-hover:rotate-0 transition-transform">
+              <div className="inline-block bg-ink-900 dark:bg-cream-50 px-4 py-1 border-4 border-ink-900 dark:border-cream-50 transform rotate-1 mb-6">
+                <h2 className="font-display text-xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
+                  Privacy & Anonymization
+                </h2>
               </div>
-            )}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Shield className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">Anonymous Mode</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Hide your username on your public profile. "Anonymous User" will be shown instead.
-                    </p>
+
+              {privacyError && (
+                <div className="relative group mb-6">
+                  <div className="absolute inset-0 bg-red-600 dark:bg-red-500 translate-x-1 translate-y-1"></div>
+                  <div className="relative bg-red-600 dark:bg-red-500 border-2 border-ink-900 dark:border-cream-50 p-4 transform -rotate-1">
+                    <p className="font-body text-sm font-black uppercase tracking-wider text-white">{privacyError}</p>
                   </div>
-                </div>
-                <button
-                  onClick={() => setIsAnonymous(!isAnonymous)}
-                  disabled={updatingPrivacy}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    isAnonymous ? 'bg-primary-600 dark:bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      isAnonymous ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {isAnonymous && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Display Name (Optional)
-                  </label>
-                  <Input
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Enter a custom display name (optional)"
-                    maxLength={100}
-                    disabled={updatingPrivacy}
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    If set, this name will be shown instead of "Anonymous User" when anonymous mode is enabled.
-                  </p>
                 </div>
               )}
 
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <MessageSquare className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">Enable Comments</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Allow others to post comments and questions on your public profile.
+              <div className="space-y-6">
+                {/* Anonymous Mode Toggle */}
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-1 translate-y-1"></div>
+                  <div className="relative bg-cream-100 dark:bg-ink-800 border-4 border-ink-900 dark:border-cream-50 p-6 transform rotate-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-indigo-600 dark:bg-indigo-500 p-3 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1">
+                          <Shield className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 inline-block mb-2">
+                            <p className="font-body text-sm font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                              Anonymous Mode
+                            </p>
+                          </div>
+                          <p className="font-body text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300">
+                            Hide your username on your public profile
+                          </p>
+                        </div>
+                      </div>
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setIsAnonymous(!isAnonymous)}
+                        disabled={updatingPrivacy}
+                        className={`relative inline-flex h-8 w-14 items-center border-4 border-ink-900 dark:border-cream-50 transition-colors ${
+                          isAnonymous ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-ink-300 dark:bg-ink-700'
+                        }`}
+                      >
+                        <motion.span
+                          animate={{ x: isAnonymous ? 24 : 4 }}
+                          className="inline-block h-6 w-6 bg-white border-2 border-ink-900 dark:border-cream-50"
+                        />
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Display Name Input */}
+                {isAnonymous && (
+                  <div className="space-y-3">
+                    <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 inline-block">
+                      <label className="font-body text-sm font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                        Display Name (Optional)
+                      </label>
+                    </div>
+                    <Input
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="Enter a custom display name (optional)"
+                      maxLength={100}
+                      disabled={updatingPrivacy}
+                    />
+                    <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 inline-block">
+                      <p className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                        Shown instead of "Anonymous User"
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Comments Toggle */}
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-1 translate-y-1"></div>
+                  <div className="relative bg-cream-100 dark:bg-ink-800 border-4 border-ink-900 dark:border-cream-50 p-6 transform -rotate-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-indigo-600 dark:bg-indigo-500 p-3 border-2 border-ink-900 dark:border-cream-50 transform rotate-1">
+                          <MessageSquare className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 inline-block mb-2">
+                            <p className="font-body text-sm font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                              Enable Comments
+                            </p>
+                          </div>
+                          <p className="font-body text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300">
+                            Allow comments on your public profile
+                          </p>
+                        </div>
+                      </div>
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setCommentsEnabled(!commentsEnabled)}
+                        disabled={updatingPrivacy}
+                        className={`relative inline-flex h-8 w-14 items-center border-4 border-ink-900 dark:border-cream-50 transition-colors ${
+                          commentsEnabled ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-ink-300 dark:bg-ink-700'
+                        }`}
+                      >
+                        <motion.span
+                          animate={{ x: commentsEnabled ? 24 : 4 }}
+                          className="inline-block h-6 w-6 bg-white border-2 border-ink-900 dark:border-cream-50"
+                        />
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preview */}
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-500 translate-x-1 translate-y-1"></div>
+                  <div className="relative bg-indigo-600 dark:bg-indigo-500 border-4 border-ink-900 dark:border-cream-50 p-4 transform rotate-1">
+                    <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 inline-block mb-3">
+                      <p className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                        Preview
+                      </p>
+                    </div>
+                    <p className="font-body text-sm font-black uppercase tracking-wider text-white">
+                      Your public profile will show as{' '}
+                      <strong>
+                        {isAnonymous
+                          ? (displayName.trim() || 'Anonymous User')
+                          : user?.username}
+                      </strong>
+                      {isAnonymous && ' (Anonymous)'}
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setCommentsEnabled(!commentsEnabled)}
-                  disabled={updatingPrivacy}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    commentsEnabled ? 'bg-primary-600 dark:bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      commentsEnabled ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
 
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <p className="text-sm text-blue-800 dark:text-blue-300">
-                  <strong>Preview:</strong> Your public profile will show as{' '}
-                  <strong>
-                    {isAnonymous
-                      ? (displayName.trim() || 'Anonymous User')
-                      : user?.username}
-                  </strong>
-                  {isAnonymous && ' (Anonymous)'}
-                </p>
-              </div>
-
-              <Button
-                onClick={handleSavePrivacySettings}
-                disabled={updatingPrivacy}
-              >
-                {updatingPrivacy ? 'Saving...' : 'Save Privacy Settings'}
-              </Button>
-            </div>
-          </div>
-
-          {/* Connected Accounts */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Connected Accounts</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold">D</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">Discord</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {user.discord_id ? 'Connected' : 'Not connected'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  {user.discord_id ? (
-                    <>
-                      <CheckCircle className="w-5 h-5 text-green-500 dark:text-green-400" />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDiscordDisconnect}
-                        disabled={disconnecting}
-                      >
-                        {disconnecting ? 'Disconnecting...' : 'Disconnect'}
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                      <Button
-                        size="sm"
-                        onClick={handleDiscordConnect}
-                      >
-                        Connect Discord
-                      </Button>
-                    </>
-                  )}
-                </div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    onClick={handleSavePrivacySettings}
+                    disabled={updatingPrivacy}
+                    className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                  >
+                    {updatingPrivacy ? 'Saving...' : 'Save Privacy Settings'}
+                  </Button>
+                </motion.div>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
+
+        {/* Connected Accounts */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <div className="relative group">
+            <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2 group-hover:translate-x-3 group-hover:translate-y-3 transition-transform"></div>
+            <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 transform rotate-1 group-hover:rotate-0 transition-transform">
+              <div className="inline-block bg-ink-900 dark:bg-cream-50 px-4 py-1 border-4 border-ink-900 dark:border-cream-50 transform -rotate-1 mb-6">
+                <h2 className="font-display text-xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
+                  Connected Accounts
+                </h2>
+              </div>
+
+              {/* Discord */}
+              <div className="relative group">
+                <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-1 translate-y-1"></div>
+                <div className="relative bg-cream-100 dark:bg-ink-800 border-4 border-ink-900 dark:border-cream-50 p-6 transform -rotate-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-indigo-600 dark:bg-indigo-500 w-12 h-12 border-4 border-ink-900 dark:border-cream-50 transform rotate-1 flex items-center justify-center">
+                        <span className="text-white font-black text-xl">D</span>
+                      </div>
+                      <div>
+                        <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 inline-block mb-2">
+                          <p className="font-body text-sm font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                            Discord
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {user.discord_id ? (
+                            <div className="bg-green-600 dark:bg-green-500 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 inline-flex items-center space-x-2">
+                              <CheckCircle className="w-4 h-4 text-white" />
+                              <span className="font-body text-xs font-black uppercase tracking-wider text-white">Connected</span>
+                            </div>
+                          ) : (
+                            <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 inline-flex items-center space-x-2">
+                              <XCircle className="w-4 h-4 text-cream-50 dark:text-ink-900" />
+                              <span className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">Not Connected</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      {user.discord_id ? (
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleDiscordDisconnect}
+                            disabled={disconnecting}
+                            className="border-2 border-red-600 dark:border-red-500 text-red-600 dark:text-red-400 font-black uppercase tracking-wider"
+                          >
+                            {disconnecting ? 'Disconnecting...' : 'Disconnect'}
+                          </Button>
+                        </motion.div>
+                      ) : (
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button
+                            size="sm"
+                            onClick={handleDiscordConnect}
+                            className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                          >
+                            Connect Discord
+                          </Button>
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </main>
       <Footer />
     </div>
   );
 }
-

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Input } from './Input';
 import { Button } from './Button';
 import { Eye, Edit } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface MarkdownTextareaProps {
   value: string;
@@ -13,9 +14,10 @@ interface MarkdownTextareaProps {
   rows?: number;
   disabled?: boolean;
   maxLength?: number;
+  className?: string;
 }
 
-export function MarkdownTextarea({ value, onChange, label, placeholder, rows = 4, disabled = false, maxLength }: MarkdownTextareaProps) {
+export function MarkdownTextarea({ value, onChange, label, placeholder, rows = 4, disabled = false, maxLength, className }: MarkdownTextareaProps) {
   const [isPreview, setIsPreview] = useState(false);
 
   const renderMarkdown = (text: string): string => {
@@ -30,7 +32,7 @@ export function MarkdownTextarea({ value, onChange, label, placeholder, rows = 4
       // Italic
       .replace(/\*(.*?)\*/gim, '<em>$1</em>')
       // Links
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">$1</a>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-indigo-600 dark:text-indigo-400 hover:underline font-bold">$1</a>')
       // Line breaks
       .replace(/\n/gim, '<br />');
 
@@ -38,54 +40,63 @@ export function MarkdownTextarea({ value, onChange, label, placeholder, rows = 4
   };
 
   return (
-    <div className="w-full">
+    <div className={`w-full ${className || ''}`}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-black uppercase tracking-wider text-ink-900 dark:text-cream-50 mb-2">
           {label}
         </label>
       )}
-      <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
-        <div className="flex justify-end border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 p-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsPreview(!isPreview)}
-          >
-            {isPreview ? (
-              <>
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </>
-            ) : (
-              <>
-                <Eye className="w-4 h-4 mr-2" />
-                Preview
-              </>
-            )}
-          </Button>
+      <div className="relative">
+        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-1 translate-y-1"></div>
+        <div className="relative border-4 border-ink-900 dark:border-cream-50 bg-cream-50 dark:bg-ink-900">
+          <div className="flex justify-end border-b-4 border-ink-900 dark:border-cream-50 bg-ink-900 dark:bg-cream-50 p-2">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsPreview(!isPreview)}
+                className="border-2 border-cream-50 dark:border-ink-900 bg-cream-50 dark:bg-ink-900 text-ink-900 dark:text-cream-50 font-black uppercase tracking-wider"
+              >
+                {isPreview ? (
+                  <>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4 mr-2" />
+                    Preview
+                  </>
+                )}
+              </Button>
+            </motion.div>
+          </div>
+          {isPreview ? (
+            <div
+              className="p-4 min-h-[100px] prose prose-sm dark:prose-invert max-w-none text-ink-900 dark:text-cream-100 font-body"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(value || '') }}
+            />
+          ) : (
+            <textarea
+              value={value || ''}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder={placeholder || 'Enter notes (Markdown supported)'}
+              rows={rows}
+              disabled={disabled}
+              maxLength={maxLength}
+              className="w-full p-4 border-0 focus:outline-none focus:ring-0 resize-none bg-cream-50 dark:bg-ink-900 text-ink-900 dark:text-cream-50 placeholder-ink-500 dark:placeholder-ink-500 disabled:opacity-50 disabled:cursor-not-allowed font-body"
+            />
+          )}
         </div>
-        {isPreview ? (
-          <div
-            className="p-3 min-h-[100px] prose prose-sm dark:prose-invert max-w-none text-gray-900 dark:text-gray-100"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(value || '') }}
-          />
-        ) : (
-          <textarea
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder || 'Enter notes (Markdown supported)'}
-            rows={rows}
-            disabled={disabled}
-            maxLength={maxLength}
-            className="w-full p-3 border-0 focus:outline-none focus:ring-0 resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          />
-        )}
       </div>
-      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-        Supports Markdown: **bold**, *italic*, [links](url), # headers
-      </p>
+      <div className="mt-3 flex items-start">
+        <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-[0.5deg]">
+          <p className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+            Supports Markdown: **bold**, *italic*, [links](url), # headers
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
-

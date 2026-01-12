@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import type { Process, ProcessDetail } from '@/types';
 
 interface MetricsCardsProps {
@@ -45,51 +46,76 @@ export function MetricsCards({ processes, processDetails = [] }: MetricsCardsPro
 
   const metrics = [
     {
-      label: 'Total Processes',
+      label: 'TOTAL',
       value: totalProcesses,
-      color: 'text-gray-900 dark:text-gray-100',
+      bg: 'bg-indigo-600 dark:bg-indigo-500',
+      text: 'text-white',
+      rotation: '-rotate-1',
     },
     {
-      label: 'Active',
+      label: 'ACTIVE',
       value: activeCount,
-      color: 'text-blue-600 dark:text-blue-400',
+      bg: 'bg-blue-600 dark:bg-blue-500',
+      text: 'text-white',
+      rotation: 'rotate-1',
     },
     {
-      label: 'Completed',
+      label: 'DONE',
       value: completedCount,
-      color: 'text-green-600 dark:text-green-400',
+      bg: 'bg-green-600 dark:bg-green-500',
+      text: 'text-white',
+      rotation: '-rotate-1',
     },
     {
-      label: 'Rejected',
+      label: 'REJECTED',
       value: rejectedCount,
-      color: 'text-red-600 dark:text-red-400',
+      bg: 'bg-red-600 dark:bg-red-500',
+      text: 'text-white',
+      rotation: 'rotate-1',
     },
     {
-      label: 'Success Rate',
+      label: 'SUCCESS RATE',
       value: `${successRate}%`,
-      color: 'text-purple-600 dark:text-purple-400',
+      bg: 'bg-purple-600 dark:bg-purple-500',
+      text: 'text-white',
+      rotation: '-rotate-1',
     },
     {
-      label: 'Avg Stages',
+      label: 'AVG STAGES',
       value: avgStages,
-      color: 'text-indigo-600 dark:text-indigo-400',
+      bg: 'bg-amber-600 dark:bg-amber-500',
+      text: 'text-white',
+      rotation: 'rotate-1',
     },
     {
-      label: 'Avg Days to Complete',
+      label: 'AVG DAYS',
       value: avgCompletionTime > 0 ? Math.round(avgCompletionTime) : 'N/A',
-      color: 'text-teal-600 dark:text-teal-400',
+      bg: 'bg-teal-600 dark:bg-teal-500',
+      text: 'text-white',
+      rotation: '-rotate-1',
     },
   ];
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
       {metrics.map((metric, index) => (
-        <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-4">
-          <div className={`text-2xl font-bold ${metric.color}`}>{metric.value}</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{metric.label}</div>
-        </div>
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: index * 0.05 }}
+          whileHover={{ scale: 1.05, y: -4 }}
+          className="relative group"
+        >
+          <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2 group-hover:translate-x-3 group-hover:translate-y-3 transition-transform"></div>
+          <div className={`relative ${metric.bg} border-4 border-ink-900 dark:border-cream-50 p-4 transform ${metric.rotation} group-hover:rotate-0 transition-transform`}>
+            <div className={`text-3xl font-black ${metric.text} mb-2`}>{metric.value}</div>
+            <div className={`text-xs uppercase tracking-widest font-black ${metric.text} opacity-90`}>
+              {metric.label}
+            </div>
+          </div>
+        </motion.div>
       ))}
     </div>
   );
 }
-

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { MarkdownTextarea } from '@/components/ui/MarkdownTextarea';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { STAGE_TYPES } from '@/lib/stageTypes';
 import type { Stage, StageCreate, StageUpdate } from '@/types';
 
@@ -30,7 +31,19 @@ export function StageForm({ processId, stage, onSubmit, onCancel, loading }: Sta
 
   const [stageName, setStageName] = useState('');
   const [customStageName, setCustomStageName] = useState('');
-  const [stageDateTime, setStageDateTime] = useState(getCurrentDateTime());
+  const [stageDate, setStageDate] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
+  const [stageTime, setStageTime] = useState(() => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  });
   const [notes, setNotes] = useState('');
   const [order, setOrder] = useState<number | ''>('');
 
@@ -45,14 +58,15 @@ export function StageForm({ processId, stage, onSubmit, onCancel, loading }: Sta
         setStageName('Other');
         setCustomStageName(stage.stage_name);
       }
-      // Parse ISO datetime string to datetime-local format (YYYY-MM-DDTHH:mm)
-      const stageDate = new Date(stage.stage_date);
-      const year = stageDate.getFullYear();
-      const month = String(stageDate.getMonth() + 1).padStart(2, '0');
-      const day = String(stageDate.getDate()).padStart(2, '0');
-      const hours = String(stageDate.getHours()).padStart(2, '0');
-      const minutes = String(stageDate.getMinutes()).padStart(2, '0');
-      setStageDateTime(`${year}-${month}-${day}T${hours}:${minutes}`);
+      // Parse ISO datetime string to separate date and time
+      const stageDateObj = new Date(stage.stage_date);
+      const year = stageDateObj.getFullYear();
+      const month = String(stageDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(stageDateObj.getDate()).padStart(2, '0');
+      const hours = String(stageDateObj.getHours()).padStart(2, '0');
+      const minutes = String(stageDateObj.getMinutes()).padStart(2, '0');
+      setStageDate(`${year}-${month}-${day}`);
+      setStageTime(`${hours}:${minutes}`);
       setNotes(stage.notes || '');
       setOrder(stage.order);
     }
@@ -68,6 +82,9 @@ export function StageForm({ processId, stage, onSubmit, onCancel, loading }: Sta
       // Don't submit if Other is selected but no custom name provided
       return;
     }
+    
+    // Combine date and time to YYYY-MM-DDTHH:mm format
+    const stageDateTime = `${stageDate}T${stageTime}`;
     
     // Convert datetime-local format to ISO string for API
     const stageDateISO = new Date(stageDateTime).toISOString();
@@ -122,12 +139,20 @@ export function StageForm({ processId, stage, onSubmit, onCancel, loading }: Sta
         />
       )}
 
-      <Input
-        label="Date & Time"
-        type="datetime-local"
-        value={stageDateTime}
-        onChange={(e) => setStageDateTime(e.target.value)}
+      <DatePicker
+        label="Date"
+        value={stageDate}
+        onChange={setStageDate}
         required
+      />
+
+      <Input
+        label="Time (HH:MM)"
+        type="time"
+        value={stageTime}
+        onChange={(e) => setStageTime(e.target.value)}
+        required
+        placeholder="HH:MM"
       />
 
       <MarkdownTextarea
@@ -150,14 +175,13 @@ export function StageForm({ processId, stage, onSubmit, onCancel, loading }: Sta
       )}
 
       <div className="flex justify-end space-x-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={loading} className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider">
           Cancel
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider">
           {loading ? 'Saving...' : stage ? 'Update Stage' : 'Create Stage'}
         </Button>
       </div>
     </form>
   );
 }
-

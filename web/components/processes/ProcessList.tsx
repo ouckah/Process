@@ -14,6 +14,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useUpdateProcess } from '@/hooks/useProcesses';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useRef } from 'react';
+import { motion } from 'framer-motion';
 import type { Process } from '@/types';
 
 type SortOption = 'created_desc' | 'created_asc' | 'updated_desc' | 'updated_asc' | 'company_asc' | 'company_desc' | 'status_asc' | 'status_desc';
@@ -231,76 +232,111 @@ export function ProcessList() {
 
   return (
     <>
-      <div className="mb-6 flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Your Processes
-          {filteredAndSortedProcesses.length !== processes.length && (
-            <span className="text-lg font-normal text-gray-500 dark:text-gray-400 ml-2">
-              ({filteredAndSortedProcesses.length} of {processes.length})
-            </span>
-          )}
-        </h2>
-        <div className="flex gap-2">
+      <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <div className="inline-block bg-ink-900 dark:bg-cream-50 px-4 py-1 border-4 border-ink-900 dark:border-cream-50 transform -rotate-1 mb-3">
+            <p className="font-body text-xs uppercase tracking-[0.3em] font-black text-cream-50 dark:text-ink-900">
+              Your Processes
+            </p>
+          </div>
+          <h2 className="font-display text-4xl sm:text-5xl font-black text-ink-900 dark:text-cream-50 uppercase tracking-tight">
+            {filteredAndSortedProcesses.length !== processes.length ? (
+              <>
+                {filteredAndSortedProcesses.length} / {processes.length}
+              </>
+            ) : (
+              processes.length
+            )}
+          </h2>
+        </div>
+        <div className="flex flex-wrap gap-3">
           {!selectionMode ? (
             <>
-              <Button
-                variant="outline"
-                onClick={() => setSelectionMode(true)}
-              >
-                <CheckSquare className="w-5 h-5 mr-2" />
-                Select
-              </Button>
-              <Link href="/processes/new">
-                <Button>
-                  <Plus className="w-5 h-5 mr-2" />
-                  New Process
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectionMode(true)}
+                  className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                >
+                  <CheckSquare className="w-4 h-4 mr-2" />
+                  Select
                 </Button>
+              </motion.div>
+              <Link href="/processes/new">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-white border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider">
+                    <Plus className="w-4 h-4 mr-2" />
+                    New
+                  </Button>
+                </motion.div>
               </Link>
             </>
           ) : (
-            <Button variant="outline" onClick={exitSelectionMode}>
-              Cancel Selection
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                variant="outline" 
+                onClick={exitSelectionMode}
+                className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+              >
+                Cancel
+              </Button>
+            </motion.div>
           )}
         </div>
       </div>
 
-      {/* Bulk Action Bar */}
+      {/* Bulk Action Bar - Brutalist */}
       {selectionMode && selectedProcessIds.size > 0 && (
-        <div className="mb-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-blue-900 dark:text-blue-200">
-              {selectedProcessIds.size} process{selectedProcessIds.size !== 1 ? 'es' : ''} selected
-            </span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={selectedProcessIds.size === filteredAndSortedProcesses.length ? selectNone : selectAll}
-              >
-                {selectedProcessIds.size === filteredAndSortedProcesses.length ? 'Deselect All' : 'Select All'}
-              </Button>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 relative group"
+        >
+          <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-500 translate-x-2 translate-y-2"></div>
+          <div className="relative bg-indigo-600 dark:bg-indigo-500 border-4 border-ink-900 dark:border-cream-50 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform rotate-1">
+                <span className="font-body text-sm font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                  {selectedProcessIds.size} SELECTED
+                </span>
+              </div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectedProcessIds.size === filteredAndSortedProcesses.length ? selectNone : selectAll}
+                  className="border-2 border-ink-900 dark:border-cream-50 bg-cream-50 dark:bg-ink-900 text-ink-900 dark:text-cream-50 font-black uppercase tracking-wider"
+                >
+                  {selectedProcessIds.size === filteredAndSortedProcesses.length ? 'Deselect All' : 'Select All'}
+                </Button>
+              </motion.div>
+            </div>
+            <div className="flex gap-3">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBulkStatusModalOpen(true)}
+                  className="border-2 border-ink-900 dark:border-cream-50 bg-cream-50 dark:bg-ink-900 text-ink-900 dark:text-cream-50 font-black uppercase tracking-wider"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Update Status
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => setBulkDeleteModalOpen(true)}
+                  className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+              </motion.div>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setBulkStatusModalOpen(true)}
-            >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Update Status
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => setBulkDeleteModalOpen(true)}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete
-            </Button>
-          </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Search and Filter Bar */}
@@ -350,21 +386,25 @@ export function ProcessList() {
           </div>
         </div>
 
-        {/* Active Filters Badge and Clear */}
+        {/* Active Filters Badge and Clear - Brutalist */}
         {activeFilterCount > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearFilters}
-              className="flex items-center gap-1"
-            >
-              <X className="w-4 h-4" />
-              Clear filters
-            </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="bg-amber-500 dark:bg-amber-400 px-4 py-2 border-4 border-ink-900 dark:border-cream-50 transform rotate-1">
+              <span className="font-body text-xs font-black uppercase tracking-wider text-ink-900">
+                {activeFilterCount} FILTER{activeFilterCount > 1 ? 'S' : ''} ACTIVE
+              </span>
+            </div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFilters}
+                className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Clear
+              </Button>
+            </motion.div>
           </div>
         )}
       </div>

@@ -11,6 +11,7 @@ interface AuthContextType {
   loading: boolean;
   logout: () => void;
   updateProfile: (data: { username?: string; display_name?: string | null; is_anonymous?: boolean; comments_enabled?: boolean }) => Promise<void>;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -57,6 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const userData = await authApi.getMe();
+      setUser(userData);
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -64,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         logout,
         updateProfile,
+        refreshUser,
         isAuthenticated: !!user,
       }}
     >

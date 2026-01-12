@@ -8,6 +8,7 @@ import { PublicSankeyView } from '@/components/analytics/PublicSankeyView';
 import { analyticsApi, type PublicAnalyticsResponse } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { motion } from 'framer-motion';
 
 export default function PublicSankeyPage() {
   const params = useParams();
@@ -41,11 +42,11 @@ export default function PublicSankeyPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+      <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
         <Header />
         <main className="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary-600 dark:text-primary-400" />
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
           </div>
         </main>
         <Footer />
@@ -55,22 +56,27 @@ export default function PublicSankeyPage() {
 
   if (error || !analytics) {
     return (
-      <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+      <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
         <Header />
         <main className="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
-            {error || 'Sankey diagram not found'}
-          </div>
-          {isOwnPage && (
-            <div className="mt-4">
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="text-primary-600 dark:text-primary-400 hover:underline"
-              >
-                ← Back to Dashboard
-              </button>
+          <div className="relative group">
+            <div className="absolute inset-0 bg-red-600 dark:bg-red-500 translate-x-2 translate-y-2"></div>
+            <div className="relative bg-red-600 dark:bg-red-500 border-4 border-ink-900 dark:border-cream-50 p-6 transform -rotate-1">
+              <p className="font-body text-lg font-black uppercase tracking-wider text-white mb-4">
+                {error || 'Sankey diagram not found'}
+              </p>
+              {isOwnPage && (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="bg-cream-50 dark:bg-ink-900 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider text-ink-900 dark:text-cream-50"
+                  >
+                    ← Back to Dashboard
+                  </button>
+                </motion.div>
+              )}
             </div>
-          )}
+          </div>
         </main>
         <Footer />
       </div>
@@ -78,7 +84,7 @@ export default function PublicSankeyPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
       <Header />
       <main className="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8">
         <PublicSankeyView
@@ -90,4 +96,3 @@ export default function PublicSankeyPage() {
     </div>
   );
 }
-

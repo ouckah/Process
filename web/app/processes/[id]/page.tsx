@@ -22,8 +22,8 @@ export default function ProcessDetailPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600 dark:text-primary-400" />
+      <div className="min-h-screen flex items-center justify-center bg-cream-50 dark:bg-ink-950">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
       </div>
     );
   }
@@ -34,11 +34,16 @@ export default function ProcessDetailPage() {
 
   if (isNaN(processId)) {
     return (
-      <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+      <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
         <Header />
         <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
-            Invalid process ID
+          <div className="relative group">
+            <div className="absolute inset-0 bg-red-600 dark:bg-red-500 translate-x-2 translate-y-2"></div>
+            <div className="relative bg-red-600 dark:bg-red-500 border-4 border-ink-900 dark:border-cream-50 p-6 transform rotate-1">
+              <p className="font-body text-lg font-black uppercase tracking-wider text-white">
+                Invalid process ID
+              </p>
+            </div>
           </div>
         </main>
         <Footer />
@@ -47,13 +52,12 @@ export default function ProcessDetailPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
       <Header />
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <ProcessDetail processId={processId} />
       </main>
       <Footer />
     </div>
   );
 }
-

@@ -50,29 +50,29 @@ function GoogleCallbackContent() {
   }, [searchParams, router]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-ink-950">
       <Header />
       <main className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
           {status === 'loading' && (
             <>
-              <Loader2 className="w-12 h-12 animate-spin text-primary-600 dark:text-primary-400 mx-auto" />
-              <p className="text-gray-600 dark:text-gray-400">Connecting your Google account...</p>
+              <Loader2 className="w-12 h-12 animate-spin text-indigo-600 dark:text-indigo-400 mx-auto" />
+              <p className="font-body text-ink-600 dark:text-ink-400">Connecting your Google account...</p>
             </>
           )}
           {status === 'success' && (
             <>
               <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400 mx-auto" />
-              <p className="text-gray-600 dark:text-gray-400">Successfully connected! Redirecting...</p>
+              <p className="font-body text-ink-600 dark:text-ink-400">Successfully connected! Redirecting...</p>
             </>
           )}
           {status === 'error' && (
             <>
               <XCircle className="w-12 h-12 text-red-600 dark:text-red-400 mx-auto" />
-              <p className="text-red-600 dark:text-red-400">{message}</p>
+              <p className="font-body text-red-600 dark:text-red-400">{message}</p>
               <button
                 onClick={() => router.push('/login')}
-                className="mt-4 px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded hover:bg-primary-700 dark:hover:bg-primary-600"
+                className="mt-4 px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-white rounded hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors"
               >
                 Back to Login
               </button>
@@ -88,8 +88,8 @@ function GoogleCallbackContent() {
 export default function GoogleCallbackPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600 dark:text-primary-400" />
+      <div className="min-h-screen flex items-center justify-center bg-cream-50 dark:bg-ink-950">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
       </div>
     }>
       <GoogleCallbackContent />

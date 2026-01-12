@@ -7,7 +7,7 @@ import { MessageSquare, Reply, Edit, Trash2, CheckCircle, MoreVertical, ChevronU
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAuth } from '@/hooks/useAuth';
-// Using simple markdown rendering for now - can upgrade to react-markdown if needed
+import { motion } from 'framer-motion';
 
 interface CommentItemProps {
   comment: ProfileComment;
@@ -39,142 +39,180 @@ export function CommentItem({
   const maxDepth = 3; // Limit nesting depth
 
   const authorName = comment.author_username || comment.author_display_name || 'Anonymous User';
+  const rotation = depth % 2 === 0 ? '-rotate-1' : 'rotate-1';
 
   return (
-    <div className={`${depth > 0 ? 'ml-6 mt-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4' : ''}`}>
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm dark:shadow-gray-900/50">
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex items-center space-x-2">
-            <Avatar
-              discordAvatar={comment.author_discord_avatar}
-              discordId={comment.author_discord_id}
-              username={comment.author_username || authorName}
-              size="sm"
-            />
-            <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center flex-wrap gap-2">
-                <span>{authorName}</span>
-                {comment.is_question && (
-                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
-                    Question
-                  </span>
-                )}
-                {comment.is_question && comment.is_answered && (
-                  <span className="px-2 py-0.5 text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded inline-flex items-center">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Answered
-                  </span>
-                )}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {formatDate(comment.created_at)}
-              </p>
+    <div className={`${depth > 0 ? 'ml-8 mt-6' : ''}`}>
+      <motion.div
+        whileHover={{ scale: 1.01, y: -2 }}
+        transition={{ duration: 0.2 }}
+        className="relative group"
+      >
+        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2 group-hover:translate-x-3 group-hover:translate-y-3 transition-transform"></div>
+        <div className={`relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-6 transform ${rotation} group-hover:rotate-0 transition-transform`}>
+          {/* Header */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-500 translate-x-1 translate-y-1"></div>
+                <div className="relative">
+                  <Avatar
+                    discordAvatar={comment.author_discord_avatar}
+                    discordId={comment.author_discord_id}
+                    username={comment.author_username || authorName}
+                    size="sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center flex-wrap gap-2 mb-1">
+                  <p className="font-body text-sm font-black uppercase tracking-wider text-ink-900 dark:text-cream-50">
+                    {authorName}
+                  </p>
+                  {comment.is_question && (
+                    <div className="bg-blue-600 dark:bg-blue-500 px-2 py-0.5 border-2 border-ink-900 dark:border-cream-50 transform rotate-1">
+                      <span className="font-body text-xs font-black uppercase tracking-wider text-white">
+                        Question
+                      </span>
+                    </div>
+                  )}
+                  {comment.is_question && comment.is_answered && (
+                    <div className="bg-green-600 dark:bg-green-500 px-2 py-0.5 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 inline-flex items-center">
+                      <CheckCircle className="w-3 h-3 mr-1 text-white" />
+                      <span className="font-body text-xs font-black uppercase tracking-wider text-white">
+                        Answered
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="bg-ink-900 dark:bg-cream-50 px-2 py-0.5 border border-ink-900 dark:border-cream-50 transform rotate-1 inline-block">
+                  <p className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                    {formatDate(comment.created_at)}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="prose prose-sm dark:prose-invert max-w-none mb-4 pr-4 whitespace-pre-wrap text-gray-900 dark:text-gray-100">
-          {comment.content}
-        </div>
+          {/* Content */}
+          <div className="prose prose-sm dark:prose-invert max-w-none mb-6 pr-4 whitespace-pre-wrap text-ink-900 dark:text-cream-50 font-body leading-relaxed">
+            {comment.content}
+          </div>
 
-        <div className="flex items-center flex-wrap gap-3 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-          {user && (
-            <button
-              onClick={() => onUpvote(comment.id)}
-              className={`flex items-center space-x-1 text-sm ${
-                comment.user_has_upvoted
-                  ? 'text-primary-600 dark:text-primary-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400'
-              }`}
-            >
-              <ChevronUp className={`w-4 h-4 ${comment.user_has_upvoted ? 'fill-current' : ''}`} />
-              <span>{comment.upvotes || 0}</span>
-            </button>
-          )}
-          {!user && (
-            <div className="flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400">
-              <ChevronUp className="w-4 h-4" />
-              <span>{comment.upvotes || 0}</span>
-            </div>
-          )}
-
-          {depth < maxDepth && (
-            <button
-              onClick={() => onReply(comment.id)}
-              className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
-            >
-              <Reply className="w-4 h-4" />
-              <span>Reply</span>
-            </button>
-          )}
-
-          {isAuthor && !comment.author_id && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              Anonymous comments cannot be edited
-            </span>
-          )}
-
-          {isAuthor && comment.author_id && (
-            <button
-              onClick={() => onEdit(comment)}
-              className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
-            >
-              <Edit className="w-4 h-4" />
-              <span>Edit</span>
-            </button>
-          )}
-
-          {canModerate && (
-            <button
-              onClick={() => onDelete(comment.id)}
-              className="flex items-center space-x-1 text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span>Delete</span>
-            </button>
-          )}
-
-          {isProfileOwner && comment.is_question && !comment.is_answered && (
-            <button
-              onClick={() => onMarkAsAnswered(comment.id)}
-              className="flex items-center space-x-1 text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
-            >
-              <CheckCircle className="w-4 h-4" />
-              <span>Mark as Answered</span>
-            </button>
-          )}
-        </div>
-
-        {comment.replies && comment.replies.length > 0 && (
-          <div className="mt-4">
-            <button
-              onClick={() => setShowReplies(!showReplies)}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 mb-2"
-            >
-              {showReplies ? 'Hide' : 'Show'} {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
-            </button>
-            {showReplies && (
-              <div className="space-y-4">
-                {comment.replies.map((reply) => (
-                  <CommentItem
-                    key={reply.id}
-                    comment={reply}
-                    username={username}
-                    isProfileOwner={isProfileOwner}
-                    onReply={onReply}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    onMarkAsAnswered={onMarkAsAnswered}
-                    onUpvote={onUpvote}
-                    depth={depth + 1}
-                  />
-                ))}
+          {/* Actions */}
+          <div className="flex items-center flex-wrap gap-3 mt-6 pt-4 border-t-4 border-ink-900 dark:border-cream-50">
+            {user && (
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => onUpvote(comment.id)}
+                className={`flex items-center space-x-2 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider text-sm ${
+                  comment.user_has_upvoted
+                    ? 'bg-indigo-600 dark:bg-indigo-500 text-white'
+                    : 'bg-cream-50 dark:bg-ink-900 text-ink-900 dark:text-cream-50 hover:bg-ink-100 dark:hover:bg-ink-800'
+                } transition-colors`}
+              >
+                <ChevronUp className={`w-4 h-4 ${comment.user_has_upvoted ? 'fill-current' : ''}`} />
+                <span>{comment.upvotes || 0}</span>
+              </motion.button>
+            )}
+            {!user && (
+              <div className="flex items-center space-x-2 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 bg-cream-50 dark:bg-ink-900 text-ink-900 dark:text-cream-50">
+                <ChevronUp className="w-4 h-4" />
+                <span className="font-body text-sm font-black uppercase tracking-wider">{comment.upvotes || 0}</span>
               </div>
             )}
+
+            {depth < maxDepth && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onReply(comment.id)}
+                className="px-3 py-1 border-2 border-ink-900 dark:border-cream-50 bg-cream-50 dark:bg-ink-900 text-ink-900 dark:text-cream-50 hover:bg-ink-100 dark:hover:bg-ink-800 font-black uppercase tracking-wider text-sm flex items-center space-x-2 transition-colors"
+              >
+                <Reply className="w-4 h-4" />
+                <span>Reply</span>
+              </motion.button>
+            )}
+
+            {isAuthor && !comment.author_id && (
+              <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1">
+                <span className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                  Anonymous - cannot edit
+                </span>
+              </div>
+            )}
+
+            {isAuthor && comment.author_id && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onEdit(comment)}
+                className="px-3 py-1 border-2 border-ink-900 dark:border-cream-50 bg-cream-50 dark:bg-ink-900 text-ink-900 dark:text-cream-50 hover:bg-ink-100 dark:hover:bg-ink-800 font-black uppercase tracking-wider text-sm flex items-center space-x-2 transition-colors"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Edit</span>
+              </motion.button>
+            )}
+
+            {canModerate && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onDelete(comment.id)}
+                className="px-3 py-1 border-2 border-ink-900 dark:border-cream-50 bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600 font-black uppercase tracking-wider text-sm flex items-center space-x-2 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete</span>
+              </motion.button>
+            )}
+
+            {isProfileOwner && comment.is_question && !comment.is_answered && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onMarkAsAnswered(comment.id)}
+                className="px-3 py-1 border-2 border-ink-900 dark:border-cream-50 bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-600 font-black uppercase tracking-wider text-sm flex items-center space-x-2 transition-colors"
+              >
+                <CheckCircle className="w-4 h-4" />
+                <span>Mark Answered</span>
+              </motion.button>
+            )}
           </div>
-        )}
-      </div>
+
+          {/* Replies */}
+          {comment.replies && comment.replies.length > 0 && (
+            <div className="mt-6">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowReplies(!showReplies)}
+                className="mb-4 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 bg-ink-900 dark:bg-cream-50 text-cream-50 dark:text-ink-900 font-black uppercase tracking-wider text-sm transform -rotate-1 hover:rotate-0 transition-transform"
+              >
+                {showReplies ? 'Hide' : 'Show'} {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
+              </motion.button>
+              {showReplies && (
+                <div className="space-y-6">
+                  {comment.replies.map((reply) => (
+                    <CommentItem
+                      key={reply.id}
+                      comment={reply}
+                      username={username}
+                      isProfileOwner={isProfileOwner}
+                      onReply={onReply}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      onMarkAsAnswered={onMarkAsAnswered}
+                      onUpvote={onUpvote}
+                      depth={depth + 1}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 }
-
