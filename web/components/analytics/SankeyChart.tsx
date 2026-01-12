@@ -153,6 +153,11 @@ const CustomNode = (props: any) => {
   const textOffsetX = largeText ? 20 : 16;
   const textOffsetY = largeText ? 16 : 12;
 
+  // Position text to the right of the bar, centered vertically on the bar
+  // Use the center of the bar (y + height/2) for both texts to keep them together
+  const textX = x + width + textOffsetX;
+  const textY = y + height / 2;
+
   return (
     <g>
       <rect 
@@ -164,8 +169,8 @@ const CustomNode = (props: any) => {
         fillOpacity="1" 
       />
       <text
-        x={x + width + textOffsetX}
-        y={y + height / 2 - textOffsetY}
+        x={textX}
+        y={textY - textOffsetY}
         textAnchor="start"
         fill="currentColor"
         className="text-gray-900 dark:text-gray-100"
@@ -176,8 +181,8 @@ const CustomNode = (props: any) => {
         {nodeCount}
       </text>
       <text
-        x={x + width + textOffsetX}
-        y={y + height / 2 + textOffsetY}
+        x={textX}
+        y={textY + textOffsetY}
         textAnchor="start"
         fill="currentColor"
         className="text-gray-900 dark:text-gray-100"
@@ -229,51 +234,33 @@ export function SankeyChart({ processes, processDetails = [], largeText = false 
 
   if (sankeyData.nodes.length === 0 || sankeyData.links.length === 0) {
     return (
-      <div className="relative group">
-        <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
-        <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 flex items-center justify-center h-64 transform rotate-1">
-          <p className="font-body text-ink-700 dark:text-ink-300 font-bold uppercase tracking-wider">No data to display</p>
-        </div>
+      <div className="w-full h-full flex items-center justify-center">
+        <p className="font-body text-ink-700 dark:text-ink-300 font-bold uppercase tracking-wider">No data to display</p>
       </div>
     );
   }
 
   return (
-    <div className="relative group w-full">
-      <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
-      <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-6 transform -rotate-1 group-hover:rotate-0 transition-transform">
-        <div className="mb-6">
-          <div className="inline-block bg-purple-600 dark:bg-purple-500 px-4 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 mb-3">
-            <h3 className="font-display text-lg font-black uppercase tracking-tight text-white">Stage Flow</h3>
-          </div>
-        </div>
-        <div className="w-full h-[500px] bg-cream-100 dark:bg-ink-800 border-4 border-ink-900 dark:border-cream-50 p-8">
-          <ResponsiveContainer width="100%" height="100%">
-            <Sankey
-              data={sankeyData}
-              node={<CustomNode largeText={largeText} />}
-              nodePadding={50}
-              margin={{ top: 20, right: largeText ? 500 : 400, bottom: 20, left: largeText ? 500 : 400 }}
-              link={<CustomLink />}
-              nodeWidth={largeText ? 28 : 24}
-            >
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'rgb(var(--color-cream-50))',
-                  border: '4px solid rgb(var(--color-ink-900))',
-                  borderRadius: '0',
-                  fontWeight: 'bold',
-                }}
-              />
-            </Sankey>
-          </ResponsiveContainer>
-        </div>
-        <div className="mt-4 bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1">
-          <p className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
-            Wider flows = more transitions
-          </p>
-        </div>
-      </div>
+    <div className="w-full h-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <Sankey
+          data={sankeyData}
+          node={<CustomNode largeText={largeText} />}
+          nodePadding={120}
+          margin={{ top: 30, right: largeText ? 350 : 250, bottom: 30, left: largeText ? 350 : 250 }}
+          link={<CustomLink />}
+          nodeWidth={largeText ? 25 : 20}
+        >
+          <Tooltip 
+            contentStyle={{
+              backgroundColor: 'rgb(var(--color-cream-50))',
+              border: '4px solid rgb(var(--color-ink-900))',
+              borderRadius: '0',
+              fontWeight: 'bold',
+            }}
+          />
+        </Sankey>
+      </ResponsiveContainer>
     </div>
   );
 }

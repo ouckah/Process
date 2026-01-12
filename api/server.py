@@ -1,6 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file (for local development)
+# In production (Railway), environment variables are provided directly, so this is harmless
+load_dotenv()
 
 from routes import processes, auth, stages, feedback, profiles, comments, analytics, guild_configs, notifications
 from database import init_db

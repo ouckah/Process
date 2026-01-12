@@ -133,35 +133,20 @@ export function PublicSankeyView({ analytics, isOwnPage }: PublicSankeyViewProps
         </div>
       </motion.div>
 
-      {/* Sankey Chart - Wider */}
+      {/* Sankey Chart - No wrappers */}
       {analytics.processes.length > 0 && processDetails.length > 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="relative group w-full"
+          className="w-full h-[70vh]"
           data-sankey-chart
         >
-          <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2 group-hover:translate-x-3 group-hover:translate-y-3 transition-transform"></div>
-          <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-6 transform -rotate-1 group-hover:rotate-0 transition-transform">
-            <div className="mb-6">
-              <div className="inline-block bg-purple-600 dark:bg-purple-500 px-4 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 mb-3">
-                <h3 className="font-display text-lg font-black uppercase tracking-tight text-white">Stage Flow</h3>
-              </div>
-            </div>
-            <div className="w-full h-[600px] bg-cream-100 dark:bg-ink-800 border-4 border-ink-900 dark:border-cream-50 p-8">
-              <SankeyChart 
-                processes={analytics.processes} 
-                processDetails={processDetails}
-                largeText={true}
-              />
-            </div>
-            <div className="mt-4 bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1">
-              <p className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
-                Wider flows = more transitions
-              </p>
-            </div>
-          </div>
+          <SankeyChart 
+            processes={analytics.processes} 
+            processDetails={processDetails}
+            largeText={true}
+          />
         </motion.div>
       ) : (
         <div className="relative group">

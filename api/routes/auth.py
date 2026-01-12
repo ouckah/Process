@@ -523,7 +523,13 @@ def google_oauth_callback(
             
             # Parse state to get user_id if linking to existing account
             import json
-            state_data = json.loads(state) if state else {}
+            state_data = {}
+            if state:
+                try:
+                    state_data = json.loads(state)
+                except (json.JSONDecodeError, ValueError, TypeError):
+                    # If state is not valid JSON, treat as empty
+                    state_data = {}
             user_id = state_data.get("userId")
             
             # Check for existing accounts
