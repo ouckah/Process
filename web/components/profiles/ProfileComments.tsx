@@ -31,15 +31,18 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [prefilledQuestion, setPrefilledQuestion] = useState<string>('');
+  const hasScrolledRef = React.useRef(false);
 
   // Check URL params on mount to open question form and scroll
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !hasScrolledRef.current) {
       const urlParams = new URLSearchParams(window.location.search);
       const askParam = urlParams.get('ask');
       const questionParam = urlParams.get('question');
       
       if (askParam === 'true' || askParam === '1') {
+        hasScrolledRef.current = true;
+        
         // Only open form if user is logged in
         if (user) {
           setShowQuestionForm(true);
@@ -49,46 +52,42 @@ export function ProfileComments({ username, commentsEnabled, isProfileOwner }: P
           }
         }
         
-        // Always scroll to comments section, regardless of login status
-        const scrollToComments = () => {
+        // Wait for component to be fully rendered, then scroll once
+        const performScroll = () => {
           const commentsSection = document.getElementById('profile-comments');
           if (commentsSection) {
-            const rect = commentsSection.getBoundingClientRect();
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const targetY = rect.top + scrollTop - 20; // 20px offset from top
-            
-            window.scrollTo({
-              top: targetY,
-              behavior: 'smooth'
+            // Use scrollIntoView for better browser compatibility
+            commentsSection.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'start',
+              inline: 'nearest'
             });
             
-            // If form exists and user is logged in, scroll to it after a delay
+            // If user is logged in and form should be visible, scroll to form after it renders
             if (user) {
               setTimeout(() => {
                 const questionForm = document.getElementById('question-form');
                 if (questionForm) {
-                  const formRect = questionForm.getBoundingClientRect();
-                  const formTargetY = formRect.top + scrollTop - 20;
-                  window.scrollTo({
-                    top: formTargetY,
-                    behavior: 'smooth'
+                  questionForm.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start',
+                    inline: 'nearest'
                   });
                 }
-              }, 600);
+              }, 800);
             }
             return true;
           }
           return false;
         };
         
-        // Try scrolling immediately, then retry with increasing delays
-        if (!scrollToComments()) {
-          setTimeout(() => {
-            if (!scrollToComments()) {
-              setTimeout(scrollToComments, 500);
-            }
-          }, 300);
-        }
+        // Wait a bit for the page to settle, then scroll
+        setTimeout(() => {
+          if (!performScroll()) {
+            // Retry once if element not found
+            setTimeout(performScroll, 500);
+          }
+        }, 400);
       }
     }
   }, [user]);
