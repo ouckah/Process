@@ -24,6 +24,7 @@ MIGRATIONS = [
     "add_forum_tables",
     "add_discord_avatar_column",
     "add_email_preferences",
+    "add_cascade_deletes",
 ]
 
 def run_all_migrations():

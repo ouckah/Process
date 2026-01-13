@@ -303,8 +303,8 @@ def delete_profile_comment(
             detail="You don't have permission to delete this comment"
         )
     
-    # Soft delete
-    comment.is_deleted = True
+    # Hard delete (cascade will delete replies and upvotes)
+    db.delete(comment)
     db.commit()
     
     return None

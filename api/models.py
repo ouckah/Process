@@ -107,7 +107,7 @@ class ProfileComment(Base):
     profile_user_id = Column(Integer, ForeignKey('users.id'), nullable=False)  # Profile owner
     author_id = Column(Integer, ForeignKey('users.id'), nullable=True)  # Comment author (null if anonymous)
     author_display_name = Column(String(100), nullable=True)  # For anonymous comments
-    parent_comment_id = Column(Integer, ForeignKey('profile_comments.id'), nullable=True)  # For replies
+    parent_comment_id = Column(Integer, ForeignKey('profile_comments.id', ondelete='CASCADE'), nullable=True)  # For replies
     content = Column(String(2000), nullable=False)
     is_question = Column(Boolean, default=False)  # Distinguish Q&A from comments
     is_answered = Column(Boolean, default=False)  # For Q&A
@@ -119,8 +119,9 @@ class ProfileComment(Base):
     # Relationships
     profile_user = relationship("User", foreign_keys=[profile_user_id], back_populates="profile_comments")
     author = relationship("User", foreign_keys=[author_id], back_populates="authored_comments")
-    parent_comment = relationship("ProfileComment", remote_side=[id], backref="replies")
+    parent_comment = relationship("ProfileComment", remote_side=[id], backref="replies", cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="comment", cascade="all, delete-orphan")
+    upvote_records = relationship("CommentUpvote", back_populates="comment", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"ProfileComment(id={self.id}, profile_user_id={self.profile_user_id}, author_id={self.author_id}, created_at={self.created_at})"
@@ -130,12 +131,12 @@ class CommentUpvote(Base):
     __tablename__ = 'comment_upvotes'
 
     id = Column(Integer, primary_key=True)
-    comment_id = Column(Integer, ForeignKey('profile_comments.id'), nullable=False)
+    comment_id = Column(Integer, ForeignKey('profile_comments.id', ondelete='CASCADE'), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
-    comment = relationship("ProfileComment", backref="upvote_records")
+    comment = relationship("ProfileComment", back_populates="upvote_records")
     user = relationship("User")
 
     def __repr__(self):

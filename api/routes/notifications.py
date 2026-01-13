@@ -96,14 +96,14 @@ def get_unread_count(
     return {"unread_count": count}
 
 
-@router.patch("/{notification_id}/read", response_model=NotificationResponse)
-def mark_notification_as_read(
+@router.delete("/{notification_id}", status_code=204)
+def delete_notification(
     notification_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Mark a specific notification as read.
+    Delete a notification (deleted when marked as read).
     """
     notification = db.query(Notification).filter(
         Notification.id == notification_id,
@@ -113,11 +113,36 @@ def mark_notification_as_read(
     if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
     
-    notification.is_read = True
+    # Delete notification
+    db.delete(notification)
     db.commit()
-    db.refresh(notification)
     
-    return build_notification_response(notification, db)
+    return None
+
+
+@router.patch("/{notification_id}/read", status_code=204)
+def mark_notification_as_read(
+    notification_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Mark a notification as read (deletes it).
+    Kept for backward compatibility with frontend.
+    """
+    notification = db.query(Notification).filter(
+        Notification.id == notification_id,
+        Notification.user_id == current_user.id
+    ).first()
+    
+    if not notification:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    # Delete notification (instead of marking as read)
+    db.delete(notification)
+    db.commit()
+    
+    return None
 
 
 @router.patch("/read-all", response_model=dict)
@@ -126,14 +151,13 @@ def mark_all_notifications_as_read(
     db: Session = Depends(get_db)
 ):
     """
-    Mark all notifications as read for the current user.
+    Delete all notifications for the current user.
     """
-    updated = db.query(Notification).filter(
-        Notification.user_id == current_user.id,
-        Notification.is_read == False
-    ).update({"is_read": True})
+    deleted = db.query(Notification).filter(
+        Notification.user_id == current_user.id
+    ).delete()
     
     db.commit()
     
-    return {"message": f"Marked {updated} notifications as read"}
+    return {"message": f"Deleted {deleted} notifications"}
 
