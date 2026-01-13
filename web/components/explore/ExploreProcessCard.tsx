@@ -49,7 +49,7 @@ export function ExploreProcessCard({ process, index }: ExploreProcessCardProps) 
             </span>
           </div>
           
-          {userProfileUrl && (
+          {userProfileUrl && !process.user_is_anonymous && (
             <Link href={userProfileUrl} className="flex items-center gap-2 group/user">
               <Avatar
                 discordAvatar={process.user_discord_avatar}
@@ -57,6 +57,13 @@ export function ExploreProcessCard({ process, index }: ExploreProcessCardProps) 
                 username={process.user_username || userDisplayName || 'Anonymous'}
                 size="sm"
               />
+              <span className="font-body text-xs font-bold text-ink-700 dark:text-ink-300 group-hover/user:underline">
+                {userDisplayName}
+              </span>
+            </Link>
+          )}
+          {userProfileUrl && process.user_is_anonymous && (
+            <Link href={userProfileUrl} className="flex items-center gap-2 group/user">
               <span className="font-body text-xs font-bold text-ink-700 dark:text-ink-300 group-hover/user:underline">
                 {userDisplayName}
               </span>

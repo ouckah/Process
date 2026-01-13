@@ -72,17 +72,19 @@ export function PublicProfileView({
         <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-3 translate-y-3 group-hover:translate-x-4 group-hover:translate-y-4 transition-transform"></div>
         <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-8 transform -rotate-1 group-hover:rotate-0 transition-transform">
           <div className="flex items-center space-x-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-500 translate-x-2 translate-y-2"></div>
+            {!isAnonymous && (
               <div className="relative">
-                <Avatar
-                  discordAvatar={discordAvatar}
-                  discordId={discordId}
-                  username={username}
-                  size="xl"
-                />
+                <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-500 translate-x-2 translate-y-2"></div>
+                <div className="relative">
+                  <Avatar
+                    discordAvatar={discordAvatar}
+                    discordId={discordId}
+                    username={username}
+                    size="xl"
+                  />
+                </div>
               </div>
-            </div>
+            )}
             <div className="flex-1">
               <div className="flex items-center space-x-4 mb-3">
                 <h1 className="font-display text-4xl sm:text-5xl font-black text-ink-900 dark:text-cream-50 uppercase tracking-tight">
