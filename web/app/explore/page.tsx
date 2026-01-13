@@ -131,9 +131,9 @@ export default function ExplorePage() {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <ExploreFilters
               search={search}
               company={company}
@@ -150,7 +150,7 @@ export default function ExplorePage() {
           </div>
 
           {/* Process List */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-10">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
@@ -170,7 +170,7 @@ export default function ExplorePage() {
               />
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                   {processes.map((process, index) => (
                     <ExploreProcessCard key={process.id} process={process} index={index} />
                   ))}

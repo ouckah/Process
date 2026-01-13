@@ -47,9 +47,9 @@ export function ExploreFilters({
       className="relative group"
     >
       <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-2 translate-y-2"></div>
-      <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-6 transform -rotate-1">
+      <div className="relative bg-cream-50 dark:bg-ink-900 border-4 border-ink-900 dark:border-cream-50 p-5 transform -rotate-1">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-5">
           <div className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-4 border-ink-900 dark:border-cream-50 transform rotate-1 inline-block mb-4">
             <h3 className="font-display text-lg font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
               Filters
