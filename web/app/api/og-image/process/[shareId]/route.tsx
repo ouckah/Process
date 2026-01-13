@@ -15,23 +15,23 @@ export async function GET(
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     
     // Fetch process data
-    let process: any = null;
+    let processData: any = null;
     try {
       const response = await fetch(`${apiUrl}/api/processes/share/${shareId}`, {
         cache: 'no-store',
       });
       if (response.ok) {
-        process = await response.json();
+        processData = await response.json();
       }
     } catch (error) {
       console.error('Failed to fetch process:', error);
     }
     
-    const companyName = process?.company_name || 'Process';
-    const position = process?.position || null;
-    const username = process?.username || null;
-    const status = process?.status || 'active';
-    const stages = process?.stages || [];
+    const companyName = processData?.company_name || 'Process';
+    const position = processData?.position || null;
+    const username = processData?.username || null;
+    const status = processData?.status || 'active';
+    const stages = processData?.stages || [];
     const stageCount = stages.length;
     
     // Status colors
