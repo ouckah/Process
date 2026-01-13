@@ -2,55 +2,48 @@
 Migration script to add discord_avatar column to users table.
 Run this script to update your database schema.
 """
-import sqlite3
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./process_tracker.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is required")
 
-# Extract database file path from SQLite URL
-if DATABASE_URL.startswith("sqlite:///"):
-    db_path = DATABASE_URL.replace("sqlite:///", "")
-    if db_path == "./process_tracker.db":
-        db_path = "process_tracker.db"
-else:
-    # For PostgreSQL or other databases, you'd need to use SQLAlchemy
-    print("This migration script is for SQLite only.")
-    print("For PostgreSQL, please run the SQL manually:")
-    print("ALTER TABLE users ADD COLUMN discord_avatar VARCHAR;")
-    exit(1)
-
-def migrate():
-    """Add discord_avatar column to users table if it doesn't exist."""
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
+def run_migration():
+    engine = create_engine(DATABASE_URL)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     
-    try:
-        # Check if column already exists
-        cursor.execute("PRAGMA table_info(users)")
-        columns = [column[1] for column in cursor.fetchall()]
+    print("Running migration to add discord_avatar column...")
+    
+    # Check if column already exists
+    from sqlalchemy import inspect
+    inspector = inspect(engine)
+    
+    if 'users' not in inspector.get_table_names():
+        print("✗ Users table does not exist. Please run database setup first.")
+        return
+    
+    users_columns = [col['name'] for col in inspector.get_columns('users')]
+    
+    with engine.connect() as connection:
+        # Add column to users table
+        if 'discord_avatar' not in users_columns:
+            connection.execute(text("""
+                ALTER TABLE users 
+                ADD COLUMN discord_avatar VARCHAR
+            """))
+            print("✓ Added discord_avatar column to users table")
+        else:
+            print("✓ discord_avatar column already exists")
         
-        if 'discord_avatar' in columns:
-            print("Column 'discord_avatar' already exists. No migration needed.")
-            return
-        
-        # Add the column
-        print("Adding discord_avatar column to users table...")
-        cursor.execute("ALTER TABLE users ADD COLUMN discord_avatar VARCHAR")
-        conn.commit()
-        print("✓ Successfully added discord_avatar column to users table!")
-        
-    except Exception as e:
-        conn.rollback()
-        print(f"✗ Error during migration: {e}")
-        raise
-    finally:
-        conn.close()
+        connection.commit()
+    
+    print("Migration complete!")
 
 if __name__ == "__main__":
-    print("Running migration to add discord_avatar column...")
-    migrate()
-    print("Migration complete!")
+    run_migration()
 

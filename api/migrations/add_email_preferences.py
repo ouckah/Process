@@ -9,7 +9,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./process_tracker.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is required")
 
 def run_migration():
     engine = create_engine(DATABASE_URL)
@@ -35,47 +37,29 @@ def run_migration():
     with engine.connect() as connection:
         # Add columns to users table
         if 'email_notifications_enabled' not in users_columns:
-            if DATABASE_URL.startswith("sqlite"):
-                connection.execute(text("""
-                    ALTER TABLE users 
-                    ADD COLUMN email_notifications_enabled BOOLEAN NOT NULL DEFAULT 1
-                """))
-            else:
-                connection.execute(text("""
-                    ALTER TABLE users 
-                    ADD COLUMN email_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE
-                """))
+            connection.execute(text("""
+                ALTER TABLE users 
+                ADD COLUMN email_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE
+            """))
             print("✓ Added email_notifications_enabled column to users table")
         else:
             print("✓ email_notifications_enabled column already exists")
         
         if 'last_notification_email_sent_at' not in users_columns:
-            if DATABASE_URL.startswith("sqlite"):
-                connection.execute(text("""
-                    ALTER TABLE users 
-                    ADD COLUMN last_notification_email_sent_at DATETIME
-                """))
-            else:
-                connection.execute(text("""
-                    ALTER TABLE users 
-                    ADD COLUMN last_notification_email_sent_at TIMESTAMP
-                """))
+            connection.execute(text("""
+                ALTER TABLE users 
+                ADD COLUMN last_notification_email_sent_at TIMESTAMP
+            """))
             print("✓ Added last_notification_email_sent_at column to users table")
         else:
             print("✓ last_notification_email_sent_at column already exists")
         
         # Add column to notifications table
         if 'email_sent' not in notifications_columns:
-            if DATABASE_URL.startswith("sqlite"):
-                connection.execute(text("""
-                    ALTER TABLE notifications 
-                    ADD COLUMN email_sent BOOLEAN NOT NULL DEFAULT 0
-                """))
-            else:
-                connection.execute(text("""
-                    ALTER TABLE notifications 
-                    ADD COLUMN email_sent BOOLEAN NOT NULL DEFAULT FALSE
-                """))
+            connection.execute(text("""
+                ALTER TABLE notifications 
+                ADD COLUMN email_sent BOOLEAN NOT NULL DEFAULT FALSE
+            """))
             print("✓ Added email_sent column to notifications table")
         else:
             print("✓ email_sent column already exists")

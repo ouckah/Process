@@ -12,7 +12,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./process_tracker.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is required")
 
 Base = declarative_base()
 
@@ -30,41 +32,22 @@ def run_migration():
         print("✓ Notifications table already exists, skipping migration.")
         return
     
-    # Create the table
-    if DATABASE_URL.startswith("sqlite"):
-        # SQLite syntax
-        with engine.connect() as connection:
-            connection.execute(text("""
-                CREATE TABLE notifications (
-                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    type VARCHAR(50) NOT NULL,
-                    comment_id INTEGER,
-                    is_read BOOLEAN NOT NULL DEFAULT 0,
-                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY(user_id) REFERENCES users (id),
-                    FOREIGN KEY(comment_id) REFERENCES profile_comments (id)
-                )
-            """))
-            connection.commit()
-        print("✓ Successfully created notifications table (SQLite)!")
-    else:
-        # PostgreSQL syntax
-        with engine.connect() as connection:
-            connection.execute(text("""
-                CREATE TABLE notifications (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    type VARCHAR(50) NOT NULL,
-                    comment_id INTEGER,
-                    is_read BOOLEAN NOT NULL DEFAULT FALSE,
-                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE,
-                    FOREIGN KEY(comment_id) REFERENCES profile_comments (id) ON DELETE CASCADE
-                )
-            """))
-            connection.commit()
-        print("✓ Successfully created notifications table (PostgreSQL)!")
+    # Create the table (PostgreSQL)
+    with engine.connect() as connection:
+        connection.execute(text("""
+            CREATE TABLE notifications (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                type VARCHAR(50) NOT NULL,
+                comment_id INTEGER,
+                is_read BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE,
+                FOREIGN KEY(comment_id) REFERENCES profile_comments (id) ON DELETE CASCADE
+            )
+        """))
+        connection.commit()
+    print("✓ Successfully created notifications table!")
     
     print("Migration complete!")
 
