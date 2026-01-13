@@ -174,7 +174,7 @@ export async function GET(
             </div>
             
             {/* Companies */}
-            {companies.length > 0 && (
+            {companies.length > 0 ? (
               <div
                 style={{
                   marginTop: 'auto',
