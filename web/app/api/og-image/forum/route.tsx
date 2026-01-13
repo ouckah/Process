@@ -16,104 +16,121 @@ export async function GET(request: NextRequest) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#FAF9F6',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
+            backgroundColor: '#fefcf8',
+            fontFamily: 'DM Sans, system-ui, sans-serif',
             position: 'relative',
+            padding: '40px',
           }}
         >
-          {/* Background layer - shadow */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 12,
-              left: 12,
-              width: '100%',
-              height: '100%',
-              backgroundColor: '#1A1A1A',
-              display: 'flex',
-            }}
-          />
-          
-          {/* Main content box */}
-          <div
-            style={{
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              width: '90%',
-              height: '85%',
-              backgroundColor: '#FAF9F6',
-              border: '16px solid #1A1A1A',
-              padding: '48px',
-              transform: 'rotate(1.5deg)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {/* Title */}
-            <div
-              style={{
-                fontSize: 96,
-                fontWeight: 900,
-                textTransform: 'uppercase',
-                color: '#1A1A1A',
-                marginBottom: 32,
-                lineHeight: 1.2,
-                letterSpacing: '-0.02em',
-                textAlign: 'center',
-                display: 'flex',
-              }}
-            >
-              FORUM
+          {/* Main wrapper */}
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '1000px', alignItems: 'center' }}>
+            {/* Title wrapper - matching email title-wrapper */}
+            <div style={{ position: 'relative', display: 'flex', marginBottom: '32px' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: '#1c1917',
+                  transform: 'translate(8px, 8px)',
+                  display: 'flex',
+                }}
+              />
+              <div
+                style={{
+                  position: 'relative',
+                  backgroundColor: '#1c1917',
+                  color: '#fefcf8',
+                  padding: '16px 24px',
+                  border: '4px solid #1c1917',
+                  transform: 'rotate(1deg)',
+                  display: 'flex',
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '64px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '-0.02em',
+                    margin: 0,
+                    textAlign: 'center',
+                    display: 'flex',
+                  }}
+                >
+                  FORUM
+                </div>
+              </div>
             </div>
             
-            {/* Description */}
-            <div
-              style={{
-                fontSize: 32,
-                color: '#1A1A1A',
-                textAlign: 'center',
-                fontWeight: 900,
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                maxWidth: '80%',
-                display: 'flex',
-              }}
-            >
-              DISCUSS JOB APPLICATION PROCESSES, SHARE EXPERIENCES, AND GET ADVICE FROM THE COMMUNITY
+            {/* Description wrapper - matching email description-wrapper */}
+            <div style={{ position: 'relative', display: 'flex', marginBottom: '48px' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: '#f5f5f0',
+                  transform: 'translate(4px, 4px)',
+                  display: 'flex',
+                }}
+              />
+              <div
+                style={{
+                  position: 'relative',
+                  backgroundColor: '#f5f5f0',
+                  border: '2px solid #1c1917',
+                  padding: '24px',
+                  paddingTop: '36px',
+                  transform: 'rotate(-1deg)',
+                  maxWidth: '800px',
+                  display: 'flex',
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '24px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#57534e',
+                    textAlign: 'center',
+                    margin: 0,
+                    display: 'flex',
+                  }}
+                >
+                  DISCUSS JOB APPLICATION PROCESSES, SHARE EXPERIENCES, AND GET ADVICE FROM THE COMMUNITY
+                </div>
+              </div>
             </div>
             
-            {/* Decorative elements */}
-            <div
-              style={{
-                display: 'flex',
-                gap: 24,
-                marginTop: 48,
-              }}
-            >
+            {/* Decorative buttons - matching email button-wrapper structure */}
+            <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
               {/* DISCUSS */}
               <div style={{ position: 'relative', display: 'flex' }}>
                 <div
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: '#1A1A1A',
-                    transform: 'translate(12px, 12px)',
+                    backgroundColor: '#4f46e5',
+                    transform: 'translate(8px, 8px)',
                     display: 'flex',
                   }}
                 />
                 <div
                   style={{
                     position: 'relative',
-                    backgroundColor: '#6366F1',
-                    color: '#FAF9F6',
+                    backgroundColor: '#4f46e5',
+                    color: '#ffffff',
                     padding: '16px 32px',
-                    border: '8px solid #1A1A1A',
-                    transform: 'rotate(1.5deg)',
-                    fontSize: 20,
-                    fontWeight: 900,
+                    textDecoration: 'none',
+                    border: '4px solid #1c1917',
+                    transform: 'rotate(-1deg)',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '18px',
+                    fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.1em',
                     display: 'flex',
                   }}
                 >
@@ -127,23 +144,25 @@ export async function GET(request: NextRequest) {
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: '#1A1A1A',
-                    transform: 'translate(12px, 12px)',
+                    backgroundColor: '#f59e0b',
+                    transform: 'translate(8px, 8px)',
                     display: 'flex',
                   }}
                 />
                 <div
                   style={{
                     position: 'relative',
-                    backgroundColor: '#F59E0B',
-                    color: '#1A1A1A',
+                    backgroundColor: '#f59e0b',
+                    color: '#1c1917',
                     padding: '16px 32px',
-                    border: '8px solid #1A1A1A',
-                    transform: 'rotate(-1.5deg)',
-                    fontSize: 20,
-                    fontWeight: 900,
+                    textDecoration: 'none',
+                    border: '4px solid #1c1917',
+                    transform: 'rotate(1deg)',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '18px',
+                    fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.1em',
                     display: 'flex',
                   }}
                 >
@@ -157,23 +176,25 @@ export async function GET(request: NextRequest) {
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: '#1A1A1A',
-                    transform: 'translate(12px, 12px)',
+                    backgroundColor: '#10b981',
+                    transform: 'translate(8px, 8px)',
                     display: 'flex',
                   }}
                 />
                 <div
                   style={{
                     position: 'relative',
-                    backgroundColor: '#10B981',
-                    color: '#FAF9F6',
+                    backgroundColor: '#10b981',
+                    color: '#ffffff',
                     padding: '16px 32px',
-                    border: '8px solid #1A1A1A',
-                    transform: 'rotate(1.5deg)',
-                    fontSize: 20,
-                    fontWeight: 900,
+                    textDecoration: 'none',
+                    border: '4px solid #1c1917',
+                    transform: 'rotate(-1deg)',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '18px',
+                    fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.1em',
                     display: 'flex',
                   }}
                 >
@@ -200,10 +221,11 @@ export async function GET(request: NextRequest) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#FAF9F6',
+            backgroundColor: '#fefcf8',
             fontSize: 32,
             fontWeight: 700,
-            color: '#1A1A1A',
+            color: '#1c1917',
+            fontFamily: 'DM Sans, system-ui, sans-serif',
           }}
         >
           Forum

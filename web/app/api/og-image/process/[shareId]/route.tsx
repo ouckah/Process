@@ -34,11 +34,11 @@ export async function GET(
     const stages = processData?.stages || [];
     const stageCount = stages.length;
     
-    // Status colors
+    // Status colors - matching email colors
     const statusColors: Record<string, { bg: string; text: string }> = {
-      active: { bg: '#3B82F6', text: '#FAF9F6' },
-      completed: { bg: '#10B981', text: '#FAF9F6' },
-      rejected: { bg: '#EF4444', text: '#FAF9F6' },
+      active: { bg: '#3b82f6', text: '#ffffff' },
+      completed: { bg: '#10b981', text: '#ffffff' },
+      rejected: { bg: '#ef4444', text: '#ffffff' },
     };
     const statusColor = statusColors[status] || statusColors.active;
     
@@ -55,78 +55,77 @@ export async function GET(
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#FAF9F6',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
+            backgroundColor: '#fefcf8',
+            fontFamily: 'DM Sans, system-ui, sans-serif',
             position: 'relative',
+            padding: '40px',
           }}
         >
-          {/* Background layer - shadow */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 12,
-              left: 12,
-              width: '100%',
-              height: '100%',
-              backgroundColor: '#1A1A1A',
-              display: 'flex',
-            }}
-          />
-          
-          {/* Main content box */}
-          <div
-            style={{
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              width: '90%',
-              height: '85%',
-              backgroundColor: '#FAF9F6',
-              border: '16px solid #1A1A1A',
-              padding: '48px',
-              transform: 'rotate(1.5deg)',
-            }}
-          >
-            {/* Company Name */}
-            <div
-              style={{
-                fontSize: 64,
-                fontWeight: 900,
-                textTransform: 'uppercase',
-                color: '#1A1A1A',
-                marginBottom: 16,
-                lineHeight: 1.2,
-                letterSpacing: '-0.02em',
-                display: 'flex',
-              }}
-            >
-              {companyName}
+          {/* Main wrapper - matching email structure */}
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '1000px', gap: '24px' }}>
+            {/* Company Name - matching email title-wrapper */}
+            <div style={{ position: 'relative', display: 'flex' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: '#1c1917',
+                  transform: 'translate(8px, 8px)',
+                  display: 'flex',
+                }}
+              />
+              <div
+                style={{
+                  position: 'relative',
+                  backgroundColor: '#1c1917',
+                  color: '#fefcf8',
+                  padding: '16px 24px',
+                  border: '4px solid #1c1917',
+                  transform: 'rotate(1deg)',
+                  display: 'flex',
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '56px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '-0.02em',
+                    margin: 0,
+                    display: 'flex',
+                  }}
+                >
+                  {companyName}
+                </div>
+              </div>
             </div>
             
-            {/* Position */}
+            {/* Position - matching email button-wrapper */}
             {position ? (
-              <div style={{ position: 'relative', display: 'inline-block', width: 'fit-content', marginBottom: 32 }}>
+              <div style={{ position: 'relative', display: 'flex' }}>
                 <div
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: '#1A1A1A',
-                    transform: 'translate(12px, 12px)',
+                    backgroundColor: '#1c1917',
+                    transform: 'translate(8px, 8px)',
                     display: 'flex',
                   }}
                 />
                 <div
                   style={{
                     position: 'relative',
-                    backgroundColor: '#1A1A1A',
-                    color: '#FAF9F6',
+                    backgroundColor: '#1c1917',
+                    color: '#fefcf8',
                     padding: '12px 24px',
-                    border: '8px solid #1A1A1A',
-                    transform: 'rotate(-1.5deg)',
-                    fontSize: 28,
-                    fontWeight: 900,
+                    border: '4px solid #1c1917',
+                    transform: 'rotate(-1deg)',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '24px',
+                    fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.05em',
                     display: 'flex',
                   }}
                 >
@@ -147,29 +146,30 @@ export async function GET(
                 flexWrap: 'wrap',
               }}
             >
-              {/* Status Badge */}
+              {/* Status Badge - matching email button-wrapper */}
               <div style={{ position: 'relative', display: 'flex' }}>
                 <div
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: '#1A1A1A',
-                    transform: 'translate(12px, 12px)',
+                    backgroundColor: statusColor.bg === '#3B82F6' ? '#3b82f6' : statusColor.bg === '#10B981' ? '#10b981' : '#ef4444',
+                    transform: 'translate(8px, 8px)',
                     display: 'flex',
                   }}
                 />
                 <div
                   style={{
                     position: 'relative',
-                    backgroundColor: statusColor.bg,
-                    color: statusColor.text,
+                    backgroundColor: statusColor.bg === '#3B82F6' ? '#3b82f6' : statusColor.bg === '#10B981' ? '#10b981' : '#ef4444',
+                    color: '#ffffff',
                     padding: '12px 24px',
-                    border: '8px solid #1A1A1A',
-                    transform: 'rotate(1.5deg)',
-                    fontSize: 20,
-                    fontWeight: 900,
+                    border: '4px solid #1c1917',
+                    transform: 'rotate(1deg)',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '18px',
+                    fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.1em',
                     display: 'flex',
                   }}
                 >
@@ -177,30 +177,31 @@ export async function GET(
                 </div>
               </div>
               
-              {/* Username Badge */}
+              {/* Username Badge - matching email button-wrapper */}
               {username ? (
                 <div style={{ position: 'relative', display: 'flex' }}>
                   <div
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      backgroundColor: '#1A1A1A',
-                      transform: 'translate(12px, 12px)',
+                      backgroundColor: '#4f46e5',
+                      transform: 'translate(8px, 8px)',
                       display: 'flex',
                     }}
                   />
                   <div
                     style={{
                       position: 'relative',
-                      backgroundColor: '#6366F1',
-                      color: '#FAF9F6',
+                      backgroundColor: '#4f46e5',
+                      color: '#ffffff',
                       padding: '12px 24px',
-                      border: '8px solid #1A1A1A',
-                      transform: 'rotate(-1.5deg)',
-                      fontSize: 20,
-                      fontWeight: 900,
+                      border: '4px solid #1c1917',
+                      transform: 'rotate(-1deg)',
+                      fontFamily: 'DM Sans, system-ui, sans-serif',
+                      fontSize: '18px',
+                      fontWeight: 700,
                       textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
+                      letterSpacing: '0.1em',
                       display: 'flex',
                     }}
                   >
@@ -218,18 +219,18 @@ export async function GET(
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 16,
-                  marginTop: 'auto',
+                  gap: '16px',
                 }}
               >
                 <div
                   style={{
-                    fontSize: 24,
-                    fontWeight: 900,
-                    color: '#1A1A1A',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '20px',
+                    fontWeight: 700,
+                    color: '#1c1917',
                     textTransform: 'uppercase',
-                    marginBottom: 8,
-                    letterSpacing: '0.08em',
+                    marginBottom: '8px',
+                    letterSpacing: '0.05em',
                     display: 'flex',
                   }}
                 >
@@ -249,8 +250,8 @@ export async function GET(
                           style={{
                             position: 'absolute',
                             inset: 0,
-                            backgroundColor: '#1A1A1A',
-                            transform: 'translate(12px, 12px)',
+                            backgroundColor: '#1c1917',
+                            transform: 'translate(8px, 8px)',
                             display: 'flex',
                           }}
                         />
@@ -258,15 +259,16 @@ export async function GET(
                           style={{
                             position: 'relative',
                             backgroundColor: '#F59E0B',
-                            color: '#1A1A1A',
+                            color: '#1c1917',
                             padding: '10px 20px',
-                            border: '8px solid #1A1A1A',
-                            transform: idx % 2 === 0 ? 'rotate(1.5deg)' : 'rotate(-1.5deg)',
+                            border: '4px solid #1c1917',
+                            transform: idx % 2 === 0 ? 'rotate(1deg)' : 'rotate(-1deg)',
                             fontSize: 18,
-                            fontWeight: 900,
+                            fontWeight: 700,
                             textTransform: 'uppercase',
-                            letterSpacing: '0.08em',
+                            letterSpacing: '0.05em',
                             display: 'flex',
+                            fontFamily: 'DM Sans, system-ui, sans-serif',
                           }}
                         >
                           {name}
@@ -276,11 +278,12 @@ export async function GET(
                     {stageCount > 3 ? (
                       <div
                         style={{
-                          fontSize: 18,
-                          fontWeight: 900,
-                          color: '#1A1A1A',
+                          fontFamily: 'DM Sans, system-ui, sans-serif',
+                          fontSize: '16px',
+                          fontWeight: 700,
+                          color: '#1c1917',
                           textTransform: 'uppercase',
-                          letterSpacing: '0.08em',
+                          letterSpacing: '0.05em',
                           display: 'flex',
                         }}
                       >
@@ -316,10 +319,10 @@ export async function GET(
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#FAF9F6',
+            backgroundColor: '#fefcf8',
             fontSize: 32,
             fontWeight: 700,
-            color: '#1A1A1A',
+            color: '#1c1917',
           }}
         >
           Process

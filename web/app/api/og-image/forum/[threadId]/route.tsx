@@ -56,143 +56,149 @@ export async function GET(
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#FAF9F6',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
+            backgroundColor: '#fefcf8',
+            fontFamily: 'DM Sans, system-ui, sans-serif',
             position: 'relative',
+            padding: '40px',
           }}
         >
-          {/* Background layer - shadow */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 12,
-              left: 12,
-              width: '100%',
-              height: '100%',
-              backgroundColor: '#1A1A1A',
-              display: 'flex',
-            }}
-          />
-          
-          {/* Main content box */}
-          <div
-            style={{
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              width: '90%',
-              height: '85%',
-              backgroundColor: '#FAF9F6',
-              border: '16px solid #1A1A1A',
-              padding: '48px',
-              transform: 'rotate(1.5deg)',
-            }}
-          >
-            {/* Title */}
-            <div
-              style={{
-                fontSize: 56,
-                fontWeight: 900,
-                textTransform: 'uppercase',
-                color: '#1A1A1A',
-                marginBottom: 24,
-                lineHeight: 1.2,
-                letterSpacing: '-0.02em',
-                display: 'flex',
-              }}
-            >
-              {title}
+          {/* Main wrapper - matching email structure */}
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '1000px', gap: '24px' }}>
+            {/* Title - matching email title-wrapper */}
+            <div style={{ position: 'relative', display: 'flex' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: '#1c1917',
+                  transform: 'translate(8px, 8px)',
+                  display: 'flex',
+                }}
+              />
+              <div
+                style={{
+                  position: 'relative',
+                  backgroundColor: '#1c1917',
+                  color: '#fefcf8',
+                  padding: '16px 24px',
+                  border: '4px solid #1c1917',
+                  transform: 'rotate(1deg)',
+                  display: 'flex',
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '48px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '-0.02em',
+                    margin: 0,
+                    display: 'flex',
+                  }}
+                >
+                  {title}
+                </div>
+              </div>
             </div>
             
-            {/* Author info */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginBottom: 32,
-              }}
-            >
+            {/* Author info - matching email button-wrapper */}
+            <div style={{ position: 'relative', display: 'flex' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: '#1c1917',
+                  transform: 'translate(8px, 8px)',
+                  display: 'flex',
+                }}
+              />
+              <div
+                style={{
+                  position: 'relative',
+                  backgroundColor: '#1c1917',
+                  color: '#fefcf8',
+                  padding: '12px 24px',
+                  border: '4px solid #1c1917',
+                  transform: 'rotate(-1deg)',
+                  fontFamily: 'DM Sans, system-ui, sans-serif',
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  display: 'flex',
+                }}
+              >
+                {authorName}
+              </div>
+            </div>
+            
+            {/* Content preview - matching email notification-wrapper */}
+            {truncatedContent ? (
               <div style={{ position: 'relative', display: 'flex' }}>
                 <div
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: '#1A1A1A',
-                    transform: 'translate(12px, 12px)',
+                    backgroundColor: '#1c1917',
+                    transform: 'translate(8px, 8px)',
                     display: 'flex',
                   }}
                 />
                 <div
                   style={{
                     position: 'relative',
-                    backgroundColor: '#1A1A1A',
-                    color: '#FAF9F6',
-                    padding: '12px 24px',
-                    border: '8px solid #1A1A1A',
-                    transform: 'rotate(-1.5deg)',
-                    fontSize: 20,
-                    fontWeight: 900,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
+                    backgroundColor: '#fefcf8',
+                    border: '4px solid #1c1917',
+                    padding: '24px',
+                    transform: 'rotate(-1deg)',
                     display: 'flex',
                   }}
                 >
-                  {authorName}
+                  <div
+                    style={{
+                      fontFamily: 'DM Sans, system-ui, sans-serif',
+                      fontSize: '20px',
+                      lineHeight: 1.6,
+                      color: '#1c1917',
+                      margin: 0,
+                      display: 'flex',
+                    }}
+                  >
+                    {truncatedContent}
+                  </div>
                 </div>
-              </div>
-            </div>
-            
-            {/* Content preview */}
-            {truncatedContent ? (
-              <div
-                style={{
-                  fontSize: 24,
-                  color: '#1A1A1A',
-                  lineHeight: 1.6,
-                  marginBottom: 32,
-                  flex: 1,
-                  overflow: 'hidden',
-                  fontWeight: 500,
-                  display: 'flex',
-                }}
-              >
-                {truncatedContent}
               </div>
             ) : (
               <div style={{ display: 'none' }} />
             )}
             
-            {/* Stats */}
-            <div
-              style={{
-                display: 'flex',
-                gap: 24,
-                marginTop: 'auto',
-              }}
-            >
+            {/* Stats - matching email button-wrapper */}
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
               {/* Reply Count */}
               <div style={{ position: 'relative', display: 'flex' }}>
                 <div
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: '#1A1A1A',
-                    transform: 'translate(12px, 12px)',
+                    backgroundColor: '#4f46e5',
+                    transform: 'translate(8px, 8px)',
                     display: 'flex',
                   }}
                 />
                 <div
                   style={{
                     position: 'relative',
-                    backgroundColor: '#6366F1',
-                    color: '#FAF9F6',
+                    backgroundColor: '#4f46e5',
+                    color: '#ffffff',
                     padding: '12px 24px',
-                    border: '8px solid #1A1A1A',
-                    transform: 'rotate(1.5deg)',
-                    fontSize: 18,
-                    fontWeight: 900,
+                    border: '4px solid #1c1917',
+                    transform: 'rotate(1deg)',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '16px',
+                    fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.1em',
                     display: 'flex',
                   }}
                 >
@@ -206,23 +212,24 @@ export async function GET(
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: '#1A1A1A',
-                    transform: 'translate(12px, 12px)',
+                    backgroundColor: '#f59e0b',
+                    transform: 'translate(8px, 8px)',
                     display: 'flex',
                   }}
                 />
                 <div
                   style={{
                     position: 'relative',
-                    backgroundColor: '#F59E0B',
-                    color: '#1A1A1A',
+                    backgroundColor: '#f59e0b',
+                    color: '#1c1917',
                     padding: '12px 24px',
-                    border: '8px solid #1A1A1A',
-                    transform: 'rotate(-1.5deg)',
-                    fontSize: 18,
-                    fontWeight: 900,
+                    border: '4px solid #1c1917',
+                    transform: 'rotate(-1deg)',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '16px',
+                    fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.1em',
                     display: 'flex',
                   }}
                 >
@@ -249,10 +256,10 @@ export async function GET(
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#FAF9F6',
+            backgroundColor: '#fefcf8',
             fontSize: 32,
             fontWeight: 700,
-            color: '#1A1A1A',
+            color: '#1c1917',
           }}
         >
           Forum Thread

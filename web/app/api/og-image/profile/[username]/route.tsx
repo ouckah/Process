@@ -31,6 +31,8 @@ export async function GET(
     const isAnonymous = profile?.is_anonymous || false;
     const stats = profile?.stats || {};
     const processes = profile?.processes || [];
+    const discordAvatar = profile?.discord_avatar;
+    const discordId = profile?.discord_id;
     
     const totalProcesses = stats.total_public_processes || 0;
     const offers = stats.offers_received || 0;
@@ -44,6 +46,11 @@ export async function GET(
       .filter((name: any): name is string => typeof name === 'string' && name !== null && name !== undefined);
     const companies: string[] = Array.from(new Set(companyNames)).slice(0, 5);
     
+    // Generate Discord avatar URL if available
+    const avatarUrl = discordAvatar && discordId
+      ? `https://cdn.discordapp.com/avatars/${discordId}/${discordAvatar}.png?size=256`
+      : null;
+    
     return new ImageResponse(
       (
         <div
@@ -54,185 +61,227 @@ export async function GET(
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#FAF9F6',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
+            backgroundColor: '#fefcf8',
+            fontFamily: 'DM Sans, system-ui, sans-serif',
             position: 'relative',
+            padding: '40px',
           }}
         >
-          {/* Background layer - shadow */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 12,
-              left: 12,
-              width: '100%',
-              height: '100%',
-              backgroundColor: '#1A1A1A',
-              display: 'flex',
-            }}
-          />
-          
-          {/* Main content box */}
-          <div
-            style={{
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              width: '90%',
-              height: '85%',
-              backgroundColor: '#FAF9F6',
-              border: '16px solid #1A1A1A',
-              padding: '48px',
-              transform: 'rotate(1.5deg)',
-            }}
-          >
-            {/* Username/Display Name */}
-            <div
-              style={{
-                fontSize: 56,
-                fontWeight: 900,
-                textTransform: 'uppercase',
-                color: '#1A1A1A',
-                marginBottom: 32,
-                lineHeight: 1.2,
-                letterSpacing: '-0.02em',
-                display: 'flex',
-              }}
-            >
-              {isAnonymous ? displayName : `@${username}`}
-            </div>
-            
-            {/* Stats Row */}
-            <div
-              style={{
-                display: 'flex',
-                gap: 20,
-                marginBottom: 32,
-                flexWrap: 'wrap',
-              }}
-            >
+          {/* Main wrapper - matching email structure */}
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'row', width: '100%', maxWidth: '1000px', gap: '40px', alignItems: 'flex-start' }}>
+            {/* Left side - Content */}
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '24px' }}>
+            {/* Username/Display Name - matching email title-wrapper */}
+            <div style={{ position: 'relative', display: 'flex' }}>
               <div
                 style={{
-                  backgroundColor: '#10B981',
-                  color: '#FAF9F6',
-                  padding: '12px 24px',
-                  border: '8px solid #1A1A1A',
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: '#1c1917',
+                  transform: 'translate(8px, 8px)',
+                  display: 'flex',
+                }}
+              />
+              <div
+                style={{
+                  position: 'relative',
+                  backgroundColor: '#1c1917',
+                  color: '#fefcf8',
+                  padding: '16px 24px',
+                  border: '4px solid #1c1917',
                   transform: 'rotate(1deg)',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
                   display: 'flex',
                 }}
               >
-                {totalProcesses} PROCESSES
-              </div>
-              <div
-                style={{
-                  backgroundColor: '#3B82F6',
-                  color: '#FAF9F6',
-                  padding: '12px 24px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(-1deg)',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  display: 'flex',
-                }}
-              >
-                {offers} OFFERS
-              </div>
-              <div
-                style={{
-                  backgroundColor: '#F59E0B',
-                  color: '#1A1A1A',
-                  padding: '12px 24px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(1deg)',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  display: 'flex',
-                }}
-              >
-                {active} ACTIVE
-              </div>
-              {successRate > 0 ? (
                 <div
                   style={{
-                    backgroundColor: '#6366F1',
-                    color: '#FAF9F6',
-                    padding: '12px 24px',
-                    border: '8px solid #1A1A1A',
-                    transform: 'rotate(-1deg)',
-                    fontSize: 20,
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '48px',
                     fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
+                    letterSpacing: '-0.02em',
+                    margin: 0,
                     display: 'flex',
                   }}
                 >
-                  {successRate}% SUCCESS
+                  {isAnonymous ? displayName : `@${username}`}
+                </div>
+              </div>
+            </div>
+            
+            {/* Stats Row - matching email button-wrapper */}
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              {/* Processes */}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#10b981',
+                    transform: 'translate(8px, 8px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#10b981',
+                    color: '#ffffff',
+                    padding: '12px 24px',
+                    border: '4px solid #1c1917',
+                    transform: 'rotate(1deg)',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    display: 'flex',
+                  }}
+                >
+                  {totalProcesses} PROCESSES
+                </div>
+              </div>
+              
+              {/* Offers */}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#3b82f6',
+                    transform: 'translate(8px, 8px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#3b82f6',
+                    color: '#ffffff',
+                    padding: '12px 24px',
+                    border: '4px solid #1c1917',
+                    transform: 'rotate(-1deg)',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    display: 'flex',
+                  }}
+                >
+                  {offers} OFFERS
+                </div>
+              </div>
+              
+              {/* Active */}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#f59e0b',
+                    transform: 'translate(8px, 8px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#f59e0b',
+                    color: '#1c1917',
+                    padding: '12px 24px',
+                    border: '4px solid #1c1917',
+                    transform: 'rotate(1deg)',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    display: 'flex',
+                  }}
+                >
+                  {active} ACTIVE
+                </div>
+              </div>
+              
+              {/* Success Rate */}
+              {successRate > 0 ? (
+                <div style={{ position: 'relative', display: 'flex' }}>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      backgroundColor: '#4f46e5',
+                      transform: 'translate(8px, 8px)',
+                      display: 'flex',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'relative',
+                      backgroundColor: '#4f46e5',
+                      color: '#ffffff',
+                      padding: '12px 24px',
+                      border: '4px solid #1c1917',
+                      transform: 'rotate(-1deg)',
+                      fontFamily: 'DM Sans, system-ui, sans-serif',
+                      fontSize: '16px',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      display: 'flex',
+                    }}
+                  >
+                    {successRate}% SUCCESS
+                  </div>
                 </div>
               ) : (
                 <div style={{ display: 'none' }} />
               )}
             </div>
             
-            {/* Companies */}
+            {/* Companies - matching email notification-wrapper */}
             {companies.length > 0 ? (
-              <div
-                style={{
-                  marginTop: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div
                   style={{
-                    fontSize: 24,
-                    fontWeight: 900,
-                    color: '#1A1A1A',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '20px',
+                    fontWeight: 700,
+                    color: '#1c1917',
                     textTransform: 'uppercase',
-                    marginBottom: 16,
-                    letterSpacing: '0.08em',
+                    marginBottom: '8px',
+                    letterSpacing: '0.05em',
                     display: 'flex',
                   }}
                 >
                   COMPANIES
                 </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 12,
-                  }}
-                >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {companies.map((company: string, idx: number) => (
                     <div key={idx} style={{ position: 'relative', display: 'flex' }}>
                       <div
                         style={{
                           position: 'absolute',
                           inset: 0,
-                          backgroundColor: '#1A1A1A',
-                          transform: 'translate(12px, 12px)',
+                          backgroundColor: '#1c1917',
+                          transform: 'translate(8px, 8px)',
                           display: 'flex',
                         }}
                       />
                       <div
                         style={{
                           position: 'relative',
-                          backgroundColor: '#1A1A1A',
-                          color: '#FAF9F6',
+                          backgroundColor: '#1c1917',
+                          color: '#fefcf8',
                           padding: '10px 20px',
-                          border: '8px solid #1A1A1A',
-                          transform: idx % 2 === 0 ? 'rotate(1.5deg)' : 'rotate(-1.5deg)',
-                          fontSize: 20,
-                          fontWeight: 900,
+                          border: '4px solid #1c1917',
+                          transform: idx % 2 === 0 ? 'rotate(1deg)' : 'rotate(-1deg)',
+                          fontFamily: 'DM Sans, system-ui, sans-serif',
+                          fontSize: '16px',
+                          fontWeight: 700,
                           textTransform: 'uppercase',
-                          letterSpacing: '0.08em',
+                          letterSpacing: '0.1em',
                           display: 'flex',
                         }}
                       >
@@ -244,6 +293,79 @@ export async function GET(
               </div>
             ) : (
               <div style={{ display: 'none' }} />
+            )}
+            </div>
+            
+            {/* Right side - Profile Picture */}
+            {avatarUrl ? (
+              <div style={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1c1917',
+                    transform: 'translate(8px, 8px)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '200px',
+                    height: '200px',
+                    borderRadius: '50%',
+                    border: '4px solid #1c1917',
+                    transform: 'rotate(2deg)',
+                    overflow: 'hidden',
+                    display: 'flex',
+                  }}
+                >
+                  <img
+                    src={avatarUrl}
+                    alt={displayName}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'flex',
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div style={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1c1917',
+                    transform: 'translate(8px, 8px)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '200px',
+                    height: '200px',
+                    borderRadius: '50%',
+                    border: '4px solid #1c1917',
+                    backgroundColor: '#4f46e5',
+                    transform: 'rotate(2deg)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'DM Sans, system-ui, sans-serif',
+                    fontSize: '72px',
+                    fontWeight: 900,
+                    color: '#ffffff',
+                  }}
+                >
+                  {(displayName || username || '?').charAt(0).toUpperCase()}
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -264,10 +386,10 @@ export async function GET(
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#FAF9F6',
+            backgroundColor: '#fefcf8',
             fontSize: 32,
             fontWeight: 700,
-            color: '#1A1A1A',
+            color: '#1c1917',
           }}
         >
           Profile
