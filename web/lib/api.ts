@@ -135,7 +135,7 @@ export const authApi = {
         const response = await apiClient.delete<{ message: string }>('/auth/discord/disconnect');
         return response.data;
       },
-      updateProfile: async (data: { username?: string; display_name?: string | null; is_anonymous?: boolean; comments_enabled?: boolean }): Promise<User> => {
+      updateProfile: async (data: { username?: string; display_name?: string | null; is_anonymous?: boolean; comments_enabled?: boolean; email_notifications_enabled?: boolean }): Promise<User> => {
         const response = await apiClient.patch<User>('/auth/me', data);
         return response.data;
       },

@@ -23,6 +23,7 @@ from auth import (
 )
 from schemas import UserResponse, UserUpdate, TokenResponse, DiscordBotTokenRequest
 from rate_limiter import limiter
+from email_service import send_welcome_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -44,6 +45,7 @@ def get_me(
         "display_name": current_user.display_name,
         "is_anonymous": current_user.is_anonymous,
         "comments_enabled": current_user.comments_enabled,
+        "email_notifications_enabled": current_user.email_notifications_enabled,
         "discord_privacy_mode": current_user.discord_privacy_mode,
     }
 
@@ -91,6 +93,10 @@ def update_me(
     if user_data.comments_enabled is not None:
         current_user.comments_enabled = user_data.comments_enabled
     
+    # Update email_notifications_enabled if provided
+    if user_data.email_notifications_enabled is not None:
+        current_user.email_notifications_enabled = user_data.email_notifications_enabled
+    
     # Update discord_privacy_mode if provided
     if user_data.discord_privacy_mode is not None:
         if user_data.discord_privacy_mode not in ['private', 'public']:
@@ -112,6 +118,7 @@ def update_me(
         "display_name": current_user.display_name,
         "is_anonymous": current_user.is_anonymous,
         "comments_enabled": current_user.comments_enabled,
+        "email_notifications_enabled": current_user.email_notifications_enabled,
         "discord_privacy_mode": current_user.discord_privacy_mode,
     }
 
@@ -530,6 +537,12 @@ def google_oauth_callback(
                     db.add(user)
                     db.commit()
                     db.refresh(user)
+                    # Send welcome email (non-blocking)
+                    try:
+                        send_welcome_email(user)
+                    except Exception as e:
+                        # Don't block signup if email fails
+                        pass
             elif google_user_obj and email_user:
                 # Both exist - merge
                 if google_user_obj.id != email_user.id:
@@ -574,6 +587,12 @@ def google_oauth_callback(
                 db.add(user)
                 db.commit()
                 db.refresh(user)
+                # Send welcome email (non-blocking)
+                try:
+                    send_welcome_email(user)
+                except Exception as e:
+                    # Don't block signup if email fails
+                    pass
             
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
             access_token = create_access_token(

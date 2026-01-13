@@ -1,0 +1,899 @@
+"""
+Preview email templates locally without sending.
+Generates HTML files that can be opened in a browser.
+"""
+import os
+from datetime import datetime
+from pathlib import Path
+
+# Mock user data for preview
+class MockUser:
+    def __init__(self):
+        self.id = 1
+        self.username = "testuser"
+        self.email = "test@example.com"
+        self.display_name = None
+        self.email_notifications_enabled = True
+        self.last_notification_email_sent_at = None
+
+class MockNotification:
+    def __init__(self):
+        self.id = 1
+        self.user_id = 1
+        self.type = "comment"
+        self.comment_id = 1
+        self.is_read = False
+        self.email_sent = False
+        self.created_at = datetime.utcnow()
+
+class MockComment:
+    def __init__(self):
+        self.id = 1
+        self.content = "This is a sample comment to preview how notifications look in the email. It's a bit longer to show how the content is displayed."
+        self.author_id = 2
+
+# Email template functions (copied from email_service.py)
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM", "notifications@processes.cc")
+EMAIL_FROM = f"Process <{EMAIL_FROM_ADDRESS}>"
+
+def generate_welcome_email_html(user):
+    """Generate welcome email HTML."""
+    dashboard_url = f"{FRONTEND_URL}/dashboard"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+            
+            body {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                line-height: 1.6;
+                color: #1c1917;
+                background-color: #fefcf8;
+                margin: 0;
+                padding: 20px;
+            }}
+            .container {{
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: #fefcf8;
+            }}
+            .icon-container {{
+                text-align: center;
+                margin-bottom: 24px;
+            }}
+            .icon {{
+                width: 64px;
+                height: 64px;
+                color: #4f46e5;
+                margin: 0 auto;
+            }}
+            .title-wrapper {{
+                position: relative;
+                display: inline-block;
+                margin-bottom: -12px;
+                z-index: 2;
+            }}
+            .title-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #1c1917;
+                transform: translate(8px, 8px);
+            }}
+            .title-banner {{
+                position: relative;
+                background-color: #1c1917;
+                color: #fefcf8;
+                padding: 16px 24px;
+                border: 4px solid #1c1917;
+                transform: rotate(1deg);
+            }}
+            .title-text {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 24px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: -0.02em;
+                margin: 0;
+                text-align: center;
+            }}
+            .title-wrapper:hover {{
+                transform: translate(2px, 2px);
+            }}
+            .title-wrapper:hover .title-shadow {{
+                transform: translate(10px, 10px);
+            }}
+            .description-wrapper {{
+                position: relative;
+                display: inline-block;
+                z-index: 1;
+                margin-top: -12px;
+            }}
+            .description-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #f5f5f0;
+                transform: translate(4px, 4px);
+            }}
+            .description-box {{
+                position: relative;
+                background-color: #f5f5f0;
+                border: 2px solid #1c1917;
+                padding: 24px;
+                padding-top: 36px;
+                transform: rotate(-1deg);
+                max-width: 500px;
+            }}
+            .description-text {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #57534e;
+                text-align: center;
+                margin: 0;
+            }}
+            .quick-start-wrapper {{
+                position: relative;
+                margin: 24px 0;
+            }}
+            .quick-start-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #4f46e5;
+                transform: translate(8px, 8px);
+            }}
+            .quick-start-box {{
+                position: relative;
+                background-color: #4f46e5;
+                border: 4px solid #1c1917;
+                padding: 24px;
+                transform: rotate(-1deg);
+            }}
+            .quick-start-title-wrapper {{
+                position: relative;
+                display: inline-block;
+                margin-bottom: 16px;
+            }}
+            .quick-start-title-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #1c1917;
+                transform: translate(4px, 4px);
+            }}
+            .quick-start-title {{
+                position: relative;
+                background-color: #1c1917;
+                color: #fefcf8;
+                padding: 8px 16px;
+                border: 2px solid #1c1917;
+                transform: rotate(1deg);
+            }}
+            .quick-start-title-text {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 18px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: -0.02em;
+                margin: 0;
+            }}
+            .quick-start-wrapper:hover {{
+                transform: translate(2px, 2px) rotate(-1deg);
+            }}
+            .quick-start-wrapper:hover .quick-start-shadow {{
+                transform: translate(10px, 10px);
+            }}
+            .quick-start-list {{
+                list-style: decimal;
+                list-style-position: inside;
+                padding: 0;
+                margin: 0;
+                color: #ffffff;
+            }}
+            .quick-start-list li {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 12px;
+                line-height: 1.5;
+            }}
+            .button-container {{
+                text-align: center;
+                margin: 32px 0;
+            }}
+            .button-wrapper {{
+                position: relative;
+                display: inline-block;
+            }}
+            .button-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #4f46e5;
+                transform: translate(8px, 8px);
+            }}
+            .button {{
+                position: relative;
+                display: inline-block;
+                background-color: #4f46e5;
+                color: #ffffff;
+                padding: 16px 32px;
+                text-decoration: none;
+                border: 4px solid #1c1917;
+                transform: rotate(-1deg);
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                transition: transform 0.2s;
+            }}
+            .button:hover {{
+                transform: rotate(0deg) scale(1.05);
+            }}
+            .button-wrapper:hover .button-shadow {{
+                transform: translate(12px, 12px);
+            }}
+            .button-icon {{
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                vertical-align: middle;
+                margin-right: 8px;
+            }}
+            .footer {{
+                text-align: center;
+                padding: 24px 0;
+                color: #78716c;
+                font-size: 12px;
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            }}
+            .text-center {{
+                text-align: center;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="text-center">
+                <!-- Icon -->
+                <div class="icon-container">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+                    </svg>
+                </div>
+                
+                <!-- Welcome Banner -->
+                <div class="title-wrapper">
+                    <div class="title-shadow"></div>
+                    <div class="title-banner">
+                        <h1 class="title-text">WELCOME TO PROCESS!</h1>
+                    </div>
+                </div>
+                
+                <!-- Description Box -->
+                <div class="description-wrapper">
+                    <div class="description-shadow"></div>
+                    <div class="description-box">
+                        <p class="description-text">
+                            TRACK YOUR JOB APPLICATIONS, MANAGE STAGES, AND VISUALIZE YOUR PROGRESS ALL IN ONE PLACE.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Quick Start Guide -->
+                <div class="quick-start-wrapper">
+                    <div class="quick-start-shadow"></div>
+                    <div class="quick-start-box">
+                        <div class="quick-start-title-wrapper">
+                            <div class="quick-start-title-shadow"></div>
+                            <div class="quick-start-title">
+                                <h2 class="quick-start-title-text">QUICK START GUIDE</h2>
+                            </div>
+                        </div>
+                        <ol class="quick-start-list">
+                            <li>CREATE A PROCESS FOR EACH JOB APPLICATION YOU'RE TRACKING</li>
+                            <li>ADD STAGES AS YOU PROGRESS THROUGH THE INTERVIEW PROCESS</li>
+                            <li>UPDATE STAGES WITH DATES AND NOTES TO KEEP TRACK OF YOUR PROGRESS</li>
+                            <li>USE THE DASHBOARD TO SEE AN OVERVIEW OF ALL YOUR APPLICATIONS</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <!-- Get Started Button -->
+                <div class="button-container">
+                    <div class="button-wrapper">
+                        <div class="button-shadow"></div>
+                        <a href="{dashboard_url}" class="button">
+                            <span class="button-icon">+</span>
+                            GET STARTED
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>© {datetime.now().year} Process. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return html_content
+
+def generate_notification_email_html(user, notification, comment=None, author_name="Someone"):
+    """Generate notification email HTML."""
+    notification_text = "left a comment" if notification.type == "comment" else "asked a question"
+    profile_url = f"{FRONTEND_URL}/profile/{user.username}"
+    notifications_url = f"{FRONTEND_URL}/notifications"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+            
+            body {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                line-height: 1.6;
+                color: #1c1917;
+                background-color: #fefcf8;
+                margin: 0;
+                padding: 20px;
+            }}
+            .container {{
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: #fefcf8;
+            }}
+            .header-wrapper {{
+                position: relative;
+                display: inline-block;
+                margin-bottom: 16px;
+            }}
+            .header-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #1c1917;
+                transform: translate(8px, 8px);
+            }}
+            .header-banner {{
+                position: relative;
+                background-color: #1c1917;
+                color: #fefcf8;
+                padding: 16px 24px;
+                border: 4px solid #1c1917;
+                transform: rotate(1deg);
+            }}
+            .header-text {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 20px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: -0.02em;
+                margin: 0;
+            }}
+            .content {{
+                padding: 20px 0;
+            }}
+            .notification-wrapper {{
+                position: relative;
+                margin: 20px 0;
+            }}
+            .notification-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #1c1917;
+                transform: translate(8px, 8px);
+            }}
+            .notification-box {{
+                position: relative;
+                background-color: #fefcf8;
+                border: 4px solid #1c1917;
+                padding: 24px;
+                transform: rotate(-1deg);
+            }}
+            .notification-author {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #1c1917;
+                margin-bottom: 12px;
+            }}
+            .notification-content {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+                color: #1c1917;
+                margin: 0;
+                white-space: pre-wrap;
+            }}
+            .question-badge {{
+                display: inline-block;
+                background-color: #2563eb;
+                color: #ffffff;
+                padding: 4px 8px;
+                border: 2px solid #1c1917;
+                transform: rotate(1deg);
+                margin-left: 8px;
+            }}
+            .question-badge-text {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 12px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }}
+            .button-wrapper {{
+                position: relative;
+                display: inline-block;
+                margin: 8px 4px;
+            }}
+            .button-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #4f46e5;
+                transform: translate(8px, 8px);
+            }}
+            .button {{
+                position: relative;
+                display: inline-block;
+                background-color: #4f46e5;
+                color: #ffffff;
+                padding: 12px 24px;
+                text-decoration: none;
+                border: 4px solid #1c1917;
+                transform: rotate(-1deg);
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                transition: transform 0.2s;
+            }}
+            .button:hover {{
+                transform: rotate(0deg) scale(1.05);
+            }}
+            .button-wrapper:hover .button-shadow {{
+                transform: translate(12px, 12px);
+            }}
+            .footer {{
+                text-align: center;
+                padding: 24px 0;
+                color: #78716c;
+                font-size: 12px;
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            }}
+            .text-center {{
+                text-align: center;
+            }}
+        </style>
+    </head>
+    <body>
+            <div class="container">
+                <div class="text-center">
+                    <div class="header-wrapper">
+                        <div class="header-shadow"></div>
+                        <div class="header-banner">
+                            <h1 class="header-text">New {notification.type.title()}</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="content">
+                    <p style="font-family: 'DM Sans', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Hi {user.username},</p>
+                    <p style="font-family: 'DM Sans', sans-serif;"><strong>{author_name}</strong> {notification_text} on your profile.</p>
+                    {f'''
+                    <div class="notification-wrapper">
+                        <div class="notification-shadow"></div>
+                        <div class="notification-box">
+                            <div class="notification-author">
+                                {author_name}
+                                {f'<span class="question-badge"><span class="question-badge-text">Question</span></span>' if notification.type == 'question' else ''}
+                            </div>
+                            <p class="notification-content">{comment.content[:200]}{"..." if len(comment.content) > 200 else ""}</p>
+                        </div>
+                    </div>
+                    ''' if comment else ''}
+                    <div class="text-center" style="margin-top: 24px;">
+                        <div class="button-wrapper">
+                            <div class="button-shadow"></div>
+                            <a href="{notifications_url}" class="button">View Notification</a>
+                        </div>
+                        <div class="button-wrapper">
+                            <div class="button-shadow"></div>
+                            <a href="{profile_url}" class="button">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+            <div class="footer">
+                <p>© {datetime.now().year} Process. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return html_content
+
+def generate_digest_email_html(user, comment_count, question_count, first_comment=None, first_question=None):
+    """Generate digest email HTML."""
+    summary_parts = []
+    if comment_count > 0:
+        summary_parts.append(f"{comment_count} new comment{'s' if comment_count > 1 else ''}")
+    if question_count > 0:
+        summary_parts.append(f"{question_count} new question{'s' if question_count > 1 else ''}")
+    
+    summary_text = " and ".join(summary_parts) if summary_parts else f"{comment_count + question_count} new notification{'s' if (comment_count + question_count) > 1 else ''}"
+    
+    notifications_url = f"{FRONTEND_URL}/notifications"
+    profile_url = f"{FRONTEND_URL}/profile/{user.username}"
+    
+    first_comment_author = "John Doe"
+    first_question_author = "Jane Smith"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+            
+            body {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                line-height: 1.6;
+                color: #1c1917;
+                background-color: #fefcf8;
+                margin: 0;
+                padding: 20px;
+            }}
+            .container {{
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: #fefcf8;
+            }}
+            .header-wrapper {{
+                position: relative;
+                display: inline-block;
+                margin-bottom: 16px;
+            }}
+            .header-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #1c1917;
+                transform: translate(8px, 8px);
+            }}
+            .header-banner {{
+                position: relative;
+                background-color: #1c1917;
+                color: #fefcf8;
+                padding: 16px 24px;
+                border: 4px solid #1c1917;
+                transform: rotate(1deg);
+            }}
+            .header-text {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 20px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: -0.02em;
+                margin: 0;
+            }}
+            .content {{
+                padding: 20px 0;
+            }}
+            .summary-wrapper {{
+                position: relative;
+                margin: 20px 0;
+            }}
+            .summary-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #4f46e5;
+                transform: translate(8px, 8px);
+            }}
+            .summary-box {{
+                position: relative;
+                background-color: #4f46e5;
+                border: 4px solid #1c1917;
+                padding: 24px;
+                transform: rotate(-1deg);
+            }}
+            .summary-title-wrapper {{
+                position: relative;
+                display: inline-block;
+                margin-bottom: 16px;
+            }}
+            .summary-title-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #1c1917;
+                transform: translate(4px, 4px);
+            }}
+            .summary-title {{
+                position: relative;
+                background-color: #1c1917;
+                color: #fefcf8;
+                padding: 8px 16px;
+                border: 2px solid #1c1917;
+                transform: rotate(1deg);
+            }}
+            .summary-title-text {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 16px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: -0.02em;
+                margin: 0;
+            }}
+            .summary-wrapper:hover {{
+                transform: translate(2px, 2px) rotate(-1deg);
+            }}
+            .summary-wrapper:hover .summary-shadow {{
+                transform: translate(10px, 10px);
+            }}
+            .description-wrapper:hover {{
+                transform: translate(1px, 1px) rotate(-1deg);
+            }}
+            .description-wrapper:hover .description-shadow {{
+                transform: translate(5px, 5px);
+            }}
+            .notification-wrapper:hover {{
+                transform: translate(1px, 1px);
+            }}
+            .notification-wrapper:hover .notification-shadow {{
+                transform: translate(5px, 5px);
+            }}
+            .preview-wrapper:hover {{
+                transform: translate(1px, 1px);
+            }}
+            .preview-wrapper:hover .preview-shadow {{
+                transform: translate(5px, 5px);
+            }}
+            .preview-wrapper {{
+                position: relative;
+                margin: 16px 0;
+            }}
+            .preview-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #1c1917;
+                transform: translate(8px, 8px);
+            }}
+            .preview-box {{
+                position: relative;
+                background-color: #fefcf8;
+                border: 4px solid #1c1917;
+                padding: 24px;
+                transform: rotate(-1deg);
+            }}
+            .preview-author {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #1c1917;
+                margin-bottom: 12px;
+            }}
+            .preview-content {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+                color: #1c1917;
+                margin: 0;
+                white-space: pre-wrap;
+            }}
+            .preview-question-badge {{
+                display: inline-block;
+                background-color: #2563eb;
+                color: #ffffff;
+                padding: 4px 8px;
+                border: 2px solid #1c1917;
+                transform: rotate(1deg);
+                margin-left: 8px;
+            }}
+            .preview-question-badge-text {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 12px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }}
+            .summary-count-text {{
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #ffffff;
+                margin-bottom: 12px;
+            }}
+            .button-wrapper {{
+                position: relative;
+                display: inline-block;
+                margin: 8px 4px;
+            }}
+            .button-shadow {{
+                position: absolute;
+                inset: 0;
+                background-color: #4f46e5;
+                transform: translate(8px, 8px);
+            }}
+            .button {{
+                position: relative;
+                display: inline-block;
+                background-color: #4f46e5;
+                color: #ffffff;
+                padding: 12px 24px;
+                text-decoration: none;
+                border: 4px solid #1c1917;
+                transform: rotate(-1deg);
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                transition: transform 0.2s;
+            }}
+            .button:hover {{
+                transform: rotate(0deg) scale(1.05);
+            }}
+            .button-wrapper:hover .button-shadow {{
+                transform: translate(12px, 12px);
+            }}
+            .footer {{
+                text-align: center;
+                padding: 24px 0;
+                color: #78716c;
+                font-size: 12px;
+                font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            }}
+            .text-center {{
+                text-align: center;
+            }}
+        </style>
+    </head>
+    <body>
+            <div class="container">
+                <div class="text-center">
+                    <div class="header-wrapper">
+                        <div class="header-shadow"></div>
+                        <div class="header-banner">
+                            <h1 class="header-text">New Activity on Your Profile</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="content">
+                    <p style="font-family: 'DM Sans', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Hi {user.username},</p>
+                    <p style="font-family: 'DM Sans', sans-serif;">You have {summary_text} on your profile.</p>
+                    <div class="summary-wrapper">
+                        <div class="summary-shadow"></div>
+                        <div class="summary-box">
+                            <div class="summary-title-wrapper">
+                                <div class="summary-title-shadow"></div>
+                                <div class="summary-title">
+                                    <h2 class="summary-title-text">Summary</h2>
+                                </div>
+                            </div>
+                            
+                            {f'''
+                            <div style="margin-bottom: 20px;">
+                                <div class="summary-count-text">
+                                    {comment_count} comment{"s" if comment_count > 1 else ""}
+                                </div>
+                                <div class="preview-wrapper">
+                                    <div class="preview-shadow"></div>
+                                    <div class="preview-box">
+                                        <div class="preview-author">{first_comment_author}</div>
+                                        <p class="preview-content">{first_comment.content[:200]}{"..." if len(first_comment.content) > 200 else ""}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            ''' if first_comment else ''}
+                            
+                            {f'''
+                            <div style="margin-bottom: 20px;">
+                                <div class="summary-count-text">
+                                    {question_count} question{"s" if question_count > 1 else ""}
+                                </div>
+                                <div class="preview-wrapper">
+                                    <div class="preview-shadow"></div>
+                                    <div class="preview-box">
+                                        <div class="preview-author">
+                                            {first_question_author}
+                                            <span class="preview-question-badge"><span class="preview-question-badge-text">Question</span></span>
+                                        </div>
+                                        <p class="preview-content">{first_question.content[:200]}{"..." if len(first_question.content) > 200 else ""}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            ''' if first_question else ''}
+                        </div>
+                    </div>
+                    <div class="text-center" style="margin-top: 24px;">
+                        <div class="button-wrapper">
+                            <div class="button-shadow"></div>
+                            <a href="{notifications_url}" class="button">View All Notifications</a>
+                        </div>
+                        <div class="button-wrapper">
+                            <div class="button-shadow"></div>
+                            <a href="{profile_url}" class="button">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+            <div class="footer">
+                <p>© {datetime.now().year} Process. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return html_content
+
+def main():
+    """Generate preview HTML files."""
+    output_dir = Path(__file__).parent.parent / ".temp" / "email_previews"
+    output_dir.mkdir(exist_ok=True)
+    
+    user = MockUser()
+    
+    print("Generating email previews...")
+    
+    # Welcome email
+    welcome_html = generate_welcome_email_html(user)
+    welcome_path = output_dir / "welcome_email.html"
+    welcome_path.write_text(welcome_html, encoding='utf-8')
+    print(f"✓ Welcome email: {welcome_path}")
+    
+    # Notification email (comment)
+    notification = MockNotification()
+    notification.type = "comment"
+    comment = MockComment()
+    notif_html = generate_notification_email_html(user, notification, comment, "John Doe")
+    notif_path = output_dir / "notification_comment.html"
+    notif_path.write_text(notif_html, encoding='utf-8')
+    print(f"✓ Notification email (comment): {notif_path}")
+    
+    # Notification email (question)
+    notification.type = "question"
+    question_html = generate_notification_email_html(user, notification, comment, "Jane Smith")
+    question_path = output_dir / "notification_question.html"
+    question_path.write_text(question_html, encoding='utf-8')
+    print(f"✓ Notification email (question): {question_path}")
+    
+    # Digest email
+    first_comment = MockComment()
+    first_comment.content = "This is a sample comment preview. It shows the first comment from the digest so users can see what was said."
+    first_question = MockComment()
+    first_question.content = "This is a sample question preview. It shows the first question from the digest so users can see what was asked."
+    digest_html = generate_digest_email_html(user, comment_count=5, question_count=2, first_comment=first_comment, first_question=first_question)
+    digest_path = output_dir / "digest_email.html"
+    digest_path.write_text(digest_html, encoding='utf-8')
+    print(f"✓ Digest email: {digest_path}")
+    
+    print(f"\nAll previews generated in: {output_dir}")
+    print("\nOpen the HTML files in your browser to preview the emails!")
+    
+    # Try to open the welcome email automatically
+    try:
+        import webbrowser
+        webbrowser.open(f"file://{welcome_path.absolute()}")
+        print(f"\nOpened welcome email in your default browser.")
+    except:
+        pass
+
+if __name__ == "__main__":
+    main()

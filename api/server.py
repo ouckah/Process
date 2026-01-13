@@ -10,9 +10,13 @@ from dotenv import load_dotenv
 # In production (Railway), environment variables are provided directly, so this is harmless
 load_dotenv()
 
-from routes import processes, auth, stages, feedback, profiles, comments, analytics, guild_configs, notifications, explore, forum
+from routes import processes, auth, stages, feedback, profiles, comments, analytics, guild_configs, notifications, explore, forum, email as email_routes
 from database import init_db
 from rate_limiter import limiter
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from email_service import process_pending_digests
+import atexit
 
 app = FastAPI()
 app.state.limiter = limiter
@@ -49,7 +53,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize database on startup
+# Initialize email digest scheduler
+scheduler = BackgroundScheduler()
+
+def process_digests_job():
+    """Background job to process pending email digests."""
+    try:
+        from database import SessionLocal
+        db = SessionLocal()
+        try:
+            count = process_pending_digests(db)
+            if count > 0:
+                print(f"Processed {count} email digests")
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"Error in email digest job: {e}")
+
+# Initialize database and scheduler on startup
 @app.on_event("startup")
 def startup_event():
     try:
@@ -58,6 +79,28 @@ def startup_event():
     except Exception as e:
         print(f"Warning: Database initialization failed: {e}")
         print("Server will continue, but database operations may fail")
+    
+    # Start email digest scheduler (runs every 30 minutes)
+    try:
+        scheduler.add_job(
+            process_digests_job,
+            trigger=IntervalTrigger(minutes=30),
+            id='process_email_digests',
+            name='Process Email Digests',
+            replace_existing=True
+        )
+        scheduler.start()
+        print("Email digest scheduler started (runs every 30 minutes)")
+    except Exception as e:
+        print(f"Warning: Failed to start email digest scheduler: {e}")
+        print("Email digests can still be processed via /api/internal/process-email-digests endpoint")
+
+@app.on_event("shutdown")
+def shutdown_event():
+    """Shutdown scheduler on app shutdown."""
+    if scheduler.running:
+        scheduler.shutdown()
+        print("Email digest scheduler stopped")
 
 # Register routers
 app.include_router(auth.router)
@@ -71,6 +114,7 @@ app.include_router(guild_configs.router)
 app.include_router(notifications.router)
 app.include_router(explore.router)
 app.include_router(forum.router)
+app.include_router(email_routes.router)
 
 
 @app.get("/")

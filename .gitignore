@@ -5,4 +5,4 @@ __pycache__/
 *.db
 *.sqlite
 bot/configs/*.json
-
+api/.temp/

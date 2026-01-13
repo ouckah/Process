@@ -10,6 +10,7 @@ export interface User {
   display_name?: string | null;
   is_anonymous?: boolean;
   comments_enabled?: boolean;
+  email_notifications_enabled?: boolean;
 }
 
 export interface TokenResponse {

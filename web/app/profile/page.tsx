@@ -9,7 +9,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Avatar } from '@/components/ui/Avatar';
-import { Loader2, User, Mail, CheckCircle, XCircle, Edit, Save, X, ExternalLink, Eye, EyeOff, MessageSquare, Shield } from 'lucide-react';
+import { Loader2, User, Mail, CheckCircle, XCircle, Edit, Save, X, ExternalLink, Eye, EyeOff, MessageSquare, Shield, Bell } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const [displayName, setDisplayName] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [commentsEnabled, setCommentsEnabled] = useState(true);
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
   const [updatingPrivacy, setUpdatingPrivacy] = useState(false);
   const [privacyError, setPrivacyError] = useState<string | null>(null);
 
@@ -39,6 +40,7 @@ export default function ProfilePage() {
       setDisplayName(user.display_name || '');
       setIsAnonymous(user.is_anonymous || false);
       setCommentsEnabled(user.comments_enabled !== false); // Default to true
+      setEmailNotificationsEnabled(user.email_notifications_enabled !== false); // Default to true
     }
   }, [user]);
 
@@ -146,6 +148,7 @@ export default function ProfilePage() {
         display_name: displayName.trim() || null,
         is_anonymous: isAnonymous,
         comments_enabled: commentsEnabled,
+        email_notifications_enabled: emailNotificationsEnabled,
       });
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || 'Failed to update privacy settings. Please try again.';
@@ -433,6 +436,43 @@ export default function ProfilePage() {
                       >
                         <motion.span
                           animate={{ x: commentsEnabled ? 24 : 4 }}
+                          className="inline-block h-6 w-6 bg-white border-2 border-ink-900 dark:border-cream-50"
+                        />
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Email Notifications Toggle */}
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-1 translate-y-1"></div>
+                  <div className="relative bg-cream-100 dark:bg-ink-800 border-4 border-ink-900 dark:border-cream-50 p-6 transform rotate-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-indigo-600 dark:bg-indigo-500 p-3 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1">
+                          <Bell className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 inline-block mb-2">
+                            <p className="font-body text-sm font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                              Email Notifications
+                            </p>
+                          </div>
+                          <p className="font-body text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300">
+                            Receive email notifications for comments and questions
+                          </p>
+                        </div>
+                      </div>
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setEmailNotificationsEnabled(!emailNotificationsEnabled)}
+                        disabled={updatingPrivacy}
+                        className={`relative inline-flex h-8 w-14 items-center border-4 border-ink-900 dark:border-cream-50 transition-colors ${
+                          emailNotificationsEnabled ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-ink-300 dark:bg-ink-700'
+                        }`}
+                      >
+                        <motion.span
+                          animate={{ x: emailNotificationsEnabled ? 24 : 4 }}
                           className="inline-block h-6 w-6 bg-white border-2 border-ink-900 dark:border-cream-50"
                         />
                       </motion.button>

@@ -26,6 +26,8 @@ class User(Base):
     is_anonymous = Column(Boolean, default=False)  # Hide username on public profile
     comments_enabled = Column(Boolean, default=True)  # Allow comments on public profile
     discord_privacy_mode = Column(String(10), default='public')  # Discord privacy preference: 'private' or 'public'
+    email_notifications_enabled = Column(Boolean, default=True)  # Email notification preference
+    last_notification_email_sent_at = Column(DateTime, nullable=True)  # Timestamp of last notification email sent
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
     
@@ -161,6 +163,7 @@ class Notification(Base):
     type = Column(String(50), nullable=False)  # 'comment' or 'question'
     comment_id = Column(Integer, ForeignKey('profile_comments.id'), nullable=True)  # Related comment
     is_read = Column(Boolean, default=False)  # Whether the notification has been read
+    email_sent = Column(Boolean, default=False)  # Whether notification has been included in an email
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships

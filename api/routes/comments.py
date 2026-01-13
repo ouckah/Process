@@ -11,6 +11,7 @@ from models import User, ProfileComment, CommentUpvote, Notification
 from schemas import ProfileCommentCreate, ProfileCommentUpdate, ProfileCommentResponse
 from auth import get_current_user, get_user_by_username, get_current_user_optional
 from rate_limiter import limiter
+from email_service import should_send_immediately, send_notification_email_immediate, can_send_email
 
 router = APIRouter(prefix="/api/profiles", tags=["comments"])
 
@@ -185,18 +186,37 @@ def create_profile_comment(
     db.flush()  # Flush to get the comment ID without committing
     
     # Create notification for the profile owner (don't notify if they're commenting on their own profile)
+    notification = None
     if profile_user.id != current_user.id:
         notification_type = "question" if comment_data.is_question else "comment"
         notification = Notification(
             user_id=profile_user.id,
             type=notification_type,
             comment_id=new_comment.id,
-            is_read=False
+            is_read=False,
+            email_sent=False  # Default to unsent, will be updated by email logic
         )
         db.add(notification)
     
     db.commit()
     db.refresh(new_comment)
+    
+    # Handle email notification with smart batching
+    if notification and can_send_email(profile_user):
+        try:
+            # Refresh user to get latest timestamp
+            db.refresh(profile_user)
+            
+            if should_send_immediately(profile_user):
+                # Send immediately and update timestamp
+                send_notification_email_immediate(profile_user, notification, db)
+            else:
+                # Queue for digest (email_sent already False, timestamp will be updated by background job)
+                pass
+        except Exception as e:
+            # Don't block comment creation if email fails
+            import logging
+            logging.getLogger(__name__).error(f"Failed to send notification email: {e}")
     
     return build_comment_response(new_comment, db, current_user.id)
 
