@@ -154,7 +154,7 @@ export async function GET(
               >
                 {active} ACTIVE
               </div>
-              {successRate > 0 && (
+              {successRate > 0 ? (
                 <div
                   style={{
                     backgroundColor: '#6366F1',
@@ -170,7 +170,7 @@ export async function GET(
                 >
                   {successRate}% SUCCESS
                 </div>
-              )}
+              ) : null}
             </div>
             
             {/* Companies */}
@@ -178,6 +178,8 @@ export async function GET(
               <div
                 style={{
                   marginTop: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
                 <div
@@ -218,7 +220,7 @@ export async function GET(
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       ),

@@ -102,7 +102,7 @@ export async function GET(
             </div>
             
             {/* Position */}
-            {position && (
+            {position ? (
               <div
                 style={{
                   backgroundColor: '#1A1A1A',
@@ -121,7 +121,7 @@ export async function GET(
               >
                 {position}
               </div>
-            )}
+            ) : null}
             
             {/* Status and Author */}
             <div
@@ -148,7 +148,7 @@ export async function GET(
               >
                 {status.toUpperCase()}
               </div>
-              {username && (
+              {username ? (
                 <div
                   style={{
                     backgroundColor: '#6366F1',
@@ -164,11 +164,11 @@ export async function GET(
                 >
                   @{username}
                 </div>
-              )}
+              ) : null}
             </div>
             
             {/* Stages */}
-            {stageCount > 0 && (
+            {stageCount > 0 ? (
               <div
                 style={{
                   display: 'flex',
@@ -188,7 +188,7 @@ export async function GET(
                 >
                   {stageCount} {stageCount === 1 ? 'STAGE' : 'STAGES'}
                 </div>
-                {stageNames.length > 0 && (
+                {stageNames.length > 0 ? (
                   <div
                     style={{
                       display: 'flex',
@@ -214,7 +214,7 @@ export async function GET(
                         {name}
                       </div>
                     ))}
-                    {stageCount > 3 && (
+                    {stageCount > 3 ? (
                       <div
                         style={{
                           fontSize: 18,
@@ -225,11 +225,11 @@ export async function GET(
                       >
                         +{stageCount - 3} MORE
                       </div>
-                    )}
+                    ) : null}
                   </div>
-                )}
+                ) : null}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       ),

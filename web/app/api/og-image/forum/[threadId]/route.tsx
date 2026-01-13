@@ -128,7 +128,7 @@ export async function GET(
             </div>
             
             {/* Content preview */}
-            {truncatedContent && (
+            {truncatedContent ? (
               <div
                 style={{
                   fontSize: 24,
@@ -141,7 +141,7 @@ export async function GET(
               >
                 {truncatedContent}
               </div>
-            )}
+            ) : null}
             
             {/* Stats */}
             <div

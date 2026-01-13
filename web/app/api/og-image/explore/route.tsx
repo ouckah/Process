@@ -117,6 +117,8 @@ export async function GET(request: NextRequest) {
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
                 <div style={{ fontSize: 40, marginBottom: 8 }}>{totalProcesses}</div>
@@ -134,6 +136,8 @@ export async function GET(request: NextRequest) {
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
                 <div style={{ fontSize: 40, marginBottom: 8 }}>{totalCompanies}</div>
@@ -151,6 +155,8 @@ export async function GET(request: NextRequest) {
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
                 <div style={{ fontSize: 40, marginBottom: 8 }}>{totalStages}</div>
