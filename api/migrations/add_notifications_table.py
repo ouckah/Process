@@ -23,7 +23,7 @@ def run_migration():
     print("Running migration to add notifications table...")
     
     # Check if table exists
-    from sqlalchemy.inspect import inspect
+    from sqlalchemy import inspect
     inspector = inspect(engine)
     
     if 'notifications' in inspector.get_table_names():
