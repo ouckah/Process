@@ -225,47 +225,64 @@ export default function Home() {
                   transition={{ duration: 0.2 }}
                   className="relative h-full group"
                 >
-                  <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-4 translate-y-4 group-hover:translate-x-6 group-hover:translate-y-6 transition-transform"></div>
-                  <div className="relative bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-ink-900 dark:to-indigo-950 border-4 border-ink-900 dark:border-cream-50 p-10 transform -rotate-1 group-hover:rotate-0 transition-transform">
-                    <div className="flex items-center mb-8">
+                  <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-3 translate-y-3 group-hover:translate-x-4 group-hover:translate-y-4 transition-transform"></div>
+                  <div className="relative bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-ink-900 dark:to-indigo-950 border-4 border-ink-900 dark:border-cream-50 p-6 transform -rotate-1 group-hover:rotate-0 transition-transform">
+                    <div className="flex items-center mb-5">
                       <div className="relative">
-                        <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-500 translate-x-2 translate-y-2"></div>
-                        <div className="relative bg-indigo-600 dark:bg-indigo-500 w-20 h-20 border-4 border-ink-900 dark:border-cream-50 flex items-center justify-center">
-                          <Bot className="w-10 h-10 text-white" />
+                        <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-500 translate-x-1.5 translate-y-1.5"></div>
+                        <div className="relative bg-indigo-600 dark:bg-indigo-500 w-14 h-14 border-3 border-ink-900 dark:border-cream-50 flex items-center justify-center">
+                          <Bot className="w-7 h-7 text-white" />
                         </div>
                       </div>
-                      <h3 className="ml-6 font-display text-4xl font-black text-ink-900 dark:text-cream-50 uppercase tracking-tight">
+                      <h3 className="ml-4 font-display text-3xl font-black text-ink-900 dark:text-cream-50 uppercase tracking-tight">
                         Discord Bot
                       </h3>
                     </div>
                     
-                    <p className="font-body text-lg text-ink-800 dark:text-ink-200 mb-10 leading-relaxed font-bold">
+                    <p className="font-body text-base text-ink-800 dark:text-ink-200 mb-6 leading-relaxed font-bold">
                       Track job applications directly from Discord. Quick commands. Instant updates. Zero friction. The best Discord bot for job tracking.
                     </p>
                     
-                    <ul className="space-y-5 mb-10">
+                    <ul className="space-y-3 mb-6">
                       {[
                         { icon: Zap, text: 'Lightning-fast updates with simple commands' },
                         { icon: Shield, text: 'Granular privacy controls' },
                         { icon: BarChart3, text: 'Sankey diagrams on demand' },
                       ].map((item, idx) => (
                         <li key={idx} className="flex items-start">
-                          <div className="bg-indigo-600 dark:bg-indigo-500 w-8 h-8 border-2 border-ink-900 dark:border-cream-50 flex items-center justify-center mr-4 flex-shrink-0">
-                            <item.icon className="w-4 h-4 text-white" />
+                          <div className="bg-indigo-600 dark:bg-indigo-500 w-7 h-7 border-2 border-ink-900 dark:border-cream-50 flex items-center justify-center mr-3 flex-shrink-0">
+                            <item.icon className="w-3.5 h-3.5 text-white" />
                           </div>
-                          <span className="font-body text-ink-800 dark:text-ink-200 font-semibold">{item.text}</span>
+                          <span className="font-body text-sm text-ink-800 dark:text-ink-200 font-semibold">{item.text}</span>
                         </li>
                       ))}
                     </ul>
                     
-                    <div className="bg-ink-900 dark:bg-cream-50 border-4 border-indigo-600 dark:border-indigo-400 p-6 transform rotate-1">
-                      <p className="font-mono text-base text-indigo-300 dark:text-indigo-700 mb-2 font-bold">
+                    <div className="bg-ink-900 dark:bg-cream-50 border-3 border-indigo-600 dark:border-indigo-400 p-4 transform rotate-1 mb-4">
+                      <p className="font-mono text-sm text-indigo-300 dark:text-indigo-700 mb-1 font-bold">
                         <span className="text-amber-500 dark:text-amber-600">p!</span>add Google OA
                       </p>
                       <p className="font-body text-xs text-indigo-200 dark:text-indigo-800 uppercase tracking-wider font-black">
                         Add a job application stage in seconds with the Processes Discord bot
                       </p>
                     </div>
+                    
+                    <motion.a
+                      href="https://discord.com/oauth2/authorize?client_id=1455729068174737419&permissions=2147551232&integration_type=0&scope=bot"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.05, y: -4 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="relative block group"
+                    >
+                      <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-500 translate-x-1.5 translate-y-1.5 group-hover:translate-x-2 group-hover:translate-y-2 transition-transform"></div>
+                      <div className="relative bg-indigo-600 dark:bg-indigo-500 px-5 py-3 border-3 border-ink-900 dark:border-cream-50 transform -rotate-1 group-hover:rotate-0 transition-transform flex items-center justify-center gap-2">
+                        <Bot className="w-4 h-4 text-white" />
+                        <span className="font-body text-base font-black uppercase tracking-wider text-white">
+                          Add to Discord
+                        </span>
+                      </div>
+                    </motion.a>
                   </div>
                 </motion.div>
               </AnimatedSection>
@@ -277,47 +294,62 @@ export default function Home() {
                   transition={{ duration: 0.2 }}
                   className="relative h-full group"
                 >
-                  <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-4 translate-y-4 group-hover:translate-x-6 group-hover:translate-y-6 transition-transform"></div>
-                  <div className="relative bg-gradient-to-br from-amber-50 to-amber-100 dark:from-ink-900 dark:to-amber-950 border-4 border-ink-900 dark:border-cream-50 p-10 transform rotate-1 group-hover:rotate-0 transition-transform">
-                    <div className="flex items-center mb-8">
+                  <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-3 translate-y-3 group-hover:translate-x-4 group-hover:translate-y-4 transition-transform"></div>
+                  <div className="relative bg-gradient-to-br from-amber-50 to-amber-100 dark:from-ink-900 dark:to-amber-950 border-4 border-ink-900 dark:border-cream-50 p-6 transform rotate-1 group-hover:rotate-0 transition-transform">
+                    <div className="flex items-center mb-5">
                       <div className="relative">
-                        <div className="absolute inset-0 bg-amber-600 dark:bg-amber-500 translate-x-2 translate-y-2"></div>
-                        <div className="relative bg-amber-600 dark:bg-amber-500 w-20 h-20 border-4 border-ink-900 dark:border-cream-50 flex items-center justify-center">
-                          <Globe className="w-10 h-10 text-white" />
+                        <div className="absolute inset-0 bg-amber-600 dark:bg-amber-500 translate-x-1.5 translate-y-1.5"></div>
+                        <div className="relative bg-amber-600 dark:bg-amber-500 w-14 h-14 border-3 border-ink-900 dark:border-cream-50 flex items-center justify-center">
+                          <Globe className="w-7 h-7 text-white" />
                         </div>
                       </div>
-                      <h3 className="ml-6 font-display text-4xl font-black text-ink-900 dark:text-cream-50 uppercase tracking-tight">
+                      <h3 className="ml-4 font-display text-3xl font-black text-ink-900 dark:text-cream-50 uppercase tracking-tight">
                         Web Dashboard
                       </h3>
                     </div>
                     
-                    <p className="font-body text-lg text-ink-800 dark:text-ink-200 mb-10 leading-relaxed font-bold">
+                    <p className="font-body text-base text-ink-800 dark:text-ink-200 mb-6 leading-relaxed font-bold">
                       Comprehensive job application tracking with visualizations. Detailed analytics. Full control. Track your entire job search process.
                     </p>
                     
-                    <ul className="space-y-5 mb-10">
+                    <ul className="space-y-3 mb-6">
                       {[
                         { icon: BarChart3, text: 'Interactive Sankey diagrams' },
                         { icon: Zap, text: 'Timeline visualizations' },
                         { icon: Shield, text: 'Public profiles & sharing' },
                       ].map((item, idx) => (
                         <li key={idx} className="flex items-start">
-                          <div className="bg-amber-600 dark:bg-amber-500 w-8 h-8 border-2 border-ink-900 dark:border-cream-50 flex items-center justify-center mr-4 flex-shrink-0">
-                            <item.icon className="w-4 h-4 text-white" />
+                          <div className="bg-amber-600 dark:bg-amber-500 w-7 h-7 border-2 border-ink-900 dark:border-cream-50 flex items-center justify-center mr-3 flex-shrink-0">
+                            <item.icon className="w-3.5 h-3.5 text-white" />
                           </div>
-                          <span className="font-body text-ink-800 dark:text-ink-200 font-semibold">{item.text}</span>
+                          <span className="font-body text-sm text-ink-800 dark:text-ink-200 font-semibold">{item.text}</span>
                         </li>
                       ))}
                     </ul>
                     
-                    <div className="bg-ink-900 dark:bg-cream-50 border-4 border-amber-600 dark:border-amber-400 p-6 transform -rotate-1">
-                      <p className="font-body text-base text-amber-200 dark:text-amber-800 mb-2 font-black uppercase">
+                    <div className="bg-ink-900 dark:bg-cream-50 border-3 border-amber-600 dark:border-amber-400 p-4 transform -rotate-1 mb-4">
+                      <p className="font-body text-sm text-amber-200 dark:text-amber-800 mb-1 font-black uppercase">
                         📊 Visualize your entire journey
                       </p>
                       <p className="font-body text-xs text-amber-300 dark:text-amber-700 uppercase tracking-wider font-bold">
                         See patterns. Track progress.
                       </p>
                     </div>
+                    
+                    <motion.a
+                      href="/register"
+                      whileHover={{ scale: 1.05, y: -4 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="relative block group"
+                    >
+                      <div className="absolute inset-0 bg-amber-600 dark:bg-amber-500 translate-x-1.5 translate-y-1.5 group-hover:translate-x-2 group-hover:translate-y-2 transition-transform"></div>
+                      <div className="relative bg-amber-600 dark:bg-amber-500 px-5 py-3 border-3 border-ink-900 dark:border-cream-50 transform rotate-1 group-hover:rotate-0 transition-transform flex items-center justify-center gap-2">
+                        <Globe className="w-4 h-4 text-white" />
+                        <span className="font-body text-base font-black uppercase tracking-wider text-white">
+                          Start Tracking Now
+                        </span>
+                      </div>
+                    </motion.a>
                   </div>
                 </motion.div>
               </AnimatedSection>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/Button';
-import { User, Menu, X } from 'lucide-react';
+import { User, Menu, X, Bot } from 'lucide-react';
 import { NotificationBadge } from '@/components/notifications/NotificationBadge';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,6 +38,21 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-2">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <a 
+                href="https://discord.com/oauth2/authorize?client_id=1455729068174737419&permissions=2147551232&integration_type=0&scope=bot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative block"
+              >
+                <div className="bg-indigo-600 dark:bg-indigo-500 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 hover:rotate-0 transition-transform flex items-center gap-2">
+                  <Bot className="w-4 h-4 text-white" />
+                  <span className="font-body text-sm font-black uppercase tracking-wider text-white">
+                    Add Bot
+                  </span>
+                </div>
+              </a>
+            </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link 
                 href="/explore" 
@@ -169,6 +184,26 @@ export function Header() {
               className="md:hidden border-t-4 border-ink-900 dark:border-cream-50 overflow-hidden bg-cream-50 dark:bg-ink-950"
             >
               <nav className="flex flex-col space-y-3 py-4">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <a
+                    href="https://discord.com/oauth2/authorize?client_id=1455729068174737419&permissions=2147551232&integration_type=0&scope=bot"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block"
+                  >
+                    <div className="bg-indigo-600 dark:bg-indigo-500 px-4 py-3 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 mx-4 flex items-center gap-2">
+                      <Bot className="w-5 h-5 text-white" />
+                      <span className="font-body text-base font-black uppercase tracking-wider text-white">
+                        Add Bot
+                      </span>
+                    </div>
+                  </a>
+                </motion.div>
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
