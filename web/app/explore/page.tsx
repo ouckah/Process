@@ -20,7 +20,7 @@ export default function ExplorePage() {
   const [page, setPage] = useState(1);
   const limit = 20;
 
-  const { data: processes, isLoading } = useExploreProcesses({
+  const { data: paginatedData, isLoading } = useExploreProcesses({
     search: search || undefined,
     company: company || undefined,
     stage: stage || undefined,
@@ -29,6 +29,11 @@ export default function ExplorePage() {
     page,
     limit,
   });
+
+  const processes = paginatedData?.processes || [];
+  const totalPages = paginatedData?.total_pages || 1;
+  const hasNextPage = page < totalPages;
+  const hasPreviousPage = page > 1;
 
   const { data: stats } = useExploreStats();
 
@@ -177,30 +182,33 @@ export default function ExplorePage() {
                 </div>
 
                 {/* Pagination */}
-                {processes.length === limit && (
-                  <div className="flex justify-center gap-4">
-                    <button
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={page === 1}
-                      className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 disabled:opacity-50 disabled:cursor-not-allowed transform rotate-1"
-                    >
-                      <span className="font-body text-sm uppercase tracking-wider font-black text-cream-50 dark:text-ink-900">
-                        Previous
-                      </span>
-                    </button>
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-4">
+                    {hasPreviousPage && (
+                      <button
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 hover:scale-105 transition-transform"
+                      >
+                        <span className="font-body text-sm uppercase tracking-wider font-black text-cream-50 dark:text-ink-900">
+                          Previous
+                        </span>
+                      </button>
+                    )}
                     <div className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1">
                       <span className="font-body text-sm uppercase tracking-wider font-black text-cream-50 dark:text-ink-900">
-                        Page {page}
+                        {page}/{totalPages}
                       </span>
                     </div>
-                    <button
-                      onClick={() => setPage((p) => p + 1)}
-                      className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform rotate-1"
-                    >
-                      <span className="font-body text-sm uppercase tracking-wider font-black text-cream-50 dark:text-ink-900">
-                        Next
-                      </span>
-                    </button>
+                    {hasNextPage && (
+                      <button
+                        onClick={() => setPage((p) => p + 1)}
+                        className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 hover:scale-105 transition-transform"
+                      >
+                        <span className="font-body text-sm uppercase tracking-wider font-black text-cream-50 dark:text-ink-900">
+                          Next
+                        </span>
+                      </button>
+                    )}
                   </div>
                 )}
               </>

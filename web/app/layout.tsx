@@ -45,6 +45,11 @@ export const metadata: Metadata = {
     'sankey diagram job tracker',
     'visual job tracker',
   ],
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
   verification: {
     google: 'hDeDaPPErQ91xC6VfHfqVJh1fMqo8Jz1ixXKV5X6ynk',
   },

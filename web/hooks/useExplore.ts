@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { exploreApi } from '@/lib/api';
-import type { ExploreProcess, ExploreStats } from '@/types';
+import { exploreApi, type ExploreProcessPaginatedResponse } from '@/lib/api';
+import type { ExploreStats } from '@/types';
 
 export function useExploreProcesses(params?: {
   search?: string;

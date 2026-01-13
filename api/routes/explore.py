@@ -10,6 +10,7 @@ from schemas import (
     ExploreProcessResponse,
     ExploreFiltersResponse,
     ExploreStatsResponse,
+    ExploreProcessPaginatedResponse,
     StageResponse,
 )
 from routes.processes import calculate_status_from_stages
@@ -18,7 +19,7 @@ from rate_limiter import limiter
 router = APIRouter(prefix="/api/explore", tags=["explore"])
 
 
-@router.get("/processes", response_model=List[ExploreProcessResponse])
+@router.get("/processes", response_model=ExploreProcessPaginatedResponse)
 @limiter.limit("60/minute")
 def get_explore_processes(
     request: Request,
@@ -87,6 +88,9 @@ def get_explore_processes(
     # Get total count before pagination
     total = query.count()
     
+    # Calculate total pages
+    total_pages = (total + limit - 1) // limit if total > 0 else 1
+    
     # Apply pagination
     offset = (page - 1) * limit
     processes = query.order_by(Process.created_at.desc()).offset(offset).limit(limit).all()
@@ -143,7 +147,13 @@ def get_explore_processes(
             user_discord_id=user_discord_id,
         ))
     
-    return result
+    return ExploreProcessPaginatedResponse(
+        processes=result,
+        total=total,
+        page=page,
+        limit=limit,
+        total_pages=total_pages
+    )
 
 
 @router.get("/companies", response_model=List[str])

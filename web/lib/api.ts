@@ -301,6 +301,14 @@ export const analyticsApi = {
 };
 
 // Explore API
+export interface ExploreProcessPaginatedResponse {
+  processes: ExploreProcess[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
 export const exploreApi = {
   getProcesses: async (params?: {
     search?: string;
@@ -310,7 +318,7 @@ export const exploreApi = {
     status?: string;
     page?: number;
     limit?: number;
-  }): Promise<ExploreProcess[]> => {
+  }): Promise<ExploreProcessPaginatedResponse> => {
     const queryParams = new URLSearchParams();
     if (params?.search) queryParams.append('search', params.search);
     if (params?.company) queryParams.append('company', params.company);
@@ -320,7 +328,7 @@ export const exploreApi = {
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     
-    const response = await apiClient.get<ExploreProcess[]>(
+    const response = await apiClient.get<ExploreProcessPaginatedResponse>(
       `/api/explore/processes?${queryParams.toString()}`
     );
     return response.data;

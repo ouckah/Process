@@ -337,6 +337,15 @@ class ExploreStatsResponse(BaseModel):
     total_users: int
 
 
+class ExploreProcessPaginatedResponse(BaseModel):
+    """Schema for paginated explore processes response."""
+    processes: List[ExploreProcessResponse]
+    total: int
+    page: int
+    limit: int
+    total_pages: int
+
+
 # Forum Schemas
 class ForumThreadCreate(BaseModel):
     """Schema for creating a forum thread."""
