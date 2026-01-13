@@ -183,8 +183,8 @@ async def handle_legacy_process_command(ctx: commands.Context):
         }
     )
     
-        embed = await handle_add_process(discord_id, username, company_name, stage_name, position)
-        await ctx.send(embed=embed)
+    embed = await handle_add_process(discord_id, username, company_name, stage_name, position)
+    await ctx.send(embed=embed)
 
 
 def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
