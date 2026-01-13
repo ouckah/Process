@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { MarkdownTextarea } from '@/components/ui/MarkdownTextarea';
 import type { Process, ProcessCreate, ProcessUpdate } from '@/types';
 
 interface ProcessFormProps {
@@ -16,11 +17,13 @@ interface ProcessFormProps {
 export function ProcessForm({ process, onSubmit, onCancel, loading, error }: ProcessFormProps) {
   const [companyName, setCompanyName] = useState('');
   const [position, setPosition] = useState('');
+  const [description, setDescription] = useState('');
 
   useEffect(() => {
     if (process) {
       setCompanyName(process.company_name);
       setPosition(process.position || '');
+      setDescription(process.description || '');
     }
   }, [process]);
 
@@ -31,6 +34,7 @@ export function ProcessForm({ process, onSubmit, onCancel, loading, error }: Pro
     const data: ProcessCreate | ProcessUpdate = {
       company_name: companyName,
       position: position || null,
+      description: description.trim() || null,
     };
 
     onSubmit(data);
@@ -67,6 +71,21 @@ export function ProcessForm({ process, onSubmit, onCancel, loading, error }: Pro
         onChange={(e) => setPosition(e.target.value)}
         placeholder="e.g., Software Engineer, Product Manager"
       />
+
+      <div>
+        <label className="block mb-2 font-body text-sm font-black uppercase tracking-wider text-ink-900 dark:text-cream-50">
+          Description (optional, but encouraged)
+        </label>
+        <MarkdownTextarea
+          value={description}
+          onChange={(value) => setDescription(value)}
+          placeholder="Describe the process, what kind of questions were asked, interview format, etc. This helps others learn from your experience!"
+          rows={6}
+        />
+        <p className="mt-2 text-xs text-ink-600 dark:text-ink-400 font-body">
+          Share details about the interview process, questions asked, format, and your experience.
+        </p>
+      </div>
 
       <div className="flex justify-end space-x-3 pt-4">
         <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>

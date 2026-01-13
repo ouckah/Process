@@ -134,6 +134,7 @@ def get_explore_processes(
             id=p.id,
             company_name=p.company_name,
             position=p.position,
+            description=p.description,
             status=calculated_status.value,
             is_public=p.is_public,
             share_id=p.share_id,

@@ -120,6 +120,21 @@ export default function SharePage() {
                     {process.position}
                   </p>
                 )}
+                {process.description && (
+                  <div className="relative group mb-4">
+                    <div className="absolute inset-0 bg-ink-900 dark:bg-cream-50 translate-x-1 translate-y-1"></div>
+                    <div className="relative bg-cream-100 dark:bg-ink-800 border-4 border-ink-900 dark:border-cream-50 p-6 transform rotate-1">
+                      <div className="bg-ink-900 dark:bg-cream-50 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform -rotate-1 inline-block mb-3">
+                        <p className="font-body text-xs font-black uppercase tracking-wider text-cream-50 dark:text-ink-900">
+                          Process Description
+                        </p>
+                      </div>
+                      <div className="prose prose-sm dark:prose-invert max-w-none font-body text-ink-900 dark:text-cream-50 whitespace-pre-wrap">
+                        {process.description}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-4 flex-wrap">
                   <div className={`inline-block ${statusColors[process.status]} px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1`}>
                     <span className="font-body text-xs uppercase tracking-wider font-black text-white">

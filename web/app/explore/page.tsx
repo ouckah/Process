@@ -186,7 +186,10 @@ export default function ExplorePage() {
                   <div className="flex justify-center items-center gap-4">
                     {hasPreviousPage && (
                       <button
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        onClick={() => {
+                          setPage((p) => Math.max(1, p - 1));
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                         className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 hover:scale-105 transition-transform"
                       >
                         <span className="font-body text-sm uppercase tracking-wider font-black text-cream-50 dark:text-ink-900">
@@ -201,7 +204,10 @@ export default function ExplorePage() {
                     </div>
                     {hasNextPage && (
                       <button
-                        onClick={() => setPage((p) => p + 1)}
+                        onClick={() => {
+                          setPage((p) => p + 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                         className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 hover:scale-105 transition-transform"
                       >
                         <span className="font-body text-sm uppercase tracking-wider font-black text-cream-50 dark:text-ink-900">

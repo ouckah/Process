@@ -77,9 +77,16 @@ export function ExploreProcessCard({ process, index }: ExploreProcessCardProps) 
             {process.company_name}
           </h3>
           {process.position && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mb-2">
               <Building2 className="w-4 h-4 text-ink-600 dark:text-ink-400" />
               <p className="font-body text-sm text-ink-700 dark:text-ink-300 font-bold line-clamp-1">{process.position}</p>
+            </div>
+          )}
+          {process.description && (
+            <div className="mt-2">
+              <p className="font-body text-xs text-ink-700 dark:text-ink-300 line-clamp-2">
+                {process.description}
+              </p>
             </div>
           )}
         </div>

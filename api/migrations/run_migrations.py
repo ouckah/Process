@@ -25,6 +25,7 @@ MIGRATIONS = [
     "add_discord_avatar_column",
     "add_email_preferences",
     "add_cascade_deletes",
+    "add_process_description",
 ]
 
 def run_all_migrations():

@@ -50,6 +50,7 @@ class Process(Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     company_name = Column(String(100), nullable=False)  # e.g., "Google"
     position = Column(String(200), nullable=True)         # e.g., "Software Engineer"
+    description = Column(String(2000), nullable=True)  # Optional description of the process, questions asked, etc.
     status = Column(Enum(ProcessStatus), default=ProcessStatus.ACTIVE)
     is_public = Column(Boolean, default=False)  # Public sharing toggle
     share_id = Column(String, unique=True, nullable=True)  # UUID for sharing

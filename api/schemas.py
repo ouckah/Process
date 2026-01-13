@@ -76,6 +76,7 @@ class ProcessCreate(BaseModel):
     """Schema for creating a new process."""
     company_name: str
     position: Optional[str] = None
+    description: Optional[str] = None
     status: str = "active"
 
 
@@ -83,6 +84,7 @@ class ProcessUpdate(BaseModel):
     """Schema for updating a process."""
     company_name: Optional[str] = None
     position: Optional[str] = None
+    description: Optional[str] = None
     status: Optional[str] = None
 
 
@@ -91,6 +93,7 @@ class ProcessResponse(BaseModel):
     id: int
     company_name: str
     position: Optional[str]
+    description: Optional[str] = None
     status: str
     is_public: bool = False
     share_id: Optional[str] = None
@@ -308,6 +311,7 @@ class ExploreProcessResponse(BaseModel):
     id: int
     company_name: str
     position: Optional[str]
+    description: Optional[str] = None
     status: str
     is_public: bool
     share_id: Optional[str]

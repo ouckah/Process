@@ -22,6 +22,7 @@ export interface Process {
   id: number;
   company_name: string;
   position?: string | null;
+  description?: string | null;
   status: 'active' | 'completed' | 'rejected';
   is_public: boolean;
   share_id?: string | null;
@@ -48,12 +49,14 @@ export interface Stage {
 export interface ProcessCreate {
   company_name: string;
   position?: string | null;
+  description?: string | null;
   status?: string;
 }
 
 export interface ProcessUpdate {
   company_name?: string | null;
   position?: string | null;
+  description?: string | null;
   status?: string | null;
 }
 
@@ -139,6 +142,7 @@ export interface ExploreProcess {
   id: number;
   company_name: string;
   position: string | null;
+  description?: string | null;
   status: string;
   is_public: boolean;
   share_id: string | null;

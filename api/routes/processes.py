@@ -70,6 +70,7 @@ def get_process(
         id=process.id,
         company_name=process.company_name,
         position=process.position,
+        description=process.description,
         status=calculated_status.value,
         is_public=process.is_public,
         share_id=process.share_id,
@@ -109,6 +110,7 @@ def get_process_detail(
         "id": process.id,
         "company_name": process.company_name,
         "position": process.position,
+        "description": process.description,
         "status": calculated_status.value,
         "is_public": process.is_public,
         "share_id": process.share_id,
@@ -153,6 +155,7 @@ def get_processes(
             id=p.id,
             company_name=p.company_name,
             position=p.position,
+            description=p.description,
             status=calculated_status.value,
             is_public=p.is_public,
             share_id=p.share_id,
@@ -224,6 +227,7 @@ def post_process(
         user_id = current_user.id,  # Get from authenticated user
         company_name = process_data.company_name,
         position = position_value,
+        description = process_data.description,
         status = ProcessStatus.ACTIVE,  # Always ACTIVE for new processes
         is_public = is_public,
         share_id = share_id,
@@ -239,6 +243,7 @@ def post_process(
         id=new_process.id,
         company_name=new_process.company_name,
         position=new_process.position,
+        description=new_process.description,
         status=new_process.status.value,
         is_public=new_process.is_public,
         share_id=new_process.share_id,
@@ -316,6 +321,8 @@ def update_process(
         process.company_name = update_data.company_name
     if update_data.position is not None:
         process.position = new_position_value
+    if update_data.description is not None:
+        process.description = update_data.description
     
     # Load stages to calculate status
     db.refresh(process, ["stages"])
@@ -331,6 +338,7 @@ def update_process(
         id=process.id,
         company_name=process.company_name,
         position=process.position,
+        description=process.description,
         status=calculated_status.value,
         is_public=process.is_public,
         share_id=process.share_id,
@@ -362,6 +370,7 @@ def delete_process(
         "id": process.id,
         "company_name": process.company_name,
         "position": process.position,
+        "description": process.description,
         "status": process.status.value,
         "is_public": process.is_public,
         "share_id": process.share_id,
@@ -405,6 +414,7 @@ def get_public_process(
         "id": process.id,
         "company_name": process.company_name,
         "position": process.position,
+        "description": process.description,
         "status": calculated_status.value,
         "is_public": process.is_public,
         "share_id": process.share_id,
