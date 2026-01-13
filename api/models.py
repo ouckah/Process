@@ -120,7 +120,7 @@ class ProfileComment(Base):
     # Relationships
     profile_user = relationship("User", foreign_keys=[profile_user_id], back_populates="profile_comments")
     author = relationship("User", foreign_keys=[author_id], back_populates="authored_comments")
-    parent_comment = relationship("ProfileComment", remote_side=[id], backref="replies", cascade="all, delete-orphan")
+    parent_comment = relationship("ProfileComment", remote_side=[id], backref="replies")
     notifications = relationship("Notification", back_populates="comment", cascade="all, delete-orphan")
     upvote_records = relationship("CommentUpvote", back_populates="comment", cascade="all, delete-orphan")
 
