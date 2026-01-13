@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
               width: '100%',
               height: '100%',
               backgroundColor: '#1A1A1A',
+              display: 'flex',
             }}
           />
           
@@ -123,8 +124,8 @@ export async function GET(request: NextRequest) {
                   flexDirection: 'column',
                 }}
               >
-                <div style={{ fontSize: 40, marginBottom: 8 }}>{totalProcesses}</div>
-                <div>PROCESSES</div>
+                <div style={{ fontSize: 40, marginBottom: 8, display: 'flex' }}>{totalProcesses}</div>
+                <div style={{ display: 'flex' }}>PROCESSES</div>
               </div>
               <div
                 style={{
@@ -142,8 +143,8 @@ export async function GET(request: NextRequest) {
                   flexDirection: 'column',
                 }}
               >
-                <div style={{ fontSize: 40, marginBottom: 8 }}>{totalCompanies}</div>
-                <div>COMPANIES</div>
+                <div style={{ fontSize: 40, marginBottom: 8, display: 'flex' }}>{totalCompanies}</div>
+                <div style={{ display: 'flex' }}>COMPANIES</div>
               </div>
               <div
                 style={{
@@ -161,8 +162,8 @@ export async function GET(request: NextRequest) {
                   flexDirection: 'column',
                 }}
               >
-                <div style={{ fontSize: 40, marginBottom: 8 }}>{totalStages}</div>
-                <div>STAGES</div>
+                <div style={{ fontSize: 40, marginBottom: 8, display: 'flex' }}>{totalStages}</div>
+                <div style={{ display: 'flex' }}>STAGES</div>
               </div>
             </div>
           </div>

@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
               width: '100%',
               height: '100%',
               backgroundColor: '#1A1A1A',
+              display: 'flex',
             }}
           />
           

@@ -68,6 +68,7 @@ export async function GET(
               width: '100%',
               height: '100%',
               backgroundColor: '#1A1A1A',
+              display: 'flex',
             }}
           />
           
