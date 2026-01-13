@@ -97,6 +97,7 @@ export async function GET(
                 marginBottom: 24,
                 lineHeight: 1.2,
                 letterSpacing: '-0.02em',
+                display: 'flex',
               }}
             >
               {title}
@@ -121,6 +122,7 @@ export async function GET(
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
+                  display: 'flex',
                 }}
               >
                 {authorName}
@@ -137,11 +139,14 @@ export async function GET(
                   marginBottom: 32,
                   flex: 1,
                   overflow: 'hidden',
+                  display: 'flex',
                 }}
               >
                 {truncatedContent}
               </div>
-            ) : null}
+            ) : (
+              <div style={{ display: 'none' }} />
+            )}
             
             {/* Stats */}
             <div
@@ -161,6 +166,7 @@ export async function GET(
                   fontSize: 18,
                   fontWeight: 700,
                   textTransform: 'uppercase',
+                  display: 'flex',
                 }}
               >
                 {replyCount} {replyCount === 1 ? 'REPLY' : 'REPLIES'}
@@ -175,6 +181,7 @@ export async function GET(
                   fontSize: 18,
                   fontWeight: 700,
                   textTransform: 'uppercase',
+                  display: 'flex',
                 }}
               >
                 {viewCount} VIEWS

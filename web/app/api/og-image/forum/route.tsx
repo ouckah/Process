@@ -60,6 +60,7 @@ export async function GET(request: NextRequest) {
                 lineHeight: 1.2,
                 letterSpacing: '-0.02em',
                 textAlign: 'center',
+                display: 'flex',
               }}
             >
               FORUM
@@ -73,6 +74,7 @@ export async function GET(request: NextRequest) {
                 textAlign: 'center',
                 fontWeight: 500,
                 maxWidth: '80%',
+                display: 'flex',
               }}
             >
               Discuss job application processes, share experiences, and get advice from the community
@@ -97,6 +99,7 @@ export async function GET(request: NextRequest) {
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
+                  display: 'flex',
                 }}
               >
                 DISCUSS
@@ -112,6 +115,7 @@ export async function GET(request: NextRequest) {
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
+                  display: 'flex',
                 }}
               >
                 SHARE
@@ -127,6 +131,7 @@ export async function GET(request: NextRequest) {
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
+                  display: 'flex',
                 }}
               >
                 LEARN

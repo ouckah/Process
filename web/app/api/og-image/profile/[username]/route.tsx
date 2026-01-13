@@ -95,6 +95,7 @@ export async function GET(
                 marginBottom: 32,
                 lineHeight: 1.2,
                 letterSpacing: '-0.02em',
+                display: 'flex',
               }}
             >
               {isAnonymous ? displayName : `@${username}`}
@@ -120,6 +121,7 @@ export async function GET(
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
+                  display: 'flex',
                 }}
               >
                 {totalProcesses} PROCESSES
@@ -135,6 +137,7 @@ export async function GET(
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
+                  display: 'flex',
                 }}
               >
                 {offers} OFFERS
@@ -150,6 +153,7 @@ export async function GET(
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
+                  display: 'flex',
                 }}
               >
                 {active} ACTIVE
@@ -166,11 +170,14 @@ export async function GET(
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
+                    display: 'flex',
                   }}
                 >
                   {successRate}% SUCCESS
                 </div>
-              ) : null}
+              ) : (
+                <div style={{ display: 'none' }} />
+              )}
             </div>
             
             {/* Companies */}
@@ -189,6 +196,7 @@ export async function GET(
                     color: '#1A1A1A',
                     textTransform: 'uppercase',
                     marginBottom: 16,
+                    display: 'flex',
                   }}
                 >
                   COMPANIES
@@ -213,6 +221,7 @@ export async function GET(
                         fontWeight: 700,
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
+                        display: 'flex',
                       }}
                     >
                       {company}
@@ -220,7 +229,9 @@ export async function GET(
                   ))}
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div style={{ display: 'none' }} />
+            )}
           </div>
         </div>
       ),

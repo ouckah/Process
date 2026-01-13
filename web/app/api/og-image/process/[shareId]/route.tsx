@@ -96,6 +96,7 @@ export async function GET(
                 marginBottom: 16,
                 lineHeight: 1.2,
                 letterSpacing: '-0.02em',
+                display: 'flex',
               }}
             >
               {companyName}
@@ -121,7 +122,9 @@ export async function GET(
               >
                 {position}
               </div>
-            ) : null}
+            ) : (
+              <div style={{ display: 'none' }} />
+            )}
             
             {/* Status and Author */}
             <div
@@ -144,6 +147,7 @@ export async function GET(
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
+                  display: 'flex',
                 }}
               >
                 {status.toUpperCase()}
@@ -160,11 +164,14 @@ export async function GET(
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
+                    display: 'flex',
                   }}
                 >
                   @{username}
                 </div>
-              ) : null}
+              ) : (
+                <div style={{ display: 'none' }} />
+              )}
             </div>
             
             {/* Stages */}
@@ -184,6 +191,7 @@ export async function GET(
                     color: '#1A1A1A',
                     textTransform: 'uppercase',
                     marginBottom: 8,
+                    display: 'flex',
                   }}
                 >
                   {stageCount} {stageCount === 1 ? 'STAGE' : 'STAGES'}
@@ -209,6 +217,7 @@ export async function GET(
                           fontWeight: 700,
                           textTransform: 'uppercase',
                           letterSpacing: '0.05em',
+                          display: 'flex',
                         }}
                       >
                         {name}
@@ -221,15 +230,22 @@ export async function GET(
                           fontWeight: 700,
                           color: '#1A1A1A',
                           textTransform: 'uppercase',
+                          display: 'flex',
                         }}
                       >
                         +{stageCount - 3} MORE
                       </div>
-                    ) : null}
+                    ) : (
+                      <div style={{ display: 'none' }} />
+                    )}
                   </div>
-                ) : null}
+                ) : (
+                  <div style={{ display: 'none' }} />
+                )}
               </div>
-            ) : null}
+            ) : (
+              <div style={{ display: 'none' }} />
+            )}
           </div>
         </div>
       ),

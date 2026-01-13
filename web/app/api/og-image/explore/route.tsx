@@ -79,6 +79,7 @@ export async function GET(request: NextRequest) {
                 lineHeight: 1.2,
                 letterSpacing: '-0.02em',
                 textAlign: 'center',
+                display: 'flex',
               }}
             >
               EXPLORE PROCESSES
@@ -92,6 +93,7 @@ export async function GET(request: NextRequest) {
                 marginBottom: 48,
                 textAlign: 'center',
                 fontWeight: 500,
+                display: 'flex',
               }}
             >
               Discover job application processes shared by the community
