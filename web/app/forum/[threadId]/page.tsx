@@ -29,6 +29,7 @@ export default function ForumThreadPage() {
   const createReply = useCreateReply();
   const upvoteReply = useUpvoteReply();
   const removeUpvote = useRemoveUpvote();
+  const [upvotingReplyId, setUpvotingReplyId] = useState<number | null>(null);
 
   const handleCreateReply = async () => {
     if (!replyContent.trim()) return;
@@ -51,16 +52,29 @@ export default function ForumThreadPage() {
   };
 
   const handleUpvote = async (replyId: number, hasUpvoted: boolean) => {
-    if (!user) return;
+    if (!user || upvotingReplyId === replyId) return;
     
+    setUpvotingReplyId(replyId);
     try {
       if (hasUpvoted) {
         await removeUpvote.mutateAsync(replyId);
       } else {
         await upvoteReply.mutateAsync(replyId);
       }
-    } catch (error) {
-      console.error('Failed to toggle upvote:', error);
+    } catch (error: any) {
+      // If we get a 400 "Already upvoted" error, try to remove the upvote instead
+      // This handles race conditions where the state might be stale
+      if (error?.response?.status === 400 && error?.response?.data?.detail === 'Already upvoted') {
+        try {
+          await removeUpvote.mutateAsync(replyId);
+        } catch (removeError) {
+          console.error('Failed to remove upvote after conflict:', removeError);
+        }
+      } else {
+        console.error('Failed to toggle upvote:', error);
+      }
+    } finally {
+      setUpvotingReplyId(null);
     }
   };
 
@@ -203,6 +217,7 @@ export default function ForumThreadPage() {
               }}
               onUpvote={handleUpvote}
               user={user}
+              upvotingReplyId={upvotingReplyId}
             />
           ))}
         </div>
@@ -269,12 +284,14 @@ function ReplyItem({
   onReply,
   onUpvote,
   user,
+  upvotingReplyId,
 }: {
   reply: ForumReply;
   index: number;
   onReply: (parentId: number) => void;
   onUpvote: (replyId: number, hasUpvoted: boolean) => void;
   user: any;
+  upvotingReplyId: number | null;
 }) {
   const rotation = index % 2 === 0 ? '-rotate-1' : 'rotate-1';
   const authorDisplay = reply.author_username || reply.author_display_name || 'Anonymous';
@@ -305,8 +322,11 @@ function ReplyItem({
           </div>
           
           <button
-            onClick={() => onUpvote(reply.id, reply.user_has_upvoted)}
-            disabled={!user}
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpvote(reply.id, reply.user_has_upvoted);
+            }}
+            disabled={!user || upvotingReplyId === reply.id}
             className={`flex items-center gap-1 px-3 py-1 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 ${
               reply.user_has_upvoted
                 ? 'bg-indigo-600 dark:bg-indigo-500 text-white'
@@ -341,6 +361,7 @@ function ReplyItem({
                 onReply={onReply}
                 onUpvote={onUpvote}
                 user={user}
+                upvotingReplyId={upvotingReplyId}
               />
             ))}
           </div>
