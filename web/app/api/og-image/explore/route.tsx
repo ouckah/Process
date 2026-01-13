@@ -44,8 +44,8 @@ export async function GET(request: NextRequest) {
           <div
             style={{
               position: 'absolute',
-              top: 16,
-              left: 16,
+              top: 12,
+              left: 12,
               width: '100%',
               height: '100%',
               backgroundColor: '#1A1A1A',
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
               backgroundColor: '#FAF9F6',
               border: '16px solid #1A1A1A',
               padding: '48px',
-              transform: 'rotate(1deg)',
+              transform: 'rotate(1.5deg)',
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -93,11 +93,13 @@ export async function GET(request: NextRequest) {
                 color: '#1A1A1A',
                 marginBottom: 48,
                 textAlign: 'center',
-                fontWeight: 500,
+                fontWeight: 900,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
                 display: 'flex',
               }}
             >
-              Discover job application processes shared by the community
+              DISCOVER JOB APPLICATION PROCESSES SHARED BY THE COMMUNITY
             </div>
             
             {/* Stats */}
@@ -108,62 +110,103 @@ export async function GET(request: NextRequest) {
                 marginTop: 32,
               }}
             >
-              <div
-                style={{
-                  backgroundColor: '#6366F1',
-                  color: '#FAF9F6',
-                  padding: '20px 32px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(1deg)',
-                  fontSize: 24,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  textAlign: 'center',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div style={{ fontSize: 40, marginBottom: 8, display: 'flex' }}>{totalProcesses}</div>
-                <div style={{ display: 'flex' }}>PROCESSES</div>
+              {/* Process Stat */}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1A1A1A',
+                    transform: 'translate(12px, 12px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#6366F1',
+                    color: '#FAF9F6',
+                    padding: '20px 32px',
+                    border: '8px solid #1A1A1A',
+                    transform: 'rotate(1.5deg)',
+                    fontSize: 24,
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <div style={{ fontSize: 40, marginBottom: 8, display: 'flex' }}>{totalProcesses}</div>
+                  <div style={{ display: 'flex' }}>PROCESSES</div>
+                </div>
               </div>
-              <div
-                style={{
-                  backgroundColor: '#F59E0B',
-                  color: '#1A1A1A',
-                  padding: '20px 32px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(-1deg)',
-                  fontSize: 24,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  textAlign: 'center',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div style={{ fontSize: 40, marginBottom: 8, display: 'flex' }}>{totalCompanies}</div>
-                <div style={{ display: 'flex' }}>COMPANIES</div>
+              
+              {/* Company Stat */}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1A1A1A',
+                    transform: 'translate(12px, 12px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#F59E0B',
+                    color: '#1A1A1A',
+                    padding: '20px 32px',
+                    border: '8px solid #1A1A1A',
+                    transform: 'rotate(-1.5deg)',
+                    fontSize: 24,
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <div style={{ fontSize: 40, marginBottom: 8, display: 'flex' }}>{totalCompanies}</div>
+                  <div style={{ display: 'flex' }}>COMPANIES</div>
+                </div>
               </div>
-              <div
-                style={{
-                  backgroundColor: '#10B981',
-                  color: '#FAF9F6',
-                  padding: '20px 32px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(1deg)',
-                  fontSize: 24,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  textAlign: 'center',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div style={{ fontSize: 40, marginBottom: 8, display: 'flex' }}>{totalStages}</div>
-                <div style={{ display: 'flex' }}>STAGES</div>
+              
+              {/* Stage Stat */}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1A1A1A',
+                    transform: 'translate(12px, 12px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#10B981',
+                    color: '#FAF9F6',
+                    padding: '20px 32px',
+                    border: '8px solid #1A1A1A',
+                    transform: 'rotate(1.5deg)',
+                    fontSize: 24,
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <div style={{ fontSize: 40, marginBottom: 8, display: 'flex' }}>{totalStages}</div>
+                  <div style={{ display: 'flex' }}>STAGES</div>
+                </div>
               </div>
             </div>
           </div>

@@ -64,8 +64,8 @@ export async function GET(
           <div
             style={{
               position: 'absolute',
-              top: 16,
-              left: 16,
+              top: 12,
+              left: 12,
               width: '100%',
               height: '100%',
               backgroundColor: '#1A1A1A',
@@ -84,7 +84,7 @@ export async function GET(
               backgroundColor: '#FAF9F6',
               border: '16px solid #1A1A1A',
               padding: '48px',
-              transform: 'rotate(1deg)',
+              transform: 'rotate(1.5deg)',
             }}
           >
             {/* Company Name */}
@@ -105,23 +105,33 @@ export async function GET(
             
             {/* Position */}
             {position ? (
-              <div
-                style={{
-                  backgroundColor: '#1A1A1A',
-                  color: '#FAF9F6',
-                  padding: '12px 24px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(-1deg)',
-                  fontSize: 28,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  marginBottom: 32,
-                  display: 'inline-block',
-                  width: 'fit-content',
-                }}
-              >
-                {position}
+              <div style={{ position: 'relative', display: 'inline-block', width: 'fit-content', marginBottom: 32 }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1A1A1A',
+                    transform: 'translate(12px, 12px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#1A1A1A',
+                    color: '#FAF9F6',
+                    padding: '12px 24px',
+                    border: '8px solid #1A1A1A',
+                    transform: 'rotate(-1.5deg)',
+                    fontSize: 28,
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    display: 'flex',
+                  }}
+                >
+                  {position}
+                </div>
               </div>
             ) : (
               <div style={{ display: 'none' }} />
@@ -137,38 +147,65 @@ export async function GET(
                 flexWrap: 'wrap',
               }}
             >
-              <div
-                style={{
-                  backgroundColor: statusColor.bg,
-                  color: statusColor.text,
-                  padding: '12px 24px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(1deg)',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  display: 'flex',
-                }}
-              >
-                {status.toUpperCase()}
-              </div>
-              {username ? (
+              {/* Status Badge */}
+              <div style={{ position: 'relative', display: 'flex' }}>
                 <div
                   style={{
-                    backgroundColor: '#6366F1',
-                    color: '#FAF9F6',
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1A1A1A',
+                    transform: 'translate(12px, 12px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: statusColor.bg,
+                    color: statusColor.text,
                     padding: '12px 24px',
                     border: '8px solid #1A1A1A',
-                    transform: 'rotate(-1deg)',
+                    transform: 'rotate(1.5deg)',
                     fontSize: 20,
-                    fontWeight: 700,
+                    fontWeight: 900,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
+                    letterSpacing: '0.08em',
                     display: 'flex',
                   }}
                 >
-                  @{username}
+                  {status.toUpperCase()}
+                </div>
+              </div>
+              
+              {/* Username Badge */}
+              {username ? (
+                <div style={{ position: 'relative', display: 'flex' }}>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      backgroundColor: '#1A1A1A',
+                      transform: 'translate(12px, 12px)',
+                      display: 'flex',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'relative',
+                      backgroundColor: '#6366F1',
+                      color: '#FAF9F6',
+                      padding: '12px 24px',
+                      border: '8px solid #1A1A1A',
+                      transform: 'rotate(-1.5deg)',
+                      fontSize: 20,
+                      fontWeight: 900,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      display: 'flex',
+                    }}
+                  >
+                    @{username}
+                  </div>
                 </div>
               ) : (
                 <div style={{ display: 'none' }} />
@@ -188,10 +225,11 @@ export async function GET(
                 <div
                   style={{
                     fontSize: 24,
-                    fontWeight: 700,
+                    fontWeight: 900,
                     color: '#1A1A1A',
                     textTransform: 'uppercase',
                     marginBottom: 8,
+                    letterSpacing: '0.08em',
                     display: 'flex',
                   }}
                 >
@@ -206,31 +244,43 @@ export async function GET(
                     }}
                   >
                     {stageNames.map((name: string, idx: number) => (
-                      <div
-                        key={idx}
-                        style={{
-                          backgroundColor: '#F59E0B',
-                          color: '#1A1A1A',
-                          padding: '10px 20px',
-                          border: '6px solid #1A1A1A',
-                          transform: idx % 2 === 0 ? 'rotate(0.5deg)' : 'rotate(-0.5deg)',
-                          fontSize: 18,
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em',
-                          display: 'flex',
-                        }}
-                      >
-                        {name}
+                      <div key={idx} style={{ position: 'relative', display: 'flex' }}>
+                        <div
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            backgroundColor: '#1A1A1A',
+                            transform: 'translate(12px, 12px)',
+                            display: 'flex',
+                          }}
+                        />
+                        <div
+                          style={{
+                            position: 'relative',
+                            backgroundColor: '#F59E0B',
+                            color: '#1A1A1A',
+                            padding: '10px 20px',
+                            border: '8px solid #1A1A1A',
+                            transform: idx % 2 === 0 ? 'rotate(1.5deg)' : 'rotate(-1.5deg)',
+                            fontSize: 18,
+                            fontWeight: 900,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.08em',
+                            display: 'flex',
+                          }}
+                        >
+                          {name}
+                        </div>
                       </div>
                     ))}
                     {stageCount > 3 ? (
                       <div
                         style={{
                           fontSize: 18,
-                          fontWeight: 700,
+                          fontWeight: 900,
                           color: '#1A1A1A',
                           textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
                           display: 'flex',
                         }}
                       >

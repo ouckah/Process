@@ -63,8 +63,8 @@ export async function GET(
           <div
             style={{
               position: 'absolute',
-              top: 16,
-              left: 16,
+              top: 12,
+              left: 12,
               width: '100%',
               height: '100%',
               backgroundColor: '#1A1A1A',
@@ -83,7 +83,7 @@ export async function GET(
               backgroundColor: '#FAF9F6',
               border: '16px solid #1A1A1A',
               padding: '48px',
-              transform: 'rotate(1deg)',
+              transform: 'rotate(1.5deg)',
             }}
           >
             {/* Username/Display Name */}
@@ -193,10 +193,11 @@ export async function GET(
                 <div
                   style={{
                     fontSize: 24,
-                    fontWeight: 700,
+                    fontWeight: 900,
                     color: '#1A1A1A',
                     textTransform: 'uppercase',
                     marginBottom: 16,
+                    letterSpacing: '0.08em',
                     display: 'flex',
                   }}
                 >
@@ -210,22 +211,33 @@ export async function GET(
                   }}
                 >
                   {companies.map((company: string, idx: number) => (
-                    <div
-                      key={idx}
-                      style={{
-                        backgroundColor: '#1A1A1A',
-                        color: '#FAF9F6',
-                        padding: '10px 20px',
-                        border: '6px solid #1A1A1A',
-                        transform: idx % 2 === 0 ? 'rotate(0.5deg)' : 'rotate(-0.5deg)',
-                        fontSize: 20,
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        display: 'flex',
-                      }}
-                    >
-                      {company}
+                    <div key={idx} style={{ position: 'relative', display: 'flex' }}>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          backgroundColor: '#1A1A1A',
+                          transform: 'translate(12px, 12px)',
+                          display: 'flex',
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'relative',
+                          backgroundColor: '#1A1A1A',
+                          color: '#FAF9F6',
+                          padding: '10px 20px',
+                          border: '8px solid #1A1A1A',
+                          transform: idx % 2 === 0 ? 'rotate(1.5deg)' : 'rotate(-1.5deg)',
+                          fontSize: 20,
+                          fontWeight: 900,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
+                          display: 'flex',
+                        }}
+                      >
+                        {company}
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
           <div
             style={{
               position: 'absolute',
-              top: 16,
-              left: 16,
+              top: 12,
+              left: 12,
               width: '100%',
               height: '100%',
               backgroundColor: '#1A1A1A',
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
               backgroundColor: '#FAF9F6',
               border: '16px solid #1A1A1A',
               padding: '48px',
-              transform: 'rotate(1deg)',
+              transform: 'rotate(1.5deg)',
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -73,12 +73,14 @@ export async function GET(request: NextRequest) {
                 fontSize: 32,
                 color: '#1A1A1A',
                 textAlign: 'center',
-                fontWeight: 500,
+                fontWeight: 900,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
                 maxWidth: '80%',
                 display: 'flex',
               }}
             >
-              Discuss job application processes, share experiences, and get advice from the community
+              DISCUSS JOB APPLICATION PROCESSES, SHARE EXPERIENCES, AND GET ADVICE FROM THE COMMUNITY
             </div>
             
             {/* Decorative elements */}
@@ -89,53 +91,94 @@ export async function GET(request: NextRequest) {
                 marginTop: 48,
               }}
             >
-              <div
-                style={{
-                  backgroundColor: '#6366F1',
-                  color: '#FAF9F6',
-                  padding: '16px 32px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(1deg)',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  display: 'flex',
-                }}
-              >
-                DISCUSS
+              {/* DISCUSS */}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1A1A1A',
+                    transform: 'translate(12px, 12px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#6366F1',
+                    color: '#FAF9F6',
+                    padding: '16px 32px',
+                    border: '8px solid #1A1A1A',
+                    transform: 'rotate(1.5deg)',
+                    fontSize: 20,
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    display: 'flex',
+                  }}
+                >
+                  DISCUSS
+                </div>
               </div>
-              <div
-                style={{
-                  backgroundColor: '#F59E0B',
-                  color: '#1A1A1A',
-                  padding: '16px 32px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(-1deg)',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  display: 'flex',
-                }}
-              >
-                SHARE
+              
+              {/* SHARE */}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1A1A1A',
+                    transform: 'translate(12px, 12px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#F59E0B',
+                    color: '#1A1A1A',
+                    padding: '16px 32px',
+                    border: '8px solid #1A1A1A',
+                    transform: 'rotate(-1.5deg)',
+                    fontSize: 20,
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    display: 'flex',
+                  }}
+                >
+                  SHARE
+                </div>
               </div>
-              <div
-                style={{
-                  backgroundColor: '#10B981',
-                  color: '#FAF9F6',
-                  padding: '16px 32px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(1deg)',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  display: 'flex',
-                }}
-              >
-                LEARN
+              
+              {/* LEARN */}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1A1A1A',
+                    transform: 'translate(12px, 12px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#10B981',
+                    color: '#FAF9F6',
+                    padding: '16px 32px',
+                    border: '8px solid #1A1A1A',
+                    transform: 'rotate(1.5deg)',
+                    fontSize: 20,
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    display: 'flex',
+                  }}
+                >
+                  LEARN
+                </div>
               </div>
             </div>
           </div>

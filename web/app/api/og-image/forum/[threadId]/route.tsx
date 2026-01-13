@@ -65,8 +65,8 @@ export async function GET(
           <div
             style={{
               position: 'absolute',
-              top: 16,
-              left: 16,
+              top: 12,
+              left: 12,
               width: '100%',
               height: '100%',
               backgroundColor: '#1A1A1A',
@@ -85,7 +85,7 @@ export async function GET(
               backgroundColor: '#FAF9F6',
               border: '16px solid #1A1A1A',
               padding: '48px',
-              transform: 'rotate(1deg)',
+              transform: 'rotate(1.5deg)',
             }}
           >
             {/* Title */}
@@ -112,21 +112,33 @@ export async function GET(
                 marginBottom: 32,
               }}
             >
-              <div
-                style={{
-                  backgroundColor: '#1A1A1A',
-                  color: '#FAF9F6',
-                  padding: '12px 24px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(-1deg)',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  display: 'flex',
-                }}
-              >
-                {authorName}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1A1A1A',
+                    transform: 'translate(12px, 12px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#1A1A1A',
+                    color: '#FAF9F6',
+                    padding: '12px 24px',
+                    border: '8px solid #1A1A1A',
+                    transform: 'rotate(-1.5deg)',
+                    fontSize: 20,
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    display: 'flex',
+                  }}
+                >
+                  {authorName}
+                </div>
               </div>
             </div>
             
@@ -136,10 +148,11 @@ export async function GET(
                 style={{
                   fontSize: 24,
                   color: '#1A1A1A',
-                  lineHeight: 1.5,
+                  lineHeight: 1.6,
                   marginBottom: 32,
                   flex: 1,
                   overflow: 'hidden',
+                  fontWeight: 500,
                   display: 'flex',
                 }}
               >
@@ -157,35 +170,64 @@ export async function GET(
                 marginTop: 'auto',
               }}
             >
-              <div
-                style={{
-                  backgroundColor: '#6366F1',
-                  color: '#FAF9F6',
-                  padding: '12px 24px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(1deg)',
-                  fontSize: 18,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  display: 'flex',
-                }}
-              >
-                {replyCount} {replyCount === 1 ? 'REPLY' : 'REPLIES'}
+              {/* Reply Count */}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1A1A1A',
+                    transform: 'translate(12px, 12px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#6366F1',
+                    color: '#FAF9F6',
+                    padding: '12px 24px',
+                    border: '8px solid #1A1A1A',
+                    transform: 'rotate(1.5deg)',
+                    fontSize: 18,
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    display: 'flex',
+                  }}
+                >
+                  {replyCount} {replyCount === 1 ? 'REPLY' : 'REPLIES'}
+                </div>
               </div>
-              <div
-                style={{
-                  backgroundColor: '#F59E0B',
-                  color: '#1A1A1A',
-                  padding: '12px 24px',
-                  border: '8px solid #1A1A1A',
-                  transform: 'rotate(-1deg)',
-                  fontSize: 18,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  display: 'flex',
-                }}
-              >
-                {viewCount} VIEWS
+              
+              {/* View Count */}
+              <div style={{ position: 'relative', display: 'flex' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#1A1A1A',
+                    transform: 'translate(12px, 12px)',
+                    display: 'flex',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'relative',
+                    backgroundColor: '#F59E0B',
+                    color: '#1A1A1A',
+                    padding: '12px 24px',
+                    border: '8px solid #1A1A1A',
+                    transform: 'rotate(-1.5deg)',
+                    fontSize: 18,
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    display: 'flex',
+                  }}
+                >
+                  {viewCount} VIEWS
+                </div>
               </div>
             </div>
           </div>
