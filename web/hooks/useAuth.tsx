@@ -10,7 +10,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   logout: () => void;
-  updateProfile: (data: { username?: string; display_name?: string | null; is_anonymous?: boolean; comments_enabled?: boolean }) => Promise<void>;
+  updateProfile: (data: { username?: string; display_name?: string | null; is_anonymous?: boolean; comments_enabled?: boolean; email_notifications_enabled?: boolean }) => Promise<void>;
   refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
-  const updateProfile = async (data: { username?: string; display_name?: string | null; is_anonymous?: boolean; comments_enabled?: boolean }) => {
+  const updateProfile = async (data: { username?: string; display_name?: string | null; is_anonymous?: boolean; comments_enabled?: boolean; email_notifications_enabled?: boolean }) => {
     try {
       const updatedUser = await authApi.updateProfile(data);
       setUser(updatedUser);
