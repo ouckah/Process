@@ -71,8 +71,24 @@ def get_frontend_url() -> str:
     return os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 
-async def get_user_token(discord_id: str, username: str) -> str:
-    """Get authentication token for Discord user via API."""
+# Global bot instance - set by client.py on_ready
+_bot_instance = None
+
+def set_bot_instance(bot):
+    """Set the global bot instance. Called from client.py on_ready."""
+    global _bot_instance
+    _bot_instance = bot
+
+def get_bot_instance():
+    """Get the global bot instance."""
+    return _bot_instance
+
+async def get_user_token(discord_id: str, username: str, bot_client=None) -> str:
+    """
+    Get authentication token for Discord user via API.
+    If user is new, automatically sends welcome DM using bot_client or global bot instance.
+    Returns just the token for backward compatibility.
+    """
     api_url = get_api_url()  # Get URL at function call time, not import time
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
         try:
@@ -81,7 +97,24 @@ async def get_user_token(discord_id: str, username: str) -> str:
                 json={"discord_id": discord_id, "username": username}
             )
             response.raise_for_status()
-            return response.json()["access_token"]
+            data = response.json()
+            token = data["access_token"]
+            is_new_user = data.get("is_new_user", False)
+            
+            # Send welcome DM if user is new
+            if is_new_user:
+                # Use provided bot_client or fall back to global instance
+                bot_to_use = bot_client or _bot_instance
+                if bot_to_use:
+                    try:
+                        from utils.welcome import send_welcome_dm
+                        discord_user = await bot_to_use.fetch_user(int(discord_id))
+                        await send_welcome_dm(discord_user)
+                    except Exception as e:
+                        # Don't fail the command if welcome DM fails
+                        logger.warning(f"Failed to send welcome DM to new user {discord_id}: {e}")
+            
+            return token
         except httpx.RequestError as e:
             logger.error(f"Failed to get user token from {api_url}: {type(e).__name__}")
             raise

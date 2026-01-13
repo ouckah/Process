@@ -629,6 +629,7 @@ def get_discord_bot_token(
     
     # Get or create user by discord_id
     user = get_user_by_discord_id(db, discord_id)
+    is_new_user = False
     
     if not user:
         # Create ghost account
@@ -640,6 +641,7 @@ def get_discord_bot_token(
         db.add(user)
         db.commit()
         db.refresh(user)
+        is_new_user = True
     else:
         # Update username if it's different (bot can update usernames as Discord changes)
         if user.username != username:
@@ -653,5 +655,10 @@ def get_discord_bot_token(
         data={"sub": str(user.id)}, expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "is_new_user": is_new_user,
+        "user_created_at": user.created_at.isoformat() if user.created_at else None
+    }
 

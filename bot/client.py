@@ -60,6 +60,10 @@ async def on_ready():
     """Initialize bot and register all commands after bot is ready."""
     print(f'Logged in as {bot.user}')
     
+    # Set global bot instance for welcome DM functionality
+    from utils.auth import set_bot_instance
+    set_bot_instance(bot)
+    
     # Load and setup all commands after bot is ready
     # This ensures network stack and bot are fully initialized before command registration
     # 

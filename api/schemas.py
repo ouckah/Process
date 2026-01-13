@@ -9,6 +9,8 @@ class TokenResponse(BaseModel):
     """Schema for authentication token response."""
     access_token: str
     token_type: str
+    is_new_user: Optional[bool] = False
+    user_created_at: Optional[str] = None
 
 
 
