@@ -4,7 +4,7 @@ import ExplorePageClient from './ExplorePageClient';
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const imageUrl = `${appUrl}/api/og-image/explore`;
+  const imageUrl = `${appUrl}/og-image.png`;
   const pageUrl = `${appUrl}/explore`;
   
   return {
@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
           url: imageUrl,
           width: 1200,
           height: 630,
-          alt: 'Explore Processes',
+          alt: 'Process - Job Application Tracker and Discord Bot',
         },
       ],
     },

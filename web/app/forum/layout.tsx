@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const imageUrl = `${appUrl}/api/og-image/forum`;
+  const imageUrl = `${appUrl}/og-image.png`;
   const pageUrl = `${appUrl}/forum`;
   
   return {
@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
           url: imageUrl,
           width: 1200,
           height: 630,
-          alt: 'Forum',
+          alt: 'Process - Job Application Tracker and Discord Bot',
         },
       ],
     },
