@@ -39,7 +39,10 @@ export async function GET(
     const successRate = stats.success_rate || 0;
     
     // Get unique companies (truncated to 5)
-    const companies = Array.from(new Set(processes.map((p: any) => p.company_name))).slice(0, 5);
+    const companyNames = processes
+      .map((p: any) => p.company_name)
+      .filter((name: any): name is string => typeof name === 'string' && name !== null && name !== undefined);
+    const companies = Array.from(new Set(companyNames)).slice(0, 5);
     
     return new ImageResponse(
       (
@@ -195,7 +198,7 @@ export async function GET(
                     gap: 12,
                   }}
                 >
-                  {companies.map((company: string, idx: number) => (
+                  {companies.map((company, idx) => (
                     <div
                       key={idx}
                       style={{
