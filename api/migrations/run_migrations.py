@@ -31,6 +31,9 @@ def run_all_migrations():
     print("=" * 60)
     print("Running Database Migrations")
     print("=" * 60)
+    print(f"Working directory: {os.getcwd()}")
+    print(f"API directory: {API_DIR}")
+    print("=" * 60)
     
     for migration_name in MIGRATIONS:
         print(f"\n📦 Running migration: {migration_name}")
@@ -48,7 +51,10 @@ def run_all_migrations():
             module.run_migration()
             print(f"✓ {migration_name} completed successfully")
         except Exception as e:
+            import traceback
             print(f"✗ {migration_name} failed: {e}")
+            print("\nFull error traceback:")
+            traceback.print_exc()
             print("\n⚠️  Migration failed. Please check the error above.")
             sys.exit(1)
     
