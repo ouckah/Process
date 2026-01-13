@@ -5,7 +5,7 @@ import os
 import httpx
 from datetime import timedelta
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -22,12 +22,17 @@ from auth import (
     generate_unique_username
 )
 from schemas import UserResponse, UserUpdate, TokenResponse, DiscordBotTokenRequest
+from rate_limiter import limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.get("/me", response_model=UserResponse)
-def get_me(current_user: User = Depends(get_current_user)):
+@limiter.limit("60/minute")
+def get_me(
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
     """Get current authenticated user info."""
     return {
         "id": current_user.id,
@@ -44,7 +49,9 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 
 @router.patch("/me", response_model=UserResponse)
+@limiter.limit("30/minute")
 def update_me(
+    request: Request,
     user_data: UserUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -116,7 +123,9 @@ def check_admin(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/discord/callback")
+@limiter.limit("10/minute")
 def discord_oauth_callback(
+    request: Request,
     code: str,
     state: str,
     db: Session = Depends(get_db)
@@ -381,7 +390,9 @@ def disconnect_discord_account(
 
 
 @router.get("/google/callback")
+@limiter.limit("10/minute")
 def google_oauth_callback(
+    request: Request,
     code: str = Query(..., description="OAuth authorization code from Google"),
     state: Optional[str] = Query(None, description="OAuth state parameter"),
     db: Session = Depends(get_db)

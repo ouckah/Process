@@ -64,6 +64,37 @@ apiClient.interceptors.request.use(
   }
 );
 
+// Add response interceptor to handle rate limiting
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle rate limiting (429 status code)
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers['retry-after'];
+      let message = 'Too many requests. Please slow down.';
+      
+      if (retryAfter) {
+        const seconds = parseInt(retryAfter, 10);
+        if (seconds < 60) {
+          message = `Rate limit exceeded. Please wait ${seconds} second${seconds !== 1 ? 's' : ''} before trying again.`;
+        } else {
+          const minutes = Math.floor(seconds / 60);
+          message = `Rate limit exceeded. Please wait ${minutes} minute${minutes !== 1 ? 's' : ''} before trying again.`;
+        }
+      } else {
+        message = 'Rate limit exceeded. Please wait a moment before trying again.';
+      }
+      
+      // Dispatch custom event for toast notification
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('api-rate-limit', { detail: { message } }));
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
 // Helper to update auth token
 export const setAuthToken = (token: string | null) => {
   if (typeof window === 'undefined') return;

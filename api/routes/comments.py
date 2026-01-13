@@ -10,6 +10,7 @@ from database import get_db
 from models import User, ProfileComment, CommentUpvote, Notification
 from schemas import ProfileCommentCreate, ProfileCommentUpdate, ProfileCommentResponse
 from auth import get_current_user, get_user_by_username, get_current_user_optional
+from rate_limiter import limiter
 
 router = APIRouter(prefix="/api/profiles", tags=["comments"])
 
@@ -108,7 +109,9 @@ def get_profile_comments(
 
 
 @router.post("/{username}/comments", response_model=ProfileCommentResponse, status_code=201)
+@limiter.limit("20/minute")
 def create_profile_comment(
+    request: Request,
     username: str,
     comment_data: ProfileCommentCreate,
     current_user: Optional[User] = Depends(get_current_user_optional),
@@ -199,10 +202,12 @@ def create_profile_comment(
 
 
 @router.patch("/{username}/comments/{comment_id}", response_model=ProfileCommentResponse)
+@limiter.limit("30/minute")
 def update_profile_comment(
     username: str,
     comment_id: int,
     comment_data: ProfileCommentUpdate,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -245,9 +250,11 @@ def update_profile_comment(
 
 
 @router.delete("/{username}/comments/{comment_id}", status_code=204)
+@limiter.limit("20/minute")
 def delete_profile_comment(
     username: str,
     comment_id: int,
+    request: Request,
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
@@ -284,10 +291,12 @@ def delete_profile_comment(
 
 
 @router.post("/{username}/comments/{comment_id}/reply", response_model=ProfileCommentResponse, status_code=201)
+@limiter.limit("20/minute")
 def reply_to_comment(
     username: str,
     comment_id: int,
     comment_data: ProfileCommentCreate,
+    request: Request,
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
@@ -374,9 +383,11 @@ def mark_question_as_answered(
 
 
 @router.post("/{username}/comments/{comment_id}/upvote", response_model=ProfileCommentResponse)
+@limiter.limit("30/minute")
 def upvote_comment(
     username: str,
     comment_id: int,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

@@ -1,5 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
 import os
 from dotenv import load_dotenv
 
@@ -9,8 +12,11 @@ load_dotenv()
 
 from routes import processes, auth, stages, feedback, profiles, comments, analytics, guild_configs, notifications, explore, forum
 from database import init_db
+from rate_limiter import limiter
 
 app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Get allowed origins from environment or use defaults
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")

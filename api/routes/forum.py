@@ -1,7 +1,7 @@
 """
 Forum routes for community discussions.
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, or_, desc
 from typing import List, Optional
@@ -18,6 +18,7 @@ from schemas import (
     ForumReplyResponse,
 )
 from auth import get_current_user, get_current_user_optional
+from rate_limiter import limiter
 
 router = APIRouter(prefix="/api/forum", tags=["forum"])
 
@@ -135,7 +136,9 @@ def build_thread_response(thread: ForumThread, db: Session, current_user_id: Opt
 
 
 @router.get("/threads", response_model=List[ForumThreadResponse])
+@limiter.limit("60/minute")
 def get_forum_threads(
+    request: Request,
     category: Optional[str] = Query(None, description="Filter by category"),
     company: Optional[str] = Query(None, description="Filter by related company"),
     stage: Optional[str] = Query(None, description="Filter by related stage"),
@@ -178,7 +181,9 @@ def get_forum_threads(
 
 
 @router.post("/threads", response_model=ForumThreadResponse, status_code=201)
+@limiter.limit("10/minute")
 def create_forum_thread(
+    request: Request,
     thread_data: ForumThreadCreate,
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
@@ -217,7 +222,9 @@ def create_forum_thread(
 
 
 @router.get("/threads/{thread_id}", response_model=ForumThreadResponse)
+@limiter.limit("60/minute")
 def get_forum_thread(
+    request: Request,
     thread_id: int,
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
@@ -244,7 +251,9 @@ def get_forum_thread(
 
 
 @router.patch("/threads/{thread_id}", response_model=ForumThreadResponse)
+@limiter.limit("20/minute")
 def update_forum_thread(
+    request: Request,
     thread_id: int,
     thread_data: ForumThreadUpdate,
     current_user: User = Depends(get_current_user),
@@ -279,7 +288,9 @@ def update_forum_thread(
 
 
 @router.delete("/threads/{thread_id}", status_code=204)
+@limiter.limit("10/minute")
 def delete_forum_thread(
+    request: Request,
     thread_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -307,7 +318,9 @@ def delete_forum_thread(
 
 
 @router.post("/threads/{thread_id}/replies", response_model=ForumReplyResponse, status_code=201)
+@limiter.limit("20/minute")
 def create_forum_reply(
+    request: Request,
     thread_id: int,
     reply_data: ForumReplyCreate,
     current_user: Optional[User] = Depends(get_current_user_optional),
@@ -362,7 +375,9 @@ def create_forum_reply(
 
 
 @router.patch("/replies/{reply_id}", response_model=ForumReplyResponse)
+@limiter.limit("20/minute")
 def update_forum_reply(
+    request: Request,
     reply_id: int,
     reply_data: ForumReplyUpdate,
     current_user: User = Depends(get_current_user),
@@ -395,7 +410,9 @@ def update_forum_reply(
 
 
 @router.delete("/replies/{reply_id}", status_code=204)
+@limiter.limit("10/minute")
 def delete_forum_reply(
+    request: Request,
     reply_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -430,7 +447,9 @@ def delete_forum_reply(
 
 
 @router.post("/replies/{reply_id}/upvote", status_code=201)
+@limiter.limit("30/minute")
 def upvote_forum_reply(
+    request: Request,
     reply_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -470,7 +489,9 @@ def upvote_forum_reply(
 
 
 @router.delete("/replies/{reply_id}/upvote", status_code=204)
+@limiter.limit("30/minute")
 def remove_forum_reply_upvote(
+    request: Request,
     reply_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

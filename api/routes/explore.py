@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, or_, distinct
 from typing import List, Optional
@@ -13,12 +13,15 @@ from schemas import (
     StageResponse,
 )
 from routes.processes import calculate_status_from_stages
+from rate_limiter import limiter
 
 router = APIRouter(prefix="/api/explore", tags=["explore"])
 
 
 @router.get("/processes", response_model=List[ExploreProcessResponse])
+@limiter.limit("60/minute")
 def get_explore_processes(
+    request: Request,
     search: Optional[str] = Query(None, description="Search text for company, position, or stage names"),
     company: Optional[str] = Query(None, description="Filter by company name"),
     stage: Optional[str] = Query(None, description="Filter by stage name"),
@@ -144,7 +147,9 @@ def get_explore_processes(
 
 
 @router.get("/companies", response_model=List[str])
+@limiter.limit("30/minute")
 def get_explore_companies(
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
@@ -159,7 +164,9 @@ def get_explore_companies(
 
 
 @router.get("/stages", response_model=List[str])
+@limiter.limit("30/minute")
 def get_explore_stages(
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
@@ -179,7 +186,9 @@ def get_explore_stages(
 
 
 @router.get("/stats", response_model=ExploreStatsResponse)
+@limiter.limit("30/minute")
 def get_explore_stats(
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """

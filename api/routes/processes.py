@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, or_
 from typing import List
@@ -9,6 +9,7 @@ from database import get_db
 from models import Process, ProcessStatus, User
 from schemas import ProcessCreate, ProcessResponse, ProcessUpdate, ProcessDetailResponse, StageResponse, ProcessShareToggle
 from auth import get_current_user
+from rate_limiter import limiter
 
 router = APIRouter(prefix="/api/processes", tags=["processes"])
 
@@ -162,7 +163,9 @@ def get_processes(
 
 
 @router.post("/", response_model=ProcessResponse, status_code=201)
+@limiter.limit("30/minute")
 def post_process(
+    request: Request,
     process_data: ProcessCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -245,7 +248,9 @@ def post_process(
 
 
 @router.patch("/{process_id}", response_model=ProcessResponse)
+@limiter.limit("60/minute")
 def update_process(
+    request: Request,
     process_id: int,
     update_data: ProcessUpdate,
     current_user: User = Depends(get_current_user),
@@ -335,7 +340,9 @@ def update_process(
 
 
 @router.delete("/{process_id}", response_model=ProcessResponse)
+@limiter.limit("20/minute")
 def delete_process(
+    request: Request,
     process_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

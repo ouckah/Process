@@ -3,6 +3,8 @@ import { Cormorant_Garamond, DM_Sans } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ReactQueryProvider } from './providers';
+import { ToastProvider } from '@/components/ui/Toast';
+import { RateLimitListener } from '@/components/ui/Toast';
 
 const displayFont = Cormorant_Garamond({
   subsets: ['latin'],
@@ -90,7 +92,10 @@ export default function RootLayout({
       <body className="font-body bg-cream-50 dark:bg-ink-950 text-ink-900 dark:text-cream-50 antialiased">
         <ReactQueryProvider>
           <AuthProvider>
-            {children}
+            <ToastProvider>
+              <RateLimitListener />
+              {children}
+            </ToastProvider>
           </AuthProvider>
         </ReactQueryProvider>
       </body>
