@@ -31,11 +31,11 @@ export default function SharePage() {
         if (!data.username && data.id) {
           try {
             const { exploreApi } = await import('@/lib/api');
-            const exploreProcesses = await exploreApi.getProcesses({ 
+            const exploreProcessesResponse = await exploreApi.getProcesses({ 
               search: data.company_name,
               limit: 100 
             });
-            const matchingProcess = exploreProcesses.find((p: any) => p.share_id === shareId);
+            const matchingProcess = exploreProcessesResponse.processes.find((p: any) => p.share_id === shareId);
             if (matchingProcess?.user_username) {
               data.username = matchingProcess.user_username;
             }
