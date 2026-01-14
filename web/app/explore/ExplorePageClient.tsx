@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ExploreFilters } from '@/components/explore/ExploreFilters';
@@ -11,14 +12,63 @@ import { motion } from 'framer-motion';
 import { EmptyState } from '@/components/ui/EmptyState';
 import Link from 'next/link';
 
-export default function ExplorePageClient() {
-  const [search, setSearch] = useState('');
-  const [company, setCompany] = useState('');
-  const [stage, setStage] = useState('');
-  const [position, setPosition] = useState('');
-  const [status, setStatus] = useState('');
-  const [page, setPage] = useState(1);
+interface ExplorePageClientProps {
+  initialSearchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default function ExplorePageClient({ initialSearchParams }: ExplorePageClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Initialize state from URL params
+  const getParam = (key: string): string => {
+    const value = searchParams?.get(key) || initialSearchParams?.[key];
+    return typeof value === 'string' ? value : '';
+  };
+  
+  const getPageParam = (): number => {
+    const pageStr = searchParams?.get('page') || initialSearchParams?.page;
+    const pageNum = typeof pageStr === 'string' ? parseInt(pageStr, 10) : 1;
+    return isNaN(pageNum) || pageNum < 1 ? 1 : pageNum;
+  };
+  
+  const [search, setSearch] = useState(() => getParam('search'));
+  const [company, setCompany] = useState(() => getParam('company'));
+  const [stage, setStage] = useState(() => getParam('stage'));
+  const [position, setPosition] = useState(() => getParam('position'));
+  const [status, setStatus] = useState(() => getParam('status'));
+  const [page, setPage] = useState(() => getPageParam());
   const limit = 20;
+  
+  // Update URL when filters/page change
+  const updateURL = useCallback((updates: {
+    search?: string;
+    company?: string;
+    stage?: string;
+    position?: string;
+    status?: string;
+    page?: number;
+  }) => {
+    const params = new URLSearchParams();
+    
+    const newSearch = updates.search !== undefined ? updates.search : search;
+    const newCompany = updates.company !== undefined ? updates.company : company;
+    const newStage = updates.stage !== undefined ? updates.stage : stage;
+    const newPosition = updates.position !== undefined ? updates.position : position;
+    const newStatus = updates.status !== undefined ? updates.status : status;
+    const newPage = updates.page !== undefined ? updates.page : page;
+    
+    if (newSearch) params.set('search', newSearch);
+    if (newCompany) params.set('company', newCompany);
+    if (newStage) params.set('stage', newStage);
+    if (newPosition) params.set('position', newPosition);
+    if (newStatus) params.set('status', newStatus);
+    if (newPage > 1) params.set('page', newPage.toString());
+    
+    const queryString = params.toString();
+    router.push(`/explore${queryString ? `?${queryString}` : ''}`, { scroll: false });
+  }, [search, company, stage, position, status, page, router]);
+  
 
   const { data: paginatedData, isLoading } = useExploreProcesses({
     search: search || undefined,
@@ -44,6 +94,39 @@ export default function ExplorePageClient() {
     setPosition('');
     setStatus('');
     setPage(1);
+    router.push('/explore', { scroll: false });
+  };
+  
+  // Wrapper functions that update both state and URL
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    updateURL({ search: value, page: 1 });
+  };
+  
+  const handleCompanyChange = (value: string) => {
+    setCompany(value);
+    updateURL({ company: value, page: 1 });
+  };
+  
+  const handleStageChange = (value: string) => {
+    setStage(value);
+    updateURL({ stage: value, page: 1 });
+  };
+  
+  const handlePositionChange = (value: string) => {
+    setPosition(value);
+    updateURL({ position: value, page: 1 });
+  };
+  
+  const handleStatusChange = (value: string) => {
+    setStatus(value);
+    updateURL({ status: value, page: 1 });
+  };
+  
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    updateURL({ page: newPage });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -145,11 +228,11 @@ export default function ExplorePageClient() {
               stage={stage}
               position={position}
               status={status}
-              onSearchChange={setSearch}
-              onCompanyChange={setCompany}
-              onStageChange={setStage}
-              onPositionChange={setPosition}
-              onStatusChange={setStatus}
+              onSearchChange={handleSearchChange}
+              onCompanyChange={handleCompanyChange}
+              onStageChange={handleStageChange}
+              onPositionChange={handlePositionChange}
+              onStatusChange={handleStatusChange}
               onClear={handleClearFilters}
             />
           </div>
@@ -186,10 +269,7 @@ export default function ExplorePageClient() {
                   <div className="flex justify-center items-center gap-4">
                     {hasPreviousPage && (
                       <button
-                        onClick={() => {
-                          setPage((p) => Math.max(1, p - 1));
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
+                        onClick={() => handlePageChange(Math.max(1, page - 1))}
                         className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 hover:scale-105 transition-transform"
                       >
                         <span className="font-body text-sm uppercase tracking-wider font-black text-cream-50 dark:text-ink-900">
@@ -204,10 +284,7 @@ export default function ExplorePageClient() {
                     </div>
                     {hasNextPage && (
                       <button
-                        onClick={() => {
-                          setPage((p) => p + 1);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
+                        onClick={() => handlePageChange(page + 1)}
                         className="bg-ink-900 dark:bg-cream-50 px-4 py-2 border-2 border-ink-900 dark:border-cream-50 transform rotate-1 hover:scale-105 transition-transform"
                       >
                         <span className="font-body text-sm uppercase tracking-wider font-black text-cream-50 dark:text-ink-900">
