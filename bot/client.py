@@ -78,6 +78,7 @@ async def on_ready():
         from commands import privacy, anon
         from commands import edit
         from commands import sankey
+        from commands import profile, ask, comment, explore, forum
         from commands.mod import setup_mod_command
         
         # Setup all commands (add new commands here following the pattern above)
@@ -90,6 +91,11 @@ async def on_ready():
         anon.setup_anon_command(bot)
         edit.setup_edit_command(bot)
         sankey.setup_sankey_command(bot)
+        profile.setup_profile_command(bot)
+        ask.setup_ask_command(bot)
+        comment.setup_comment_command(bot)
+        explore.setup_explore_command(bot)
+        forum.setup_forum_command(bot)
         setup_mod_command(bot)
         
         logger.info("All commands loaded successfully")
@@ -118,7 +124,7 @@ async def on_message(message):
     if message.author.bot:
         return
     
-    # Only handle !process, not other ! commands
+    # Handle legacy ! commands (!process, !explore, !forum, !forums)
     if message.content.startswith("!process"):
         # Create context and call the legacy process handler
         # Channel restrictions are checked inside the command handler via check_command_restrictions
@@ -126,6 +132,20 @@ async def on_message(message):
         # Import here to avoid circular imports
         from commands.add import handle_legacy_process_command
         await handle_legacy_process_command(ctx)
+        return
+    elif message.content.startswith("!explore"):
+        # Handle !explore command
+        ctx = await bot.get_context(message)
+        from commands.explore import handle_explore_command
+        embed = await handle_explore_command()
+        await ctx.send(embed=embed)
+        return
+    elif message.content.startswith("!forum") or message.content.startswith("!forums"):
+        # Handle !forum or !forums command
+        ctx = await bot.get_context(message)
+        from commands.forum import handle_forum_command
+        embed = await handle_forum_command()
+        await ctx.send(embed=embed)
         return
     
     # Process other commands normally

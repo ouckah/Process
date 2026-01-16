@@ -109,6 +109,56 @@ COMMAND_INFO = {
         "slash": "/sankey",
         "notes": "Without argument: Shows your Sankey diagram. With @mention or username: Shows that user's Sankey diagram (if they have public processes and are not anonymous)."
     },
+    "profile": {
+        "category": "profiles",
+        "description": "View your profile or someone else's public profile",
+        "usage": f"{PREFIX}profile [@mention or username]",
+        "examples": [
+            f"{PREFIX}profile",
+            f"{PREFIX}profile @user",
+            f"{PREFIX}profile johndoe"
+        ],
+        "slash": "/profile",
+        "notes": "Without argument: Shows your profile. With @mention or username: Shows that user's public profile (if not anonymous). Includes OG image and link."
+    },
+    "ask": {
+        "category": "profiles",
+        "description": "Ask a question on someone's profile",
+        "usage": f"{PREFIX}ask @user <question>",
+        "examples": [
+            f"{PREFIX}ask @john How did you prepare for technical interviews?",
+            f"{PREFIX}ask @jane What was your interview process like at Google?"
+        ],
+        "slash": "/ask",
+        "notes": "Creates a question on the mentioned user's profile. The user must be registered and have a public profile with comments enabled."
+    },
+    "comment": {
+        "category": "profiles",
+        "description": "Post a comment on someone's profile",
+        "usage": f"{PREFIX}comment @user <comment>",
+        "examples": [
+            f"{PREFIX}comment @john Great job on landing that role!",
+            f"{PREFIX}comment @jane Your process insights were really helpful."
+        ],
+        "slash": "/comment",
+        "notes": "Creates a comment on the mentioned user's profile. The user must be registered and have a public profile with comments enabled."
+    },
+    "explore": {
+        "category": "browsing",
+        "description": "Link to the explore page to discover public processes",
+        "usage": f"{PREFIX}explore",
+        "examples": [f"{PREFIX}explore", "!explore"],
+        "slash": "/explore",
+        "notes": "Opens the explore page where you can browse and search public processes shared by the community."
+    },
+    "forum": {
+        "category": "browsing",
+        "description": "Link to the forum page to discuss processes",
+        "usage": f"{PREFIX}forum",
+        "examples": [f"{PREFIX}forum", f"{PREFIX}forums", "!forum", "!forums"],
+        "slash": "/forum",
+        "notes": "Opens the forum page where you can discuss job application processes, share experiences, and get advice."
+    },
     "mod": {
         "category": "moderator",
         "description": "Moderator commands for bot configuration (requires Manage Server permission)",
@@ -582,6 +632,11 @@ async def handle_help_command(command_name: str = None, user: discord.Member = N
                 "privacy": ("🔒", "Privacy Settings"),
                 "anon": ("👤", "Anonymous Mode"),
                 "sankey": ("📊", "Sankey Diagram"),
+                "profile": ("👤", "Profile"),
+                "ask": ("❓", "Ask Question"),
+                "comment": ("💬", "Post Comment"),
+                "explore": ("🔍", "Explore"),
+                "forum": ("💬", "Forum"),
                 "mod": ("⚙️", "Moderator Commands")
             }
             
@@ -662,7 +717,7 @@ async def handle_help_command(command_name: str = None, user: discord.Member = N
         categories[category].append(cmd_name)
     
     # Display categories in a specific order
-    category_order = ["processes", "account", "settings", "analytics", "moderator", "misc"]
+    category_order = ["processes", "account", "settings", "analytics", "profiles", "browsing", "moderator", "misc"]
     for category in category_order:
         if category in categories:
             commands = categories[category]
