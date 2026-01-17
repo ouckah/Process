@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, or_, desc
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from database import get_db
 from models import User, ForumThread, ForumReply, ForumReplyUpvote
@@ -203,6 +203,41 @@ def create_forum_thread(
     elif current_user and current_user.is_anonymous:
         author_display_name = current_user.display_name
     
+    # Duplicate detection: Check if the same user posted the same title/content recently (within last hour)
+    if author_id:
+        # For authenticated users, check by author_id
+        recent_cutoff = datetime.utcnow() - timedelta(hours=1)
+        duplicate = db.query(ForumThread).filter(
+            ForumThread.author_id == author_id,
+            ForumThread.title == thread_data.title.strip(),
+            ForumThread.content == thread_data.content.strip(),
+            ForumThread.created_at >= recent_cutoff,
+            ForumThread.is_deleted == False
+        ).first()
+        
+        if duplicate:
+            raise HTTPException(
+                status_code=400,
+                detail="You've already posted a thread with the same title and content recently. Please wait before posting again."
+            )
+    elif author_display_name:
+        # For anonymous users, check by display_name (less reliable but better than nothing)
+        recent_cutoff = datetime.utcnow() - timedelta(hours=1)
+        duplicate = db.query(ForumThread).filter(
+            ForumThread.author_id.is_(None),
+            ForumThread.author_display_name == author_display_name,
+            ForumThread.title == thread_data.title.strip(),
+            ForumThread.content == thread_data.content.strip(),
+            ForumThread.created_at >= recent_cutoff,
+            ForumThread.is_deleted == False
+        ).first()
+        
+        if duplicate:
+            raise HTTPException(
+                status_code=400,
+                detail="A thread with the same title and content was posted recently. Please wait before posting again."
+            )
+    
     thread = ForumThread(
         title=thread_data.title,
         content=thread_data.content,
@@ -351,6 +386,41 @@ def create_forum_reply(
         author_display_name = reply_data.author_display_name
     elif current_user and current_user.is_anonymous:
         author_display_name = current_user.display_name
+    
+    # Duplicate detection: Check if the same user posted the same content in this thread recently (within last 10 minutes)
+    if author_id:
+        # For authenticated users, check by author_id
+        recent_cutoff = datetime.utcnow() - timedelta(minutes=10)
+        duplicate = db.query(ForumReply).filter(
+            ForumReply.thread_id == thread_id,
+            ForumReply.author_id == author_id,
+            ForumReply.content == reply_data.content.strip(),
+            ForumReply.created_at >= recent_cutoff,
+            ForumReply.is_deleted == False
+        ).first()
+        
+        if duplicate:
+            raise HTTPException(
+                status_code=400,
+                detail="You've already posted the same reply in this thread recently. Please wait before posting again."
+            )
+    elif author_display_name:
+        # For anonymous users, check by display_name (less reliable but better than nothing)
+        recent_cutoff = datetime.utcnow() - timedelta(minutes=10)
+        duplicate = db.query(ForumReply).filter(
+            ForumReply.thread_id == thread_id,
+            ForumReply.author_id.is_(None),
+            ForumReply.author_display_name == author_display_name,
+            ForumReply.content == reply_data.content.strip(),
+            ForumReply.created_at >= recent_cutoff,
+            ForumReply.is_deleted == False
+        ).first()
+        
+        if duplicate:
+            raise HTTPException(
+                status_code=400,
+                detail="A reply with the same content was posted in this thread recently. Please wait before posting again."
+            )
     
     reply = ForumReply(
         thread_id=thread_id,
