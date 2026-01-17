@@ -6,6 +6,7 @@ import { Calendar, User, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { ExploreProcess } from '@/types';
 import { Avatar } from '@/components/ui/Avatar';
+import { renderMarkdown } from '@/lib/utils';
 
 interface ExploreProcessCardProps {
   process: ExploreProcess;
@@ -84,9 +85,10 @@ export function ExploreProcessCard({ process, index }: ExploreProcessCardProps) 
           )}
           {process.description && (
             <div className="mt-2">
-              <p className="font-body text-xs text-ink-700 dark:text-ink-300 line-clamp-2">
-                {process.description}
-              </p>
+              <div 
+                className="font-body text-xs text-ink-700 dark:text-ink-300 line-clamp-2 prose prose-sm dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(process.description) }}
+              />
             </div>
           )}
         </div>
