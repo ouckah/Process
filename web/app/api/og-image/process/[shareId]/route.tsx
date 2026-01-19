@@ -10,18 +10,30 @@ export async function GET(
 ) {
   try {
     const resolvedParams = params instanceof Promise ? await params : params;
-    const shareId = resolvedParams.shareId;
+    const param = resolvedParams.shareId;
     
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     
-    // Fetch process data
+    // Fetch process data - try as shareId first, then as numeric id
     let processData: any = null;
     try {
-      const response = await fetch(`${apiUrl}/api/processes/share/${shareId}`, {
+      // First try as shareId (UUID format)
+      let response = await fetch(`${apiUrl}/api/processes/share/${param}`, {
         cache: 'no-store',
       });
       if (response.ok) {
         processData = await response.json();
+      } else {
+        // If shareId fails, try as numeric process ID
+        const processId = parseInt(param);
+        if (!isNaN(processId)) {
+          response = await fetch(`${apiUrl}/api/processes/${processId}/public`, {
+            cache: 'no-store',
+          });
+          if (response.ok) {
+            processData = await response.json();
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to fetch process:', error);
