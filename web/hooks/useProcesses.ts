@@ -27,6 +27,14 @@ export function useProcessDetail(id: number) {
   });
 }
 
+export function usePublicProcessDetail(id: number) {
+  return useQuery({
+    queryKey: ['process', id, 'public', 'detail'],
+    queryFn: () => processApi.getPublicById(id),
+    enabled: !!id,
+  });
+}
+
 export function useCreateProcess() {
   const queryClient = useQueryClient();
   

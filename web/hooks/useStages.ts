@@ -4,11 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { stageApi } from '@/lib/api';
 import type { Stage, StageCreate, StageUpdate } from '@/types';
 
-export function useStages(processId: number) {
+export function useStages(processId: number, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['stages', processId],
     queryFn: () => stageApi.getByProcess(processId),
-    enabled: !!processId,
+    enabled: options?.enabled !== false && !!processId,
   });
 }
 

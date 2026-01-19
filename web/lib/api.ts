@@ -184,6 +184,11 @@ export const processApi = {
     const response = await apiClient.get<ProcessDetail>(`/api/processes/share/${shareId}`);
     return response.data;
   },
+
+  getPublicById: async (id: number): Promise<ProcessDetail> => {
+    const response = await apiClient.get<ProcessDetail>(`/api/processes/${id}/public`);
+    return response.data;
+  },
 };
 
 // Stage API

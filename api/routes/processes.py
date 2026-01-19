@@ -437,6 +437,60 @@ def get_public_process(
     }
 
 
+@router.get("/{process_id}/public", response_model=ProcessDetailResponse)
+def get_public_process_by_id(
+    process_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Get a public process by ID (no authentication required).
+    Only returns the process if it's marked as public.
+    """
+    process = db.query(Process).options(
+        joinedload(Process.stages),
+        joinedload(Process.user)
+    ).filter(
+        Process.id == process_id,
+        Process.is_public == True
+    ).first()
+    
+    if not process:
+        raise HTTPException(status_code=404, detail="Process not found or not publicly shared")
+    
+    # Calculate status from stages
+    calculated_status = calculate_status_from_stages(process.stages)
+    
+    # Get username from user relationship
+    username = process.user.username if process.user else None
+    
+    # Convert to response format with stages
+    return {
+        "id": process.id,
+        "company_name": process.company_name,
+        "position": process.position,
+        "description": process.description,
+        "status": calculated_status.value,
+        "is_public": process.is_public,
+        "share_id": process.share_id,
+        "created_at": process.created_at.isoformat(),
+        "updated_at": process.updated_at.isoformat(),
+        "username": username,
+        "stages": [
+            {
+                "id": s.id,
+                "process_id": s.process_id,
+                "stage_name": s.stage_name,
+                "stage_date": s.stage_date.isoformat(),
+                "notes": s.notes,
+                "order": s.order,
+                "created_at": s.created_at.isoformat(),
+                "updated_at": s.updated_at.isoformat(),
+            }
+            for s in process.stages
+        ]
+    }
+
+
 @router.patch("/{process_id}/share", response_model=ProcessResponse)
 def toggle_process_sharing(
     process_id: int,

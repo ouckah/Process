@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useProcessDetail, useDeleteProcess, useUpdateProcess } from '@/hooks/useProcesses';
+import { useProcessDetail, usePublicProcessDetail, useDeleteProcess, useUpdateProcess } from '@/hooks/useProcesses';
 import { useStages, useCreateStage, useUpdateStage, useDeleteStage } from '@/hooks/useStages';
 import { StageTimeline } from '@/components/stages/StageTimeline';
 import { StageForm } from '@/components/stages/StageForm';
@@ -19,17 +19,30 @@ import type { Stage, StageCreate, StageUpdate, ProcessUpdate } from '@/types';
 interface ProcessDetailProps {
   processId: number;
   onEdit?: () => void;
+  isPublic?: boolean;
 }
 
-export function ProcessDetail({ processId, onEdit }: ProcessDetailProps) {
+export function ProcessDetail({ processId, onEdit, isPublic = false }: ProcessDetailProps) {
   const router = useRouter();
-  const { data: process, isLoading, error } = useProcessDetail(processId);
-  const { data: stages } = useStages(processId);
+  const { data: process: authProcess, isLoading: authLoading, error: authError } = useProcessDetail(processId);
+  const { data: publicProcess, isLoading: publicLoading, error: publicError } = usePublicProcessDetail(processId);
+  
+  // Use public process if isPublic is true, otherwise use authenticated process
+  const process = isPublic ? publicProcess : authProcess;
+  const isLoading = isPublic ? publicLoading : authLoading;
+  const error = isPublic ? publicError : authError;
+  
+  // For public processes, use stages from process data; for authenticated, fetch separately
+  const { data: fetchedStages } = useStages(processId, { enabled: !isPublic });
+  const stages = isPublic ? (process?.stages || []) : (fetchedStages || []);
   const createStage = useCreateStage();
   const updateStage = useUpdateStage();
   const deleteStage = useDeleteStage();
   const deleteProcess = useDeleteProcess();
   const updateProcess = useUpdateProcess();
+  
+  // Disable mutations for public processes
+  const canEdit = !isPublic;
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [stageFormOpen, setStageFormOpen] = useState(false);
@@ -38,14 +51,14 @@ export function ProcessDetail({ processId, onEdit }: ProcessDetailProps) {
   const [deleteStageModalOpen, setDeleteStageModalOpen] = useState(false);
   const [stageToDelete, setStageToDelete] = useState<number | null>(null);
 
-  // Check URL params for edit mode on mount
+  // Check URL params for edit mode on mount (only if not public)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !isPublic) {
       const urlParams = new URLSearchParams(window.location.search);
       const editParam = urlParams.get('edit');
       setIsEditMode(editParam === 'true');
     }
-  }, []);
+  }, [isPublic]);
 
   if (isLoading) {
     return (
@@ -201,31 +214,35 @@ export function ProcessDetail({ processId, onEdit }: ProcessDetailProps) {
               </div>
               <div className="flex items-center space-x-3 flex-shrink-0">
                 <ShareButton process={process} />
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setIsEditMode(true);
-                      router.push(`/processes/${processId}?edit=true`);
-                    }}
-                    className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => setDeleteModalOpen(true)}
-                    className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </Button>
-                </motion.div>
+                {canEdit && (
+                  <>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setIsEditMode(true);
+                          router.push(`/processes/${processId}?edit=true`);
+                        }}
+                        className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit
+                      </Button>
+                    </motion.div>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => setDeleteModalOpen(true)}
+                        className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </Button>
+                    </motion.div>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -247,27 +264,29 @@ export function ProcessDetail({ processId, onEdit }: ProcessDetailProps) {
                 Process Timeline
               </h2>
             </div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                size="sm"
-                onClick={() => {
-                  setEditingStage(null);
-                  setStageFormOpen(true);
-                }}
-                className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Stage
-              </Button>
-            </motion.div>
+            {canEdit && (
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setEditingStage(null);
+                    setStageFormOpen(true);
+                  }}
+                  className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Stage
+                </Button>
+              </motion.div>
+            )}
           </div>
           <StageTimeline
             stages={stages || []}
-            onEdit={(stage) => {
+            onEdit={canEdit ? ((stage) => {
               setEditingStage(stage);
               setStageFormOpen(true);
-            }}
-            onDelete={handleDeleteStage}
+            }) : undefined}
+            onDelete={canEdit ? handleDeleteStage : undefined}
           />
         </div>
       </motion.div>

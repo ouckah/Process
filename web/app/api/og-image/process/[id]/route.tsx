@@ -6,18 +6,18 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { shareId: string } | Promise<{ shareId: string }> }
+  { params }: { params: { id: string } | Promise<{ id: string }> }
 ) {
   try {
     const resolvedParams = params instanceof Promise ? await params : params;
-    const shareId = resolvedParams.shareId;
+    const processId = resolvedParams.id;
     
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     
-    // Fetch process data
+    // Fetch process data from public endpoint
     let processData: any = null;
     try {
-      const response = await fetch(`${apiUrl}/api/processes/share/${shareId}`, {
+      const response = await fetch(`${apiUrl}/api/processes/${processId}/public`, {
         cache: 'no-store',
       });
       if (response.ok) {
