@@ -55,8 +55,8 @@ export async function GET(
     };
     const statusColor = statusColors[status] || statusColors.active;
     
-    // Get first few stage names (up to 4 for better display)
-    const stageNames = stages.slice(0, 4).map((s: any) => s.stage_name);
+    // Get first few stage names (up to 2 to prevent cutoff)
+    const stageNames = stages.slice(0, 2).map((s: any) => s.stage_name);
     
     // Truncate description for display (max 200 chars)
     const truncatedDescription = description 
@@ -315,7 +315,7 @@ export async function GET(
                         </div>
                       </div>
                     ))}
-                    {stageCount > 4 ? (
+                    {stageCount > 2 ? (
                       <div
                         style={{
                           fontFamily: 'DM Sans, system-ui, sans-serif',
@@ -327,7 +327,7 @@ export async function GET(
                           display: 'flex',
                         }}
                       >
-                        +{stageCount - 4} MORE
+                        +{stageCount - 2} MORE
                       </div>
                     ) : (
                       <div style={{ display: 'none' }} />
