@@ -24,13 +24,13 @@ interface ProcessDetailProps {
 
 export function ProcessDetail({ processId, onEdit, isPublic = false }: ProcessDetailProps) {
   const router = useRouter();
-  const { data: process: authProcess, isLoading: authLoading, error: authError } = useProcessDetail(processId);
-  const { data: publicProcess, isLoading: publicLoading, error: publicError } = usePublicProcessDetail(processId);
+  const authProcessQuery = useProcessDetail(processId);
+  const publicProcessQuery = usePublicProcessDetail(processId);
   
   // Use public process if isPublic is true, otherwise use authenticated process
-  const process = isPublic ? publicProcess : authProcess;
-  const isLoading = isPublic ? publicLoading : authLoading;
-  const error = isPublic ? publicError : authError;
+  const process = isPublic ? publicProcessQuery.data : authProcessQuery.data;
+  const isLoading = isPublic ? publicProcessQuery.isLoading : authProcessQuery.isLoading;
+  const error = isPublic ? publicProcessQuery.error : authProcessQuery.error;
   
   // For public processes, use stages from process data; for authenticated, fetch separately
   const { data: fetchedStages } = useStages(processId, { enabled: !isPublic });
