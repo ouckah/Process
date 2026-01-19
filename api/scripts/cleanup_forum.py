@@ -50,7 +50,7 @@ def delete_threads(
     """Delete forum threads and their replies. Returns count of deleted threads."""
     deleted_count = 0
     
-        for thread in threads:
+    for thread in threads:
         # Get author info
         author_name = thread.author_display_name or "Anonymous"
         if thread.author_id:
@@ -87,7 +87,7 @@ def delete_replies(
     """Delete forum replies. Returns count of deleted replies."""
     deleted_count = 0
     
-        for reply in replies:
+    for reply in replies:
         # Get author info
         author_name = reply.author_display_name or "Anonymous"
         if reply.author_id:
