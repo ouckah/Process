@@ -45,19 +45,58 @@ async def fetch_explore_processes(
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.get(f"{api_url}/api/explore/processes", params=params)
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        # Ensure we return a dict, not a string
+        if isinstance(data, dict):
+            return data
+        elif isinstance(data, str):
+            # If API returns a string (error message), wrap it in a dict
+            return {"error": data, "processes": [], "total": 0, "page": page, "limit": limit, "total_pages": 1}
+        else:
+            return {"processes": [], "total": 0, "page": page, "limit": limit, "total_pages": 1}
 
 
 def format_process_for_embed(process: dict, index: int, total: int, frontend_url: str) -> str:
     """Format a single process for display in embed with link."""
-    company = process.get("company_name", "Unknown").strip() if process.get("company_name") else "Unknown"
-    position = process.get("position").strip() if process.get("position") else None
-    status = process.get("status", "active").strip() if process.get("status") else "active"
-    stages = [s.get("stage_name").strip() for s in process.get("stages", [])]
-    share_id = process.get("share_id", "").strip() if process.get("share_id") else None
+    if not isinstance(process, dict):
+        return f"**{index + 1}. Invalid process data**"
+    
+    company = process.get("company_name", "Unknown")
+    if company and isinstance(company, str):
+        company = company.strip()
+    else:
+        company = "Unknown"
+    
+    position = process.get("position")
+    if position and isinstance(position, str):
+        position = position.strip()
+        if not position:
+            position = None
+    else:
+        position = None
+    
+    status = process.get("status", "active")
+    if isinstance(status, str):
+        status = status.strip()
+    else:
+        status = "active"
+    
+    # Keep stages as list of dicts (don't convert to strings)
+    stages = process.get("stages", [])
+    if not isinstance(stages, list):
+        stages = []
+    
+    share_id = process.get("share_id")
+    if share_id and isinstance(share_id, str):
+        share_id = share_id.strip()
+        if not share_id:
+            share_id = None
+    else:
+        share_id = None
+    
     user_display = process.get("user_display_name") or process.get("user_username") or "Anonymous"
     
-    # Status emoji and color
+    # Status emoji
     status_emoji = {
         "active": "🟢",
         "completed": "✅",
@@ -69,7 +108,6 @@ def format_process_for_embed(process: dict, index: int, total: int, frontend_url
     if share_id:
         process_link = f"{frontend_url}/share/{share_id}"
     
-    # Build process line with link - prettier format
     # Start with company name
     if process_link:
         parts = [f"**{index + 1}. {status_emoji} [{company}]({process_link})**"]
@@ -85,11 +123,23 @@ def format_process_for_embed(process: dict, index: int, total: int, frontend_url
     
     # Add stage summary if exists
     if stages:
-        stage_names = [s.get("stage_name") for s in stages[:3]]
-        stage_text = " → ".join(stage_names)
-        if len(stages) > 3:
-            stage_text += f" → (+{len(stages) - 3} more)"
-        parts.append(f"📋 {stage_text}")
+        # Extract stage names from dicts
+        stage_names = []
+        for s in stages[:3]:
+            if isinstance(s, dict):
+                stage_name = s.get("stage_name", "")
+            elif isinstance(s, str):
+                stage_name = s
+            else:
+                continue
+            if stage_name:
+                stage_names.append(str(stage_name))
+        
+        if stage_names:
+            stage_text = " → ".join(stage_names)
+            if len(stages) > 3:
+                stage_text += f" → (+{len(stages) - 3} more)"
+            parts.append(f"📋 {stage_text}")
     
     # Join all parts with single newline (no extra blank lines)
     return "\n".join(parts)
@@ -230,9 +280,31 @@ class ExplorePaginationView(View):
                 limit=10
             )
             
+            # Ensure data is a dict
+            if not isinstance(data, dict):
+                raise ValueError(f"Expected dict from API, got {type(data)}")
+            
+            # Check for error in response
+            if "error" in data:
+                from utils.embeds import create_error_embed
+                error_embed = create_error_embed(
+                    "API Error",
+                    data.get("error", "Unknown error occurred")
+                )
+                await interaction.response.edit_message(embed=error_embed, view=None)
+                return
+            
             processes = data.get("processes", [])
+            if not isinstance(processes, list):
+                processes = []
+            
             total_pages = data.get("total_pages", 1)
+            if not isinstance(total_pages, int):
+                total_pages = 1
+            
             total = data.get("total", 0)
+            if not isinstance(total, int):
+                total = 0
             
             # Update total pages if it changed
             self.total_pages = total_pages
@@ -268,9 +340,29 @@ async def handle_explore_command(
             limit=10
         )
         
+        # Ensure data is a dict
+        if not isinstance(data, dict):
+            raise ValueError(f"Expected dict from API, got {type(data)}")
+        
+        # Check for error in response
+        if "error" in data:
+            error_embed = create_error_embed(
+                "API Error",
+                data.get("error", "Unknown error occurred")
+            )
+            return error_embed, None
+        
         processes = data.get("processes", [])
+        if not isinstance(processes, list):
+            processes = []
+        
         total_pages = data.get("total_pages", 1)
+        if not isinstance(total_pages, int):
+            total_pages = 1
+        
         total = data.get("total", 0)
+        if not isinstance(total, int):
+            total = 0
         
         frontend_url = get_frontend_url()
         filters = {
