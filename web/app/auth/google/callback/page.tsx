@@ -32,10 +32,18 @@ function GoogleCallbackContent() {
           setAuthToken(token);
           
           // Refresh user data to get updated Google connection
-          await authApi.getMe();
+          const userData = await authApi.getMe();
           
-          // Redirect to dashboard - full page reload will refresh auth context
-          window.location.href = '/dashboard';
+          // Update auth context immediately
+          if (userData) {
+            // Trigger a custom event to refresh auth context
+            window.dispatchEvent(new CustomEvent('auth-token-set', { detail: { user: userData } }));
+          }
+          
+          // Small delay to ensure context updates, then redirect
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 100);
         } catch (err) {
           setStatus('error');
           setMessage('Failed to complete Google connection. Please try again.');

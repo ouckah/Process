@@ -32,10 +32,17 @@ function DiscordCallbackContent() {
           setAuthToken(token);
           
           // Refresh user data to get updated Discord connection
-          await authApi.getMe();
+          const userData = await authApi.getMe();
           
-          // Redirect to profile - full page reload will refresh auth context
-          window.location.href = '/profile';
+          // Update auth context immediately
+          if (userData) {
+            window.dispatchEvent(new CustomEvent('auth-token-set', { detail: { user: userData } }));
+          }
+          
+          // Small delay to ensure context updates, then redirect
+          setTimeout(() => {
+            window.location.href = '/profile';
+          }, 100);
         } catch (err) {
           setStatus('error');
           setMessage('Failed to complete Discord connection. Please try again.');

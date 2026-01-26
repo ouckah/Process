@@ -39,7 +39,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     checkAuth();
-  }, []);
+
+    // Listen for auth expiration events
+    const handleAuthExpired = () => {
+      setUser(null);
+      // Only redirect if not already on auth pages
+      const currentPath = window.location.pathname;
+      const authPaths = ['/login', '/register', '/auth'];
+      const isAuthPage = authPaths.some(path => currentPath.startsWith(path));
+      if (!isAuthPage) {
+        router.push('/login');
+      }
+    };
+
+    // Listen for new token being set (e.g., after OAuth login)
+    const handleAuthTokenSet = async (event: any) => {
+      const userData = event.detail?.user;
+      if (userData) {
+        setUser(userData);
+      } else {
+        // If no user data provided, fetch it
+        try {
+          const user = await verifyAuth();
+          setUser(user);
+        } catch (error) {
+          clearAuth();
+        }
+      }
+    };
+
+    window.addEventListener('auth-expired', handleAuthExpired);
+    window.addEventListener('auth-token-set', handleAuthTokenSet);
+    return () => {
+      window.removeEventListener('auth-expired', handleAuthExpired);
+      window.removeEventListener('auth-token-set', handleAuthTokenSet);
+    };
+  }, [router]);
 
 
   const logout = () => {

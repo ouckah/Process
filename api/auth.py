@@ -15,7 +15,10 @@ from models import User
 # JWT Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+# Token expiration: 30 days (43200 minutes) for persistent login
+# Can be overridden with JWT_EXPIRE_DAYS environment variable
+JWT_EXPIRE_DAYS = int(os.getenv("JWT_EXPIRE_DAYS", "30"))
+ACCESS_TOKEN_EXPIRE_MINUTES = JWT_EXPIRE_DAYS * 24 * 60
 
 # HTTP Bearer scheme for JWT tokens
 security = HTTPBearer()

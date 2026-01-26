@@ -64,10 +64,29 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor to handle rate limiting
+// Add response interceptor to handle rate limiting and authentication errors
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle authentication errors (401) - token expired or invalid
+    if (error.response?.status === 401) {
+      // Clear invalid token
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+        setAuthToken(null);
+        
+        // Only redirect if we're not already on login/register/auth pages
+        const currentPath = window.location.pathname;
+        const authPaths = ['/login', '/register', '/auth'];
+        const isAuthPage = authPaths.some(path => currentPath.startsWith(path));
+        
+        if (!isAuthPage) {
+          // Dispatch event to notify auth context
+          window.dispatchEvent(new CustomEvent('auth-expired'));
+        }
+      }
+    }
+    
     // Handle rate limiting (429 status code)
     if (error.response?.status === 429) {
       const retryAfter = error.response.headers['retry-after'];
