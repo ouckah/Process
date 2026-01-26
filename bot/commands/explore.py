@@ -78,7 +78,7 @@ def format_process_for_embed(process: dict, index: int, total: int, frontend_url
     if position:
         line += f" • **{position}**"
     
-    line += f"\n   👤 {user_display}"
+    line += f"\n👤 {user_display}"
     
     # Add stage summary with better formatting
     if stages:
@@ -86,7 +86,7 @@ def format_process_for_embed(process: dict, index: int, total: int, frontend_url
         stage_text = " → ".join(stage_names)
         if len(stages) > 3:
             stage_text += f" → (+{len(stages) - 3} more)"
-        line += f"\n   📋 {stage_text}"
+        line += f"\n📋 {stage_text}"
     
     return line
 
@@ -124,7 +124,7 @@ def create_explore_embed(
         for i, process in enumerate(processes):
             process_lines.append(format_process_for_embed(process, i, len(processes), frontend_url))
         
-        embed.description = "\n\n".join(process_lines)
+        embed.description = "\n\n".join(process_lines) + "\n"
         
         # Add pagination info
         embed.set_footer(
