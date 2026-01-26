@@ -50,11 +50,11 @@ async def fetch_explore_processes(
 
 def format_process_for_embed(process: dict, index: int, total: int, frontend_url: str) -> str:
     """Format a single process for display in embed with link."""
-    company = process.get("company_name", "Unknown")
-    position = process.get("position")
-    status = process.get("status", "active")
-    stages = process.get("stages", [])
-    share_id = process.get("share_id")
+    company = process.get("company_name", "Unknown").strip() if process.get("company_name") else "Unknown"
+    position = process.get("position").strip() if process.get("position") else None
+    status = process.get("status", "active").strip() if process.get("status") else "active"
+    stages = [s.get("stage_name").strip() for s in process.get("stages", [])]
+    share_id = process.get("share_id", "").strip() if process.get("share_id") else None
     user_display = process.get("user_display_name") or process.get("user_username") or "Anonymous"
     
     # Status emoji and color
