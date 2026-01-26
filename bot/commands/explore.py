@@ -71,15 +71,13 @@ def format_process_for_embed(process: dict, index: int, total: int, frontend_url
     
     # Build process line with link - prettier format
     if process_link:
-        base_line = f"**{index + 1}. {status_emoji} [{company}]({process_link})**"
+        line = f"**{index + 1}. {status_emoji} [{company}]({process_link})**"
     else:
-        base_line = f"**{index + 1}. {status_emoji} {company}**"
+        line = f"**{index + 1}. {status_emoji} {company}**"
     
-    # Add position only if it exists (no extra space if missing)
+    # Add position on new line if it exists (with 💼 emoji)
     if position:
-        line = f"{base_line} • **{position}**"
-    else:
-        line = base_line
+        line += f"\n💼 **{position}**"
     
     # Add username on new line (no extra spacing)
     line += f"\n👤 {user_display}"
@@ -128,7 +126,8 @@ def create_explore_embed(
         for i, process in enumerate(processes):
             process_lines.append(format_process_for_embed(process, i, len(processes), frontend_url))
         
-        embed.description = "\n\n".join(process_lines) + "\n"
+        # Join with double newline between processes, add extra newline at end
+        embed.description = "\n\n".join(process_lines) + "\n\n"
         
         # Add pagination info
         embed.set_footer(
