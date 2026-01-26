@@ -48,34 +48,45 @@ async def fetch_explore_processes(
         return response.json()
 
 
-def format_process_for_embed(process: dict, index: int, total: int) -> str:
-    """Format a single process for display in embed."""
+def format_process_for_embed(process: dict, index: int, total: int, frontend_url: str) -> str:
+    """Format a single process for display in embed with link."""
     company = process.get("company_name", "Unknown")
     position = process.get("position")
     status = process.get("status", "active")
     stages = process.get("stages", [])
+    share_id = process.get("share_id")
     user_display = process.get("user_display_name") or process.get("user_username") or "Anonymous"
     
-    # Status emoji
+    # Status emoji and color
     status_emoji = {
         "active": "🟢",
         "completed": "✅",
         "rejected": "❌"
     }.get(status, "⚪")
     
-    # Build process line
-    line = f"**{index + 1}. {status_emoji} {company}**"
+    # Build process link
+    process_link = None
+    if share_id:
+        process_link = f"{frontend_url}/share/{share_id}"
+    
+    # Build process line with link - prettier format
+    if process_link:
+        line = f"**{index + 1}. {status_emoji} [{company}]({process_link})**"
+    else:
+        line = f"**{index + 1}. {status_emoji} {company}**"
+    
     if position:
-        line += f" - {position}"
+        line += f" • **{position}**"
+    
     line += f"\n   👤 {user_display}"
     
-    # Add stage count
+    # Add stage summary with better formatting
     if stages:
         stage_names = [s.get("stage_name") for s in stages[:3]]
-        stage_text = ", ".join(stage_names)
+        stage_text = " → ".join(stage_names)
         if len(stages) > 3:
-            stage_text += f" (+{len(stages) - 3} more)"
-        line += f" | 📋 {stage_text}"
+            stage_text += f" → (+{len(stages) - 3} more)"
+        line += f"\n   📋 {stage_text}"
     
     return line
 
@@ -89,21 +100,13 @@ def create_explore_embed(
     frontend_url: str
 ) -> discord.Embed:
     """Create embed for explore results."""
-    # Build title with filters
-    title_parts = ["🔍 Explore Processes"]
+    # Build title with search query
+    title = "🔍 Explore Processes"
     if filters.get("search"):
-        title_parts.append(f"Search: {filters['search']}")
-    if filters.get("company"):
-        title_parts.append(f"Company: {filters['company']}")
-    if filters.get("stage"):
-        title_parts.append(f"Stage: {filters['stage']}")
-    if filters.get("position"):
-        title_parts.append(f"Position: {filters['position']}")
-    if filters.get("status"):
-        title_parts.append(f"Status: {filters['status']}")
+        title += f" • {filters['search']}"
     
     embed = discord.Embed(
-        title=" | ".join(title_parts) if len(title_parts) > 1 else title_parts[0],
+        title=title,
         color=0x4f46e5,
         timestamp=discord.utils.utcnow()
     )
@@ -116,16 +119,16 @@ def create_explore_embed(
             inline=False
         )
     else:
-        # Format processes
+        # Format processes with links
         process_lines = []
         for i, process in enumerate(processes):
-            process_lines.append(format_process_for_embed(process, i, len(processes)))
+            process_lines.append(format_process_for_embed(process, i, len(processes), frontend_url))
         
         embed.description = "\n\n".join(process_lines)
         
         # Add pagination info
         embed.set_footer(
-            text=f"Page {page}/{total_pages} • {total} total processes • Use buttons to navigate"
+            text=f"Page {page}/{total_pages} • {total} total processes • Click process names to view • Use buttons to navigate"
         )
     
     # Add web link
@@ -144,10 +147,6 @@ class ExplorePaginationView(View):
     def __init__(
         self,
         search: Optional[str],
-        company: Optional[str],
-        stage: Optional[str],
-        position: Optional[str],
-        status: Optional[str],
         current_page: int,
         total_pages: int,
         frontend_url: str,
@@ -155,10 +154,6 @@ class ExplorePaginationView(View):
     ):
         super().__init__(timeout=timeout)
         self.search = search
-        self.company = company
-        self.stage = stage
-        self.position = position
-        self.status = status
         self.current_page = current_page
         self.total_pages = total_pages
         self.frontend_url = frontend_url
@@ -222,10 +217,10 @@ class ExplorePaginationView(View):
         try:
             data = await fetch_explore_processes(
                 search=self.search,
-                company=self.company,
-                stage=self.stage,
-                position=self.position,
-                status=self.status,
+                company=None,
+                stage=None,
+                position=None,
+                status=None,
                 page=self.current_page,
                 limit=10
             )
@@ -239,11 +234,7 @@ class ExplorePaginationView(View):
             self.update_buttons()
             
             filters = {
-                "search": self.search,
-                "company": self.company,
-                "stage": self.stage,
-                "position": self.position,
-                "status": self.status
+                "search": self.search
             }
             
             embed = create_explore_embed(
@@ -258,20 +249,16 @@ class ExplorePaginationView(View):
 
 async def handle_explore_command(
     search: Optional[str] = None,
-    company: Optional[str] = None,
-    stage: Optional[str] = None,
-    position: Optional[str] = None,
-    status: Optional[str] = None,
     page: int = 1
 ) -> tuple[discord.Embed, View]:
-    """Handle explore command with filters and pagination."""
+    """Handle explore command with search query and pagination."""
     try:
         data = await fetch_explore_processes(
             search=search,
-            company=company,
-            stage=stage,
-            position=position,
-            status=status,
+            company=None,
+            stage=None,
+            position=None,
+            status=None,
             page=page,
             limit=10
         )
@@ -282,11 +269,7 @@ async def handle_explore_command(
         
         frontend_url = get_frontend_url()
         filters = {
-            "search": search,
-            "company": company,
-            "stage": stage,
-            "position": position,
-            "status": status
+            "search": search
         }
         
         embed = create_explore_embed(
@@ -295,10 +278,6 @@ async def handle_explore_command(
         
         view = ExplorePaginationView(
             search=search,
-            company=company,
-            stage=stage,
-            position=position,
-            status=status,
             current_page=page,
             total_pages=total_pages,
             frontend_url=frontend_url
@@ -315,25 +294,17 @@ def setup_explore_command(bot: commands.Bot):
     PREFIX = os.getenv("PREFIX", "p!")
     
     # Slash command
-    @bot.tree.command(name="explore", description="Browse public job application processes with filtering and pagination")
+    @bot.tree.command(name="explore", description="Browse public job application processes with search and pagination")
     @app_commands.describe(
-        search="Search across company, position, or stage names",
-        company="Filter by company name",
-        stage="Filter by stage name",
-        position="Filter by position/title",
-        status="Filter by status (active, completed, rejected)",
+        query="Search query (searches across company, position, or stage names)",
         page="Page number (default: 1)"
     )
     async def explore_command(
         interaction: discord.Interaction,
-        search: Optional[str] = None,
-        company: Optional[str] = None,
-        stage: Optional[str] = None,
-        position: Optional[str] = None,
-        status: Optional[str] = None,
+        query: Optional[str] = None,
         page: int = 1
     ):
-        """Explore: /explore [filters]"""
+        """Explore: /explore [query] [page]"""
         discord_id = str(interaction.user.id)
         username = interaction.user.name
         
@@ -344,11 +315,7 @@ def setup_explore_command(bot: commands.Bot):
             user_id=discord_id,
             username=username,
             parsed_args={
-                "search": search,
-                "company": company,
-                "stage": stage,
-                "position": position,
-                "status": status,
+                "query": query,
                 "page": page
             }
         )
@@ -372,11 +339,7 @@ def setup_explore_command(bot: commands.Bot):
         await interaction.response.defer()
         
         embed, view = await handle_explore_command(
-            search=search,
-            company=company,
-            stage=stage,
-            position=position,
-            status=status,
+            search=query,
             page=page
         )
         
@@ -406,64 +369,43 @@ def setup_explore_command(bot: commands.Bot):
                 await ctx.send(embed=error_embed)
             return
         
-        # Parse arguments
+        # Parse arguments - all args are treated as a single search query
+        # Format: p!explore [query] [page]
+        # Examples: p!explore capital one
+        #          p!explore Google OA
+        #          p!explore capital one 2  (page 2)
         search = None
-        company = None
-        stage = None
-        position = None
-        status = None
         page = 1
         
-        if not args:
-            # Show usage if no args
-            usage_examples = (
-                f"• `{PREFIX}explore` - Show all processes\n"
-                f"• `{PREFIX}explore search:Google` - Search for Google\n"
-                f"• `{PREFIX}explore company:Google stage:OA` - Filter by company and stage\n"
-                f"• `{PREFIX}explore status:active page:2` - Filter by status, page 2\n"
-                f"• `{PREFIX}explore position:SWE` - Filter by position"
-            )
-            embed = create_usage_embed(
-                f"Usage: `{PREFIX}explore [filters]`",
-                examples=usage_examples,
-                fields=[{
-                    "name": "Available Filters",
-                    "value": "`search:`, `company:`, `stage:`, `position:`, `status:`, `page:`",
-                    "inline": False
-                }]
-            )
-            await ctx.send(embed=embed)
-            return
-        
-        # Parse filters from args
-        # Format: p!explore search:google company:Google stage:OA page:2
-        # Or: p!explore Google (treats as search)
-        parts = args.split()
-        for part in parts:
-            if ':' in part:
-                key, value = part.split(':', 1)
-                key_lower = key.lower()
-                if key_lower == 'search':
-                    search = value
-                elif key_lower == 'company':
-                    company = value
-                elif key_lower == 'stage':
-                    stage = value
-                elif key_lower == 'position':
-                    position = value
-                elif key_lower == 'status':
-                    status = value.lower()  # Normalize status
-                elif key_lower == 'page':
-                    try:
-                        page = int(value)
-                        if page < 1:
-                            page = 1
-                    except ValueError:
-                        pass
+        if args:
+            # Check if last arg is a number (page number)
+            parts = args.split()
+            if len(parts) > 1:
+                try:
+                    # Try to parse last part as page number
+                    potential_page = int(parts[-1])
+                    if potential_page > 0:
+                        page = potential_page
+                        # Remove page number from search query
+                        search = ' '.join(parts[:-1]) if len(parts) > 1 else None
+                    else:
+                        # Not a valid page number, treat everything as search
+                        search = args
+                except ValueError:
+                    # Last part is not a number, treat everything as search
+                    search = args
             else:
-                # If no colon, treat as search term (only if no search already set)
-                if not search:
-                    search = part
+                # Single word - could be search or page number
+                try:
+                    potential_page = int(parts[0])
+                    if potential_page > 0:
+                        page = potential_page
+                        search = None
+                    else:
+                        search = args
+                except ValueError:
+                    # Not a number, treat as search
+                    search = args
         
         # Log the command
         log_command(
@@ -473,21 +415,13 @@ def setup_explore_command(bot: commands.Bot):
             username=username,
             raw_args=args,
             parsed_args={
-                "search": search,
-                "company": company,
-                "stage": stage,
-                "position": position,
-                "status": status,
+                "query": search,
                 "page": page
             }
         )
         
         embed, view = await handle_explore_command(
             search=search,
-            company=company,
-            stage=stage,
-            position=position,
-            status=status,
             page=page
         )
         
