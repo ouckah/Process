@@ -49,3 +49,18 @@ export function useDeleteStage() {
   });
 }
 
+export function useReorderStages() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (stages: Array<{ id: number; order: number }>) => stageApi.reorder(stages),
+    onSuccess: (stages) => {
+      if (stages.length > 0) {
+        const processId = stages[0].process_id;
+        queryClient.invalidateQueries({ queryKey: ['stages', processId] });
+        queryClient.invalidateQueries({ queryKey: ['process', processId, 'detail'] });
+      }
+    },
+  });
+}
+

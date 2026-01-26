@@ -188,6 +188,17 @@ class StageResponse(BaseModel):
         from_attributes = True
 
 
+class StageReorderItem(BaseModel):
+    """Schema for a single stage reorder item."""
+    id: int
+    order: int
+
+
+class StageReorderRequest(BaseModel):
+    """Schema for batch reordering stages."""
+    stages: List[StageReorderItem]
+
+
 class ProcessDetailResponse(ProcessResponse):
     """Schema for process response with stages included."""
     stages: List[StageResponse] = []

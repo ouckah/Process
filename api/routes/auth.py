@@ -424,8 +424,16 @@ def google_oauth_callback(
     frontend_redirect_uri = f"{FRONTEND_URL}/auth/google/callback"
     token_url = "https://oauth2.googleapis.com/token"
     
+    # Debug logging
+    print(f"Google OAuth callback - API_URL: {API_URL}")
+    print(f"Google OAuth callback - Backend redirect URI: {backend_redirect_uri}")
+    print(f"Google OAuth callback - Has GOOGLE_CLIENT_ID: {bool(GOOGLE_CLIENT_ID)}")
+    print(f"Google OAuth callback - Has GOOGLE_CLIENT_SECRET: {bool(GOOGLE_CLIENT_SECRET)}")
+    
     try:
+        print("Starting Google OAuth token exchange...")
         with httpx.Client() as client:
+            print(f"Making token request to: {token_url}")
             token_response = client.post(
                 token_url,
                 data={
@@ -437,6 +445,7 @@ def google_oauth_callback(
                 },
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
+            print(f"Token response status: {token_response.status_code}")
             
             # Check for errors in response
             if token_response.status_code != 200:
@@ -461,18 +470,60 @@ def google_oauth_callback(
                 )
             
             # Get user info from Google
+            print("Fetching user info from Google...")
             user_response = client.get(
                 "https://www.googleapis.com/oauth2/v2/userinfo",
                 headers={"Authorization": f"Bearer {token_data['access_token']}"},
             )
-            google_user = user_response.json()
+            print(f"User info response status: {user_response.status_code}")
+            
+            # Check for errors in user info response
+            if user_response.status_code != 200:
+                error_detail = user_response.text
+                try:
+                    error_json = user_response.json()
+                    error_detail = error_json.get("error_description", error_json.get("error", error_detail))
+                except:
+                    pass
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Failed to get Google user info: {error_detail}"
+                )
+            
+            print("Parsing user info JSON...")
+            try:
+                google_user = user_response.json()
+                print(f"Google user keys: {list(google_user.keys())}")
+            except Exception as e:
+                print(f"ERROR parsing user info JSON: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Failed to parse Google user info response: {str(e)}"
+                )
+            
+            if not google_user.get("id"):
+                print("ERROR: Google user info missing 'id' field")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Google user info missing required fields"
+                )
             
             google_id = str(google_user.get("id"))
             email = google_user.get("email", "")
             raw_username = google_user.get("name", email.split("@")[0] if email else "user")
+            print(f"Google ID: {google_id}, Email: {email}, Raw username: {raw_username}")
             
             # Generate unique, sanitized username from Google name
-            username = generate_unique_username(db, raw_username)
+            print("Generating unique username...")
+            try:
+                username = generate_unique_username(db, raw_username)
+                print(f"Generated username: {username}")
+            except Exception as e:
+                print(f"ERROR generating username: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Failed to generate username: {str(e)}"
+                )
             
             # Parse state to get user_id if linking to existing account
             import json
@@ -486,10 +537,12 @@ def google_oauth_callback(
             user_id = state_data.get("userId")
             
             # Check for existing accounts
+            print("Checking for existing accounts...")
             google_user_obj = get_user_by_google_id(db, google_id)
             email_user = None
             if email:
                 email_user = get_user_by_email(db, email)
+            print(f"Found google_user_obj: {google_user_obj is not None}, email_user: {email_user is not None}")
             
             # Handle account linking/creation (similar to Discord flow)
             if user_id:
@@ -529,20 +582,28 @@ def google_oauth_callback(
                             status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Google account email not available"
                         )
-                    user = User(
-                        google_id=google_id,
-                        email=email,
-                        username=username,
-                    )
-                    db.add(user)
+                user = User(
+                    google_id=google_id,
+                    email=email,
+                    username=username,
+                )
+                db.add(user)
+                try:
                     db.commit()
-                    db.refresh(user)
-                    # Send welcome email (non-blocking)
-                    try:
-                        send_welcome_email(user)
-                    except Exception as e:
-                        # Don't block signup if email fails
-                        pass
+                except Exception as e:
+                    db.rollback()
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail=f"Failed to create user account: {str(e)}"
+                    )
+                db.refresh(user)
+                # Send welcome email (non-blocking)
+                try:
+                    send_welcome_email(user)
+                except Exception as e:
+                    # Don't block signup if email fails
+                    print(f"Warning: Failed to send welcome email: {str(e)}")
+                    pass
             elif google_user_obj and email_user:
                 # Both exist - merge
                 if google_user_obj.id != email_user.id:
@@ -585,13 +646,21 @@ def google_oauth_callback(
                     username=username,
                 )
                 db.add(user)
-                db.commit()
+                try:
+                    db.commit()
+                except Exception as e:
+                    db.rollback()
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail=f"Failed to create user account: {str(e)}"
+                    )
                 db.refresh(user)
                 # Send welcome email (non-blocking)
                 try:
                     send_welcome_email(user)
                 except Exception as e:
                     # Don't block signup if email fails
+                    print(f"Warning: Failed to send welcome email: {str(e)}")
                     pass
             
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -605,10 +674,33 @@ def google_oauth_callback(
                 url=f"{frontend_redirect_uri}?token={access_token}"
             )
             
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
+        # Log the full error for debugging
+        import traceback
+        import sys
+        error_trace = traceback.format_exc()
+        error_type = type(e).__name__
+        error_message = str(e)
+        
+        # Print to stderr so it shows up in logs
+        print(f"\n{'='*60}", file=sys.stderr)
+        print(f"Google OAuth callback ERROR:", file=sys.stderr)
+        print(f"Type: {error_type}", file=sys.stderr)
+        print(f"Message: {error_message}", file=sys.stderr)
+        print(f"Traceback:", file=sys.stderr)
+        print(error_trace, file=sys.stderr)
+        print(f"{'='*60}\n", file=sys.stderr)
+        
+        # Also print to stdout
+        print(f"Google OAuth callback error: {error_type}: {error_message}")
+        print(f"Full traceback:\n{error_trace}")
+        
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Google OAuth error: {str(e)}"
+            detail=f"Google OAuth error: {error_type}: {error_message}"
         )
 
 

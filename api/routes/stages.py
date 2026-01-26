@@ -5,7 +5,7 @@ from typing import List
 
 from database import get_db
 from models import Stage, Process, User, ProcessStatus
-from schemas import StageCreate, StageResponse, StageUpdate
+from schemas import StageCreate, StageResponse, StageUpdate, StageReorderRequest, StageReorderItem
 from auth import get_current_user
 
 
@@ -259,3 +259,77 @@ def delete_stage(
             db.commit()
 
     return StageResponse(**stage_data)
+
+
+@router.post("/reorder", response_model=List[StageResponse])
+def reorder_stages(
+    reorder_data: StageReorderRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Batch reorder stages for a process.
+    Updates the order of multiple stages at once.
+    """
+    if not reorder_data.stages:
+        raise HTTPException(status_code=400, detail="No stages provided for reordering")
+    
+    # Get the first stage to verify process ownership
+    first_stage = db.query(Stage).join(Process).filter(
+        Stage.id == reorder_data.stages[0].id,
+        Process.user_id == current_user.id
+    ).first()
+    
+    if not first_stage:
+        raise HTTPException(status_code=404, detail="Stage not found or access denied")
+    
+    process_id = first_stage.process_id
+    
+    # Verify all stages belong to the same process and user
+    stage_ids = [item.id for item in reorder_data.stages]
+    stages = db.query(Stage).join(Process).filter(
+        Stage.id.in_(stage_ids),
+        Process.user_id == current_user.id,
+        Process.id == process_id
+    ).all()
+    
+    if len(stages) != len(stage_ids):
+        raise HTTPException(status_code=400, detail="Some stages not found or access denied")
+    
+    # Create a mapping of stage_id -> new order
+    order_map = {item.id: item.order for item in reorder_data.stages}
+    
+    # Update orders
+    for stage in stages:
+        if stage.id in order_map:
+            stage.order = order_map[stage.id]
+    
+    db.commit()
+    
+    # Refresh all stages and return them in new order
+    db.refresh(first_stage, ["process"])
+    process = first_stage.process
+    db.refresh(process, ["stages"])
+    
+    # Recalculate process status from stages
+    calculated_status = calculate_status_from_stages(process.stages)
+    if process.status != calculated_status:
+        process.status = calculated_status
+        db.commit()
+    
+    # Return all stages for the process in new order
+    updated_stages = db.query(Stage).filter(Stage.process_id == process_id).order_by(Stage.order).all()
+    
+    return [
+        StageResponse(
+            id=s.id,
+            process_id=s.process_id,
+            stage_name=s.stage_name,
+            stage_date=s.stage_date.isoformat(),
+            notes=s.notes,
+            order=s.order,
+            created_at=s.created_at.isoformat(),
+            updated_at=s.updated_at.isoformat(),
+        )
+        for s in updated_stages
+    ]

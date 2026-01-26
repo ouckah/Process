@@ -212,6 +212,11 @@ export const stageApi = {
     const response = await apiClient.delete<Stage>(`/api/stages/${id}`);
     return response.data;
   },
+
+  reorder: async (stages: Array<{ id: number; order: number }>): Promise<Stage[]> => {
+    const response = await apiClient.post<Stage[]>('/api/stages/reorder', { stages });
+    return response.data;
+  },
 };
 
 // Feedback API

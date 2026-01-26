@@ -19,7 +19,7 @@ export function ProcessTimeline({ process, onStageClick }: ProcessTimelineProps)
             Process Timeline
           </h3>
         </div>
-        <StageTimeline stages={process.stages} onStageClick={onStageClick} />
+        <StageTimeline stages={process.stages} onStageClick={onStageClick} enableReorder={false} />
       </div>
     </div>
   );

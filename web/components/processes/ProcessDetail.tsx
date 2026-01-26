@@ -287,6 +287,8 @@ export function ProcessDetail({ processId, onEdit, isPublic = false }: ProcessDe
               setStageFormOpen(true);
             }) : undefined}
             onDelete={canEdit ? handleDeleteStage : undefined}
+            processId={processId}
+            enableReorder={canEdit}
           />
         </div>
       </motion.div>
