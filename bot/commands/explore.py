@@ -71,13 +71,17 @@ def format_process_for_embed(process: dict, index: int, total: int, frontend_url
     
     # Build process line with link - prettier format
     if process_link:
-        line = f"**{index + 1}. {status_emoji} [{company}]({process_link})**"
+        base_line = f"**{index + 1}. {status_emoji} [{company}]({process_link})**"
     else:
-        line = f"**{index + 1}. {status_emoji} {company}**"
+        base_line = f"**{index + 1}. {status_emoji} {company}**"
     
+    # Add position only if it exists (no extra space if missing)
     if position:
-        line += f" • **{position}**"
+        line = f"{base_line} • **{position}**"
+    else:
+        line = base_line
     
+    # Add username on new line (no extra spacing)
     line += f"\n👤 {user_display}"
     
     # Add stage summary with better formatting
