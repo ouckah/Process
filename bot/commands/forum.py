@@ -54,9 +54,9 @@ def setup_forum_command(bot: commands.Bot):
         await interaction.response.send_message(embed=embed)
     
     # Prefix command
-    @bot.command(name="forum", aliases=["forums", "!forum", "!forums"])
+    @bot.command(name="forum", aliases=["forums"])
     async def forum_command_prefix(ctx: commands.Context):
-        """Forum: p!forum, p!forums, !forum, or !forums"""
+        """Forum: p!forum or p!forums"""
         discord_id = str(ctx.author.id)
         username = ctx.author.name
         

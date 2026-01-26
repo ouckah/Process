@@ -124,7 +124,7 @@ async def on_message(message):
     if message.author.bot:
         return
     
-    # Handle legacy ! commands (!process, !explore, !forum, !forums)
+    # Handle legacy !process command (only legacy command)
     if message.content.startswith("!process"):
         # Create context and call the legacy process handler
         # Channel restrictions are checked inside the command handler via check_command_restrictions
@@ -132,20 +132,6 @@ async def on_message(message):
         # Import here to avoid circular imports
         from commands.add import handle_legacy_process_command
         await handle_legacy_process_command(ctx)
-        return
-    elif message.content.startswith("!explore"):
-        # Handle !explore command
-        ctx = await bot.get_context(message)
-        from commands.explore import handle_explore_command
-        embed = await handle_explore_command()
-        await ctx.send(embed=embed)
-        return
-    elif message.content.startswith("!forum") or message.content.startswith("!forums"):
-        # Handle !forum or !forums command
-        ctx = await bot.get_context(message)
-        from commands.forum import handle_forum_command
-        embed = await handle_forum_command()
-        await ctx.send(embed=embed)
         return
     
     # Process other commands normally
