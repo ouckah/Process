@@ -716,15 +716,14 @@ def get_discord_bot_token(
     """
     discord_id = request.discord_id
     raw_username = request.username
-    # Generate unique, sanitized username
-    username = generate_unique_username(db, raw_username)
     
     # Get or create user by discord_id
     user = get_user_by_discord_id(db, discord_id)
     is_new_user = False
     
     if not user:
-        # Create ghost account
+        # Create ghost account - generate unique username for new user
+        username = generate_unique_username(db, raw_username)
         user = User(
             discord_id=discord_id,
             username=username,
@@ -735,8 +734,10 @@ def get_discord_bot_token(
         db.refresh(user)
         is_new_user = True
     else:
-        # Update username if it's different (bot can update usernames as Discord changes)
-        if user.username != username:
+        # For existing users, only update username if they don't have one
+        # Don't regenerate username for existing users to prevent unwanted "1" suffixes
+        if not user.username:
+            username = generate_unique_username(db, raw_username)
             user.username = username
             db.commit()
             db.refresh(user)
