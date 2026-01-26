@@ -153,6 +153,55 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
+@bot.event
+async def on_command_error(ctx: commands.Context, error: commands.CommandError):
+    """Handle command errors, including command not found with fuzzy suggestions."""
+    # Ignore errors for commands that have their own error handling
+    if hasattr(ctx.command, 'on_error'):
+        return
+    
+    # Handle command not found with fuzzy suggestions
+    if isinstance(error, commands.CommandNotFound):
+        # Get all available command names
+        command_names = [cmd.name for cmd in bot.commands]
+        
+        # Extract the attempted command name from the message
+        message_content = ctx.message.content
+        if message_content.startswith(bot_prefix):
+            attempted_command = message_content[len(bot_prefix):].split()[0] if message_content[len(bot_prefix):].split() else ""
+        else:
+            attempted_command = ""
+        
+        # Get fuzzy suggestions
+        from utils.fuzzy import fuzzy_match_command, format_suggestions
+        from utils.embeds import create_error_embed
+        
+        suggestions = fuzzy_match_command(attempted_command, command_names, n=3, cutoff=0.5)
+        
+        # Build error message
+        error_message = f"Command `{attempted_command}` not found."
+        fields = []
+        
+        if suggestions:
+            suggestion_text = format_suggestions(suggestions, "command")
+            fields.append({"name": "💡 Suggestion", "value": suggestion_text, "inline": False})
+        
+        # Add list of all commands
+        all_commands = ', '.join([f"`{cmd}`" for cmd in sorted(command_names)])
+        fields.append({"name": "Available Commands", "value": all_commands, "inline": False})
+        
+        embed = create_error_embed(
+            "Command Not Found",
+            error_message,
+            fields=fields
+        )
+        await ctx.send(embed=embed)
+        return
+    
+    # For other errors, log them
+    logger.error(f"Command error: {type(error).__name__} - {str(error)}", exc_info=error)
+
+
 # Commands are now loaded and registered in on_ready() to ensure proper initialization
 # See on_ready() function above for command registration
 

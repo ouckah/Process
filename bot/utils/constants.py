@@ -22,17 +22,20 @@ VALID_STAGE_NAMES = [
 DEFAULT_PREFIX = "p!"
 
 
-def match_stage_name(input_stage: str) -> str | None:
+def match_stage_name(input_stage: str) -> tuple:
     """
     Match a stage name input to a valid stage name.
     Supports partial matching (e.g., "Phone" -> "Phone Screen", "Technical" -> "Technical Interview").
     Also supports aliases (e.g., "apply" -> "Applied").
+    Uses fuzzy matching as a fallback to suggest similar stage names.
     
     Args:
         input_stage: The stage name input from the user (case-insensitive)
     
     Returns:
-        The matched full stage name, or None if no match found
+        Tuple of (matched_stage_name, suggestions)
+        - matched_stage_name: The matched full stage name, or None if no match found
+        - suggestions: List of suggested stage names if no exact match (fuzzy matching)
     """
     input_lower = input_stage.lower().strip()
     
@@ -43,14 +46,14 @@ def match_stage_name(input_stage: str) -> str | None:
     
     # Check aliases first
     if input_lower in aliases:
-        return aliases[input_lower]
+        return aliases[input_lower], []
     
     # Create lookup dictionary for exact matches
     exact_lookup = {name.lower(): name for name in VALID_STAGE_NAMES}
     
     # First, try exact match
     if input_lower in exact_lookup:
-        return exact_lookup[input_lower]
+        return exact_lookup[input_lower], []
     
     # Try word-by-word prefix matching (e.g., "Phone" matches "Phone Screen")
     # This allows users to type "Phone" instead of "Phone Screen"
@@ -73,7 +76,12 @@ def match_stage_name(input_stage: str) -> str | None:
         # Sort by length (longest first) to prefer more specific matches
         # If multiple matches, prefer the longest one
         matches.sort(reverse=True)
-        return matches[0][1]
+        return matches[0][1], []
     
-    return None
+    # No exact or prefix match found - try fuzzy matching for suggestions
+    from utils.fuzzy import fuzzy_match_stage
+    valid_stages = [name for name in VALID_STAGE_NAMES if name != 'Other']
+    suggestions = fuzzy_match_stage(input_stage, valid_stages, n=3, cutoff=0.5)
+    
+    return None, suggestions
 

@@ -142,8 +142,8 @@ async def handle_legacy_process_command(ctx: commands.Context):
         potential_stage_parts = parts[-length:]
         potential_stage = ' '.join(potential_stage_parts)
         
-        # Try to match (supports partial matching)
-        matched = match_stage_name(potential_stage)
+        # Try to match (supports partial matching and fuzzy matching)
+        matched, suggestions = match_stage_name(potential_stage)
         if matched:
             # Found a match! Use the matched full stage name
             stage_name = matched
@@ -151,14 +151,27 @@ async def handle_legacy_process_command(ctx: commands.Context):
             break
     
     if not stage_name:
+        # Get suggestions from the last attempted match
+        _, suggestions = match_stage_name(potential_stage)
         valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
+        
+        # Build error message with suggestions
+        error_message = "The stage name you provided doesn't match any valid stage names."
+        fields = [
+            {"name": "Valid Stage Names", "value": valid_names, "inline": False},
+            {"name": "Note", "value": "Custom stages (Other) are not supported via bot commands.", "inline": False}
+        ]
+        
+        # Add suggestions if available
+        if suggestions:
+            from utils.fuzzy import format_suggestions
+            suggestion_text = format_suggestions(suggestions, "stage")
+            fields.insert(0, {"name": "💡 Suggestion", "value": suggestion_text, "inline": False})
+        
         embed = create_error_embed(
             "Invalid Stage Name",
-            "The stage name you provided doesn't match any valid stage names.",
-            fields=[
-                {"name": "Valid Stage Names", "value": valid_names, "inline": False},
-                {"name": "Note", "value": "Custom stages (Other) are not supported via bot commands.", "inline": False}
-            ]
+            error_message,
+            fields=fields
         )
         await ctx.send(embed=embed)
         return
@@ -234,6 +247,32 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
             else:
                 await interaction.response.send_message("Command not available in this channel.", ephemeral=True)
             return
+        
+        # Validate stage name (even though autocomplete should prevent invalid ones)
+        matched_stage, suggestions = match_stage_name(stage_name)
+        if not matched_stage:
+            # Stage name doesn't match - provide suggestions
+            valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
+            fields = [
+                {"name": "Valid Stage Names", "value": valid_names, "inline": False},
+                {"name": "Note", "value": "Custom stages (Other) are not supported via bot commands.", "inline": False}
+            ]
+            
+            if suggestions:
+                from utils.fuzzy import format_suggestions
+                suggestion_text = format_suggestions(suggestions, "stage")
+                fields.insert(0, {"name": "💡 Suggestion", "value": suggestion_text, "inline": False})
+            
+            embed = create_error_embed(
+                "Invalid Stage Name",
+                f"The stage name `{stage_name}` doesn't match any valid stage names.",
+                fields=fields
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        # Use the matched stage name (in case user typed a partial match)
+        stage_name = matched_stage
         
         await interaction.response.defer()
         embed = await handle_add_process(discord_id, username, company_name, stage_name, position)
@@ -317,8 +356,8 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
             potential_stage_parts = parts[-length:]
             potential_stage = ' '.join(potential_stage_parts)
             
-            # Try to match (supports partial matching)
-            matched = match_stage_name(potential_stage)
+            # Try to match (supports partial matching and fuzzy matching)
+            matched, suggestions = match_stage_name(potential_stage)
             if matched:
                 # Found a match! Use the matched full stage name
                 stage_name = matched
@@ -326,14 +365,27 @@ def setup_add_command(bot: commands.Bot, stage_name_autocomplete):
                 break
         
         if not stage_name:
+            # Get suggestions from the last attempted match
+            _, suggestions = match_stage_name(potential_stage)
             valid_names = ', '.join([f"`{name}`" for name in VALID_STAGE_NAMES if name != 'Other'])
+            
+            # Build error message with suggestions
+            error_message = "The stage name you provided doesn't match any valid stage names."
+            fields = [
+                {"name": "Valid Stage Names", "value": valid_names, "inline": False},
+                {"name": "Note", "value": "Custom stages (Other) are not supported via bot commands.", "inline": False}
+            ]
+            
+            # Add suggestions if available
+            if suggestions:
+                from utils.fuzzy import format_suggestions
+                suggestion_text = format_suggestions(suggestions, "stage")
+                fields.insert(0, {"name": "💡 Suggestion", "value": suggestion_text, "inline": False})
+            
             embed = create_error_embed(
                 "Invalid Stage Name",
-                "The stage name you provided doesn't match any valid stage names.",
-                fields=[
-                    {"name": "Valid Stage Names", "value": valid_names, "inline": False},
-                    {"name": "Note", "value": "Custom stages (Other) are not supported via bot commands.", "inline": False}
-                ]
+                error_message,
+                fields=fields
             )
             await ctx.send(embed=embed)
             return
