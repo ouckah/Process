@@ -8,12 +8,16 @@ import { MetricsCards } from './MetricsCards';
 import { StatusChart } from './StatusChart';
 import { SankeyChart } from './SankeyChart';
 import { TimelineChart } from './TimelineChart';
-import { Loader2 } from 'lucide-react';
+import { Loader2, GitBranch } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
 import type { ProcessDetail } from '@/types';
 
 export function ProcessAnalytics() {
   const { data: processes, isLoading } = useProcesses();
+  const { user } = useAuth();
 
   // Fetch all process details in parallel
   const processDetailQueries = useQueries({
@@ -60,12 +64,26 @@ export function ProcessAnalytics() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
       >
-        <div className="inline-block bg-ink-900 dark:bg-cream-50 px-6 py-2 border-4 border-ink-900 dark:border-cream-50 transform -rotate-1 mb-6">
+        <div className="inline-block bg-ink-900 dark:bg-cream-50 px-6 py-2 border-4 border-ink-900 dark:border-cream-50 transform -rotate-1">
           <h2 className="font-display text-2xl font-black uppercase tracking-tight text-cream-50 dark:text-ink-900">
             Analytics Overview
           </h2>
         </div>
+        {user?.username && (
+          <Link href={`/sankey/${user.username}`}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outline"
+                className="border-2 border-ink-900 dark:border-cream-50 font-black uppercase tracking-wider"
+              >
+                <GitBranch className="w-4 h-4 mr-2" />
+                View Sankey
+              </Button>
+            </motion.div>
+          </Link>
+        )}
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
