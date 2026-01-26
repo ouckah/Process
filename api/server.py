@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 import os
@@ -18,7 +20,32 @@ from apscheduler.triggers.interval import IntervalTrigger
 from email_service import process_pending_digests
 import atexit
 
-app = FastAPI()
+# Check if we're in production
+# Railway sets RAILWAY_ENVIRONMENT_NAME, or we can use ENVIRONMENT variable
+# Default to production (safer) - only enable docs in explicit development mode
+ENVIRONMENT = os.getenv("ENVIRONMENT", os.getenv("RAILWAY_ENVIRONMENT_NAME", "production"))
+IS_DEVELOPMENT = (
+    ENVIRONMENT.lower() == "development" or 
+    ENVIRONMENT.lower() == "dev" or
+    os.getenv("ENVIRONMENT", "").lower() == "development"
+)
+IS_PRODUCTION = not IS_DEVELOPMENT
+
+# Disable docs in production for security (only enable in development)
+docs_url = "/docs" if IS_DEVELOPMENT else None
+redoc_url = "/redoc" if IS_DEVELOPMENT else None
+openapi_url = "/openapi.json" if IS_DEVELOPMENT else None
+
+if IS_PRODUCTION:
+    print("🔒 Production mode: API docs disabled for security")
+else:
+    print("🔓 Development mode: API docs enabled at /docs")
+
+app = FastAPI(
+    docs_url=docs_url,
+    redoc_url=redoc_url,
+    openapi_url=openapi_url
+)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -43,6 +70,37 @@ if FRONTEND_URL:
 
 # Log final allowed origins for debugging
 print(f"Final CORS allowed origins: {allowed_origins}")
+
+# Security headers middleware to prevent XSS and other attacks
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        response = await call_next(request)
+        # Add security headers to prevent XSS and other attacks
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # Content-Security-Policy to prevent XSS
+        # Allow same-origin and specific trusted sources only
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self'; "
+            "style-src 'self' 'unsafe-inline'; "  # 'unsafe-inline' needed for some UI libraries
+            "img-src 'self' data: https:; "
+            "font-src 'self' data:; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+        response.headers["Content-Security-Policy"] = csp
+        # Strict-Transport-Security (HSTS) - only in production with HTTPS
+        if IS_PRODUCTION:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response
+
+# Add security headers middleware first (before CORS)
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Add CORS middleware
 app.add_middleware(
