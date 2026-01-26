@@ -70,27 +70,29 @@ def format_process_for_embed(process: dict, index: int, total: int, frontend_url
         process_link = f"{frontend_url}/share/{share_id}"
     
     # Build process line with link - prettier format
+    # Start with company name
     if process_link:
-        line = f"**{index + 1}. {status_emoji} [{company}]({process_link})**"
+        parts = [f"**{index + 1}. {status_emoji} [{company}]({process_link})**"]
     else:
-        line = f"**{index + 1}. {status_emoji} {company}**"
+        parts = [f"**{index + 1}. {status_emoji} {company}**"]
     
     # Add position on new line if it exists (with 💼 emoji)
     if position:
-        line += f"\n💼 **{position}**"
+        parts.append(f"💼 **{position}**")
     
-    # Add username on new line (no extra spacing)
-    line += f"\n👤 {user_display}"
+    # Add username (always on new line, no extra spacing)
+    parts.append(f"👤 {user_display}")
     
-    # Add stage summary with better formatting
+    # Add stage summary if exists
     if stages:
         stage_names = [s.get("stage_name") for s in stages[:3]]
         stage_text = " → ".join(stage_names)
         if len(stages) > 3:
             stage_text += f" → (+{len(stages) - 3} more)"
-        line += f"\n📋 {stage_text}"
+        parts.append(f"📋 {stage_text}")
     
-    return line
+    # Join all parts with single newline (no extra blank lines)
+    return "\n".join(parts)
 
 
 def create_explore_embed(
@@ -126,8 +128,8 @@ def create_explore_embed(
         for i, process in enumerate(processes):
             process_lines.append(format_process_for_embed(process, i, len(processes), frontend_url))
         
-        # Join with double newline between processes, add extra newline at end
-        embed.description = "\n\n".join(process_lines) + "\n\n"
+        # Join with double newline between processes, add extra newline at end for spacing
+        embed.description = "\n\n".join(process_lines) + "\n"
         
         # Add pagination info
         embed.set_footer(
